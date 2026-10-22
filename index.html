@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dagens lunch</title>
+<style>
+  :root { --bg:#14181f; --fg:#f4f1ea; --accent:#f2b84b; --muted:#9aa3b2; }
+  * { box-sizing:border-box; }
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--fg);
+    font-family: "Georgia", "Times New Roman", serif; overflow:hidden; cursor:none; }
+  main { height:100%; padding:5vh 6vw; display:flex; flex-direction:column; }
+  header { display:flex; justify-content:space-between; align-items:baseline;
+    border-bottom:2px solid var(--accent); padding-bottom:2vh; }
+  h1 { margin:0; font-size:6vh; letter-spacing:.04em; text-transform:uppercase; color:var(--accent); }
+  #datum { font-size:3.2vh; color:var(--muted); }
+  #rätter { flex:1; display:flex; flex-direction:column; justify-content:center; gap:4vh; }
+  .rätt { font-size:4.4vh; line-height:1.2; }
+  .rätt small { display:block; font-size:2.8vh; color:var(--muted); margin-top:.6vh; font-style:italic; }
+  .etikett { font-family:system-ui, sans-serif; font-size:2.4vh; text-transform:uppercase;
+    letter-spacing:.15em; color:var(--accent); margin-right:1.2vw; }
+  .meddelande { font-size:6vh; text-align:center; color:var(--muted); }
+  footer { font-size:2.4vh; color:var(--muted); display:flex; justify-content:space-between; }
+</style>
+</head>
+<body>
+<main>
+  <header><h1>Dagens lunch</h1><div id="datum"></div></header>
+  <section id="rätter"></section>
+  <footer><span id="tider"></span><span id="status"></span></footer>
+</main>
+
+<script>
+/* ===== INSTÄLLNINGAR ===== */
+const CONFIG = {
+  // Adress till veckans meny i JSON-format (se exempel längst ner).
+  menuUrl: "menu.json",
+  // Lunchtid: menyn visas under dessa tider. Utanför visas ett meddelande.
+  lunchStart: "11:00",
+  lunchEnd: "14:30",
+  // Visa dagens meny redan från morgonen (true) eller bara under lunchtid (false)?
+  visaHelaDagen: false,
+  // Hur ofta menyn hämtas på nytt (minuter).
+  hämtaVarjeMinut: 15,
+};
+
+const DAGAR = ["söndag","måndag","tisdag","onsdag","torsdag","fredag","lördag"];
+let meny = null;
+
+function isoVecka(d){
+  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  t.setUTCDate(t.getUTCDate() + 4 - (t.getUTCDay() || 7));
+  const y = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+  return Math.ceil(((t - y) / 864e5 + 1) / 7);
+}
+
+function minuter(hhmm){ const [h,m]=hhmm.split(":").map(Number); return h*60+m; }
+
+async function hämtaMeny(){
+  const status = document.getElementById("status");
+  try {
+    const svar = await fetch(CONFIG.menuUrl + "?t=" + Date.now(), {cache:"no-store"});
+    if(!svar.ok) throw new Error(svar.status);
+    meny = await svar.json();
+    try { localStorage.setItem("lunchmeny", JSON.stringify(meny)); } catch(e){}
+    status.textContent = "";
+  } catch(e) {
+    // Faller tillbaka på senast sparade meny om nätet ligger nere
+    try { meny = JSON.parse(localStorage.getItem("lunchmeny")); } catch(_){}
+    status.textContent = meny ? "Visar sparad meny (ingen anslutning)" : "Kunde inte hämta menyn";
+  }
+  rita();
+}
+
+function rita(){
+  const nu = new Date();
+  const dagNamn = DAGAR[nu.getDay()];
+  const nuMin = nu.getHours()*60 + nu.getMinutes();
+  const lt = (meny && meny.lunchtid) || {};
+  const lunchStart = lt.start || CONFIG.lunchStart, lunchEnd = lt.slut || CONFIG.lunchEnd;
+  const start = minuter(lunchStart), slut = minuter(lunchEnd);
+  const el = document.getElementById("rätter");
+
+  document.getElementById("datum").textContent =
+    nu.toLocaleDateString("sv-SE",{weekday:"long",day:"numeric",month:"long"});
+  document.getElementById("tider").textContent =
+    `Lunch serveras ${lunchStart}–${lunchEnd}` + (meny && meny.priser && meny.priser.length ? "  ·  " + meny.priser.join("  ·  ") : "");
+
+  const visa = (html)=>{ el.innerHTML = html; };
+  const msg = (t)=>visa(`<div class="meddelande">${t}</div>`);
+
+  const efterLunch = nuMin >= slut;
+  const förLunch = nuMin < start && !CONFIG.visaHelaDagen;
+
+  if(!meny) return msg("Menyn är inte tillgänglig just nu");
+  if(dagNamn==="lördag" || dagNamn==="söndag") return msg("Vi serverar ingen lunch i helgen");
+  if(efterLunch) return msg("Lunchen är avslutad för idag.<br>Välkommen tillbaka imorgon!");
+  if(förLunch) return msg(`Lunchen serveras från ${lunchStart}`);
+
+  // Visa aldrig förra veckans rätter om ICA inte hunnit uppdatera
+  if(meny.vecka && meny.vecka !== isoVecka(nu)) return msg("Veckans meny är inte publicerad ännu");
+
+  const rätter = (meny.dagar || meny.days || {})[dagNamn];
+  if(!rätter || !rätter.length) return msg("Ingen meny registrerad för idag");
+
+  const veg = meny.vegetariskt
+    ? `<div class="rätt"><span class="etikett">Veckans vegetariska</span>${esc(meny.vegetariskt)}</div>` : "";
+  visa(rätter.map(r=>{
+    const o = typeof r === "string" ? {namn:r} : r;
+    return `<div class="rätt">
+      ${o.typ ? `<span class="etikett">${esc(o.typ)}</span>` : ""}${esc(o.namn)}
+      ${o.beskrivning ? `<small>${esc(o.beskrivning)}</small>` : ""}
+    </div>`;
+  }).join("") + veg);
+}
+
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+hämtaMeny();
+setInterval(hämtaMeny, CONFIG.hämtaVarjeMinut*60*1000); // ny meny hämtas regelbundet
+setInterval(rita, 30*1000);                              // dag/tid kontrolleras var 30:e sekund
+</script>
+</body>
+</html>
+
+<!--
+EXEMPEL PÅ menu.json (ersätt med din veckas meny):
+
+{
+  "vecka": 43,
+  "dagar": {
+    "måndag":  [ {"typ":"Kött","namn":"Köttbullar med potatismos","beskrivning":"Lingon och gräddsås"},
+                 {"typ":"Veg","namn":"Linsgryta med bulgur"} ],
+    "tisdag":  [ "Fiskgratäng", "Vegetarisk lasagne" ],
+    "onsdag":  [ "..." ],
+    "torsdag": [ "..." ],
+    "fredag":  [ "..." ]
+  }
+}
+-->

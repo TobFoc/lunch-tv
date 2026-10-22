@@ -1,0 +1,34 @@
+{
+  "vecka": 43,
+  "lunchtid": {
+    "start": "11:00",
+    "slut": "14:30"
+  },
+  "priser": [
+    "Dagens lunch 129:-",
+    "Salladsbaren 99:-"
+  ],
+  "vegetariskt": "Morots- och halloumiplättar serveras med kesoröra med färska örter och citron samt rucolasallad med rostade pumpafrön och soltorkad tomat",
+  "dagar": {
+    "måndag": [
+      "Rimmad oxbringa serveras med rotmos, pepparrotssås och persilja",
+      "Provencalsk fiskgryta serveras med fänkål, aioli, kräftstjärtar och dill"
+    ],
+    "tisdag": [
+      "Kålpudding serveras med gräddsås, rårörda lingon, pressgurka och persiljeslungad potatis",
+      "Panerad sej serveras med dillslungad potatis, färskoströra med gravlax och kräftstjärtar samt gröna ärtor och citron"
+    ],
+    "onsdag": [
+      "Chicken à la king serveras med paprika, champinjoner, ris samt fräsch sallad på grönt äpple, rotselleri och persilja",
+      "Dagens fångst serveras med Sandefjordsås samt fänkålscrudité med schalottenlök och citron"
+    ],
+    "torsdag": [
+      "Slottsstek serveras med skysås, brysselkål, svart vinbärsgelé samt potatis stekt i ankfett",
+      "Dagens fångst bakad med örtsmör serveras med trattkantarellsås, potatis och morötter"
+    ],
+    "fredag": [
+      "Lasagne al forno serveras med basilika, parmesan och soltorkad tomat",
+      "Dagens fångst serveras gratinerad med vitvinssås, ugnsbakade kvisttomater, handskalade räkor och dill"
+    ]
+  }
+}
