@@ -1,0 +1,65 @@
+name: Uppdatera lunchmeny
+
+# När jobbet körs:
+#  - varje vardag kl. 04:30 och 08:30 UTC (06:30/10:30 sommartid, 05:30/09:30 vintertid)
+#  - när du själv trycker på "Run workflow" i fliken Actions
+#  - när du laddar upp ändrade filer till repot
+on:
+  schedule:
+    - cron: "30 4 * * 1-5"
+    - cron: "30 8 * * 1-5"
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write   # för att spara ny menu.json i repot
+  pages: write      # för att publicera webbsidan
+  id-token: write   # krävs av GitHub Pages
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  uppdatera-och-publicera:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Hämta repots filer
+        uses: actions/checkout@v4
+
+      - name: Installera Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Hämta veckans meny från ICA
+        # Misslyckas hämtningen behålls den senast sparade menu.json
+        run: python hamta_meny.py menu.json || echo "Kunde inte hämta ny meny, behåller den gamla."
+
+      - name: Spara menyn i repot om den ändrats
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add menu.json
+          git diff --cached --quiet || (git commit -m "Uppdatera lunchmeny" && git push)
+
+      - name: Förbered webbplatsen
+        run: |
+          mkdir _site
+          cp index.html menu.json _site/
+
+      - name: Ställ in Pages
+        uses: actions/configure-pages@v5
+
+      - name: Ladda upp webbplatsen
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Publicera
+        id: deployment
+        uses: actions/deploy-pages@v4
