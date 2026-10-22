@@ -8,7 +8,8 @@ varje vardagsmorgon och publiceras på en webbadress som TV:n (UniFi Cast / Smar
 
 | Fil | Vad den gör |
 |---|---|
-| `index.html` | Själva TV-sidan. Visar rätt dags rätter under lunchtid. |
+| `index.html` | Själva TV-sidan, utformad som lunchskylten: betong mot vitt kakel. Visar rätt dags rätter under lunchtid. |
+| `assets/ica-focus-logo.png` | Logotypen som visas nere till höger på skylten. |
 | `hamta_meny.py` | Läser menyn från ICA:s sida och skriver `menu.json`. |
 | `menu.json` | Veckans meny. Skrivs över automatiskt. |
 | `.github/workflows/uppdatera-lunchmeny.yml` | Schemat som kör allt automatiskt på GitHub. |
@@ -18,7 +19,7 @@ varje vardagsmorgon och publiceras på en webbadress som TV:n (UniFi Cast / Smar
 1. **Skapa konto** på [github.com](https://github.com) (gratis).
 2. **Skapa ett repository:** plusset uppe till höger → *New repository*.
    Namn: `lunch-tv`. Välj **Public** (gratis Pages kräver det; menyn är ändå publik på ICA:s sida). Klicka *Create repository*.
-3. **Ladda upp filerna:** *Add file → Upload files*. Dra in `index.html`, `hamta_meny.py`, `menu.json` och `README.md`. Klicka *Commit changes*.
+3. **Ladda upp filerna:** *Add file → Upload files*. Dra in `index.html`, `hamta_meny.py`, `menu.json`, `README.md` och mappen `assets`. Klicka *Commit changes*.
 4. **Lägg till schemat.** Mappen `.github` är dold på Mac/Windows och följer ibland inte med vid uppladdning, så gör så här:
    *Add file → Create new file*, skriv i namnfältet exakt
    `.github/workflows/uppdatera-lunchmeny.yml`
@@ -36,6 +37,19 @@ Därefter sköter det sig självt. Menyn uppdateras varje vardag och sparas som 
 - **TV:n visar "Veckans meny är inte publicerad ännu":** ICA har inte lagt upp den nya veckan. Sidan visar då hellre ingenting än förra veckans rätter. Den rättar sig själv när menyn finns på ICA:s sida.
 - **ICA har ändrat utseendet på sin sida:** skriptet hittar då ingen meny och behåller den gamla. Då behöver `hamta_meny.py` justeras.
 - **Ändra lunchtider eller utseende:** redigera `index.html` (inställningar överst i skriptdelen, `CONFIG`) direkt på GitHub med pennikonen. Ändringen publiceras automatiskt.
+
+## Anpassa utseendet
+
+Överst i skriptdelen av `index.html` finns `CONFIG`:
+
+- `visa: "dag"` visar bara dagens rätter med beskrivning. `visa: "vecka"` visar hela veckan som på skylten, med dagens dag markerad i rött.
+- `underrubrik` är texten under rubriken (nu "Bröd, salladsbuffé & kaffe ingår"). Kontrollera att den stämmer.
+- `pris` låter dig skriva priset själv, till exempel `"99:-"`. Lämnas det som `null` hämtas "Dagens lunch" från ICA:s sida (just nu 129:-).
+
+Test utan att vänta på lunchtid genom att lägga till detta efter adressen:
+`?dag=torsdag&tid=12:00` visar torsdag klockan 12:00, och `?visa=vecka` visar veckovyn.
+
+Typsnittet (Barlow Condensed) laddas från Google Fonts och TV:n måste därför ha internet. Utan det används ett reservtypsnitt, och layouten anpassar sig själv så att allt ryms.
 
 ## Lär dig GitHub: de viktigaste begreppen
 
