@@ -1,5 +1,5 @@
 {
-  "vecka": 44,
+  "vecka": 43,
   "lunchtid": {
     "start": "11:00",
     "slut": "14:30"
@@ -8,27 +8,27 @@
     "Dagens lunch 129:-",
     "Salladsbaren 99:-"
   ],
-  "vegetariskt": "Halloumi Stroganoff serveras med paprika, champinjoner, ris, saltgurka och persilja.",
+  "vegetariskt": "Morots- och halloumiplättar serveras med kesoröra med färska örter och citron samt rucolasallad med rostade pumpafrön och soltorkad tomat",
   "dagar": {
     "måndag": [
-      "Långbakad fläsksida serveras med gräddsås, rostad potatis och haricots verts",
-      "Panerad sej serveras med räkröra, potatis, citron, ärtor och dill"
+      "Rimmad oxbringa serveras med rotmos, pepparrotssås och persilja",
+      "Provencalsk fiskgryta serveras med fänkål, aioli, kräftstjärtar och dill"
     ],
     "tisdag": [
-      "Pannbiff med porter- och löksky samt potatismos och pressgurka",
-      "Dagens fångst serveras med kokt potatis, persiljesås, gräslök, tryffelstekt vitkål och krasse"
+      "Kålpudding serveras med gräddsås, rårörda lingon, pressgurka och persiljeslungad potatis",
+      "Panerad sej serveras med dillslungad potatis, färskoströra med gravlax och kräftstjärtar samt gröna ärtor och citron"
     ],
     "onsdag": [
-      "Coq au vin – fransk kycklinggryta med rökt sidfläsk, champinjoner, lök och potatismos",
-      "Asiatiska fish cakes serveras med chilimajonnäs, ris, koriander, böngroddar, chili och lime"
+      "Chicken à la king serveras med paprika, champinjoner, ris samt fräsch sallad på grönt äpple, rotselleri och persilja",
+      "Dagens fångst serveras med Sandefjordsås samt fänkålscrudité med schalottenlök och citron"
     ],
     "torsdag": [
-      "Dansk fläskstek med knaprig svål serveras med brune kartoffler, rödkål och gräddsås",
-      "Stekt Operaströmming med potatismos, brynt smör, rårörda lingon och dill"
+      "Slottsstek serveras med skysås, brysselkål, svart vinbärsgelé samt potatis stekt i ankfett",
+      "Dagens fångst bakad med örtsmör serveras med trattkantarellsås, potatis och morötter"
     ],
     "fredag": [
-      "Indonesisk biff Rendang med kokosgrädde och citrongräs serveras med saffransris, koriander, salladslök och chili",
-      "Dagens fångst serveras parmesanöverbakad med vitlök och pangrattato samt rostad fänkål och risoni med kycklingsky och tomat"
+      "Lasagne al forno serveras med basilika, parmesan och soltorkad tomat",
+      "Dagens fångst serveras gratinerad med vitvinssås, ugnsbakade kvisttomater, handskalade räkor och dill"
     ]
   }
 }

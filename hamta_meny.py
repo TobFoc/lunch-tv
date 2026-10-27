@@ -2,11 +2,13 @@
 """Hämtar veckans lunchmeny från ICA Focus sida och sparar den som menu.json.
 
 Kör: python3 hamta_meny.py [utfil]   (standard: menu.json)
+Skapar även en tom allergener.json när en ny vecka börjar (fylls i av köket).
 Schemalägg t.ex. med cron varje morgon:
     0 6 * * 1-5  cd /sökväg/till/mappen && python3 hamta_meny.py
 """
 import html
 import json
+import os
 import re
 import sys
 import urllib.request
@@ -61,6 +63,39 @@ def tolka(rader):
     return meny
 
 
+ALLERGENINFO = (
+    "Fyll i allergener för varje rätt. Ersätt null med en lista, t.ex. [\"gluten\", \"laktos\"]. "
+    "[] betyder att rätten inte innehåller några av de 14 allergenerna. null betyder att uppgift saknas "
+    "och då visas 'fråga personalen'. Giltiga ord: gluten, laktos (mjölk), nötter, ägg, fisk, skaldjur, "
+    "blötdjur, selleri, senap, soja, sesam, jordnötter, lupin, sulfit. Rättens namn måste stå exakt som på TV:n."
+)
+
+
+def ratt_namn(rad):
+    m = re.match(r"^(.*?)\s+serveras\s+", rad, re.I)
+    return (m.group(1) if m else rad).strip()
+
+
+def allergenmall(meny, sokvag):
+    """Skapar en tom mall när en ny vecka börjar. Skriver aldrig över en fil för samma vecka
+    och gissar aldrig några allergener: allt börjar som null (= fråga personalen)."""
+    try:
+        with open(sokvag, encoding="utf-8") as f:
+            if json.load(f).get("vecka") == meny["vecka"]:
+                return False
+    except (OSError, ValueError):
+        pass
+    ny = {
+        "_info": ALLERGENINFO,
+        "vecka": meny["vecka"],
+        "dagar": {d: {ratt_namn(r): None for r in rader} for d, rader in meny["dagar"].items()},
+        "vegetariskt": None,
+    }
+    with open(sokvag, "w", encoding="utf-8") as f:
+        json.dump(ny, f, ensure_ascii=False, indent=2)
+    return True
+
+
 def main():
     ut = sys.argv[1] if len(sys.argv) > 1 else "menu.json"
     meny = tolka(till_rader(hamta_html()))
@@ -69,6 +104,9 @@ def main():
     with open(ut, "w", encoding="utf-8") as f:
         json.dump(meny, f, ensure_ascii=False, indent=2)
     print(f"Sparade vecka {meny['vecka']} till {ut}")
+    mall = os.path.join(os.path.dirname(ut) or ".", "allergener.json")
+    if allergenmall(meny, mall):
+        print(f"Ny vecka: skapade tom allergenmall i {mall}. Fyll i den!")
 
 
 if __name__ == "__main__":

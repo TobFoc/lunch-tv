@@ -1,0 +1,27 @@
+{
+  "_info": "Fyll i allergener för varje rätt. Ersätt null med en lista, t.ex. [\"gluten\", \"laktos\"]. [] betyder att rätten inte innehåller några av de 14 allergenerna. null betyder att uppgift saknas och då visas 'fråga personalen'. Giltiga ord: gluten, laktos (mjölk), nötter, ägg, fisk, skaldjur, blötdjur, selleri, senap, soja, sesam, jordnötter, lupin, sulfit. Rättens namn måste stå exakt som på TV:n.",
+  "vecka": 43,
+  "dagar": {
+    "måndag": {
+      "Rimmad oxbringa": null,
+      "Provencalsk fiskgryta": null
+    },
+    "tisdag": {
+      "Kålpudding": null,
+      "Panerad sej": null
+    },
+    "onsdag": {
+      "Chicken à la king": null,
+      "Dagens fångst": null
+    },
+    "torsdag": {
+      "Slottsstek": null,
+      "Dagens fångst bakad med örtsmör": null
+    },
+    "fredag": {
+      "Lasagne al forno": null,
+      "Dagens fångst": null
+    }
+  },
+  "vegetariskt": null
+}

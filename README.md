@@ -9,9 +9,10 @@ varje vardagsmorgon och publiceras på en webbadress som TV:n (UniFi Cast / Smar
 | Fil | Vad den gör |
 |---|---|
 | `index.html` | Själva TV-sidan, utformad som lunchskylten: betong mot vitt kakel. Visar rätt dags rätter under lunchtid. |
-| `assets/ica-focus-logo.png` | Logotypen som visas nere till höger på skylten. |
+| `assets/ica-focus-logo.png` | Den kvadratiska ICA Focus-logotypen nere till höger. Byt ut filen (samma namn) för att byta logotyp. |
 | `hamta_meny.py` | Läser menyn från ICA:s sida och skriver `menu.json`. |
 | `menu.json` | Veckans meny. Skrivs över automatiskt. |
+| `allergener.json` | Allergener per rätt. **Fylls i av köket varje vecka**, se avsnittet Allergener nedan. |
 | `.github/workflows/uppdatera-lunchmeny.yml` | Schemat som kör allt automatiskt på GitHub. |
 
 ## Sätta upp (ca 15 minuter)
@@ -19,7 +20,7 @@ varje vardagsmorgon och publiceras på en webbadress som TV:n (UniFi Cast / Smar
 1. **Skapa konto** på [github.com](https://github.com) (gratis).
 2. **Skapa ett repository:** plusset uppe till höger → *New repository*.
    Namn: `lunch-tv`. Välj **Public** (gratis Pages kräver det; menyn är ändå publik på ICA:s sida). Klicka *Create repository*.
-3. **Ladda upp filerna:** *Add file → Upload files*. Dra in `index.html`, `hamta_meny.py`, `menu.json`, `README.md` och mappen `assets`. Klicka *Commit changes*.
+3. **Ladda upp filerna:** *Add file → Upload files*. Dra in `index.html`, `hamta_meny.py`, `menu.json`, `allergener.json`, `README.md` och mappen `assets`. Klicka *Commit changes*.
 4. **Lägg till schemat.** Mappen `.github` är dold på Mac/Windows och följer ibland inte med vid uppladdning, så gör så här:
    *Add file → Create new file*, skriv i namnfältet exakt
    `.github/workflows/uppdatera-lunchmeny.yml`
@@ -38,16 +39,46 @@ Därefter sköter det sig självt. Menyn uppdateras varje vardag och sparas som 
 - **ICA har ändrat utseendet på sin sida:** skriptet hittar då ingen meny och behåller den gamla. Då behöver `hamta_meny.py` justeras.
 - **Ändra lunchtider eller utseende:** redigera `index.html` (inställningar överst i skriptdelen, `CONFIG`) direkt på GitHub med pennikonen. Ändringen publiceras automatiskt.
 
+## Allergener
+
+Under varje rätt visas **Allergener:** med en symbol och ett ord per allergen. Menyn på ICA:s sida innehåller ingen
+allergeninformation, och den **gissas aldrig**. Uppgifterna kommer från `allergener.json`, som köket fyller i.
+
+**Varje vecka (tar någon minut):**
+1. När den nya menyn har hämtats (vardagsmorgon) skapas en ny `allergener.json` med alla veckans rätter och `null` bakom varje.
+2. Öppna filen på github.com, tryck på pennikonen och byt `null` mot en lista, till exempel
+   `"Slottsstek": ["gluten", "laktos"]`.
+3. Tryck *Commit changes*. Sidan uppdateras inom ett par minuter.
+
+**Vad som visas på TV:n**
+
+| I filen | På TV:n |
+|---|---|
+| `["gluten", "laktos"]` | Symbol och ord för varje allergen |
+| `[]` | "Allergener: inga" (rätten innehåller inget av de 14) |
+| `null`, rätten saknas, eller filen är från en annan vecka | "Allergener: fråga personalen" |
+| Ett ord som inte känns igen | Visas med ett utropstecken, så att uppgiften inte försvinner |
+
+Giltiga ord (de 14 allergenerna enligt EU): `gluten`, `laktos` (eller `mjölk`), `nötter`, `ägg`, `fisk`, `skaldjur`,
+`blötdjur`, `selleri`, `senap`, `soja`, `sesam`, `jordnötter`, `lupin`, `sulfit`.
+Rättens namn måste stå exakt som på TV:n, så ändra inte namnen i filen.
+Du kan även skriva flera allergener som en text: `"gluten, laktos"`.
+
+Allergenuppgifterna är köksets ansvar och måste stämma med recepten. Kontrollera dem varje vecka.
+
 ## Anpassa utseendet
 
 Överst i skriptdelen av `index.html` finns `CONFIG`:
 
 - `visa: "dag"` visar bara dagens rätter med beskrivning. `visa: "vecka"` visar hela veckan som på skylten, med dagens dag markerad i rött.
 - `underrubrik` är texten under rubriken (nu "Bröd, salladsbuffé & kaffe ingår"). Kontrollera att den stämmer.
+- `notis` är texten längst ner (nu "Fråga gärna personalen om var köttet och fisken kommer från").
+- `visaAllergener: false` döljer allergenraderna helt.
 - `pris` låter dig skriva priset själv, till exempel `"99:-"`. Lämnas det som `null` hämtas "Dagens lunch" från ICA:s sida (just nu 129:-).
 
 Test utan att vänta på lunchtid genom att lägga till detta efter adressen:
 `?dag=torsdag&tid=12:00` visar torsdag klockan 12:00, och `?visa=vecka` visar veckovyn.
+I veckovyn visas allergenerna som bara symboler efter varje rätt, med en teckenförklaring längst ner. Dagsvyn är lättast att läsa på en TV.
 
 Typsnittet (Barlow Condensed) laddas från Google Fonts och TV:n måste därför ha internet. Utan det används ett reservtypsnitt, och layouten anpassar sig själv så att allt ryms.
 
