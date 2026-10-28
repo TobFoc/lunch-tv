@@ -72,8 +72,12 @@ ALLERGENINFO = (
 
 
 def ratt_namn(rad):
-    m = re.match(r"^(.*?)\s+serveras\s+", rad, re.I)
-    return (m.group(1) if m else rad).strip()
+    """Samma uppdelning som index.html: namnet är texten före 'serveras', ett tankstreck eller 'med'."""
+    for monster in (r"^(.*?)\s+serveras\s+", r"^(.*?)\s+[–-]\s+", r"^(.*?)\s+med\s+"):
+        m = re.match(monster, rad, re.I)
+        if m:
+            return m.group(1).strip()
+    return rad.strip()
 
 
 def allergenmall(meny, sokvag):
