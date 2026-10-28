@@ -12,7 +12,7 @@
     },
     "onsdag": {
       "Coq au vin": "Laktos,"
-      "Asiatiska fish cakes": Gluten, Ägg, Soja,
+      "Asiatiska fish cakes": "Gluten, Ägg, Soja,"
     },
     "torsdag": {
       "Dansk fläskstek med knaprig svål": null,
@@ -23,5 +23,5 @@
       "Dagens fångst": null,
     }
   },
-  "vegetariskt": \"Laktos\"
+  "vegetariskt": "Laktos"
 }
