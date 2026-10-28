@@ -50,7 +50,8 @@ jobs:
       - name: Förbered webbplatsen
         run: |
           mkdir _site
-          cp -r index.html menu.json allergener.json assets _site/
+          # Allt i repot utom git, schemat, README och skriptet publiceras (så nya filer följer med automatiskt)
+          rsync -a --exclude='.git' --exclude='.github' --exclude='_site' --exclude='README.md' --exclude='hamta_meny.py' ./ _site/
 
       - name: Ställ in Pages
         uses: actions/configure-pages@v5
