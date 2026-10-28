@@ -3,7 +3,7 @@
   "tid": { "start": "07:00", "slut": "10:00" },
   "dagar": ["måndag", "tisdag", "onsdag", "torsdag", "fredag"],
   "rubrik": "Frukost",
-  "visaAllergener": true,
+  "visaAllergener": false,
   "rader": [
     { "namn": "Frukostbuffé", "pris": "79:-", "beskrivning": "Inkl gröt, ägg & bacon" },
     { "namn": "Kaffe & fralla", "pris": "40:-", "beskrivning": "1 kaffe & 1 fralla. Frallan gör du själv" },
