@@ -12,6 +12,8 @@ varje vardagsmorgon och publiceras på en webbadress som TV:n (UniFi Cast / Smar
 | `assets/ica-focus-logo.png` | Den kvadratiska ICA Focus-logotypen nere till höger. Byt ut filen (samma namn) för att byta logotyp. |
 | `hamta_meny.py` | Läser menyn från ICA:s sida och skriver `menu.json`. |
 | `menu.json` | Veckans meny. Skrivs över automatiskt. |
+| `admin.html` | Backoffice för personalen: allergener, frukost och hockey utan GitHub-konto. Se `BACKOFFICE.md`. |
+| `worker/worker.js` | Sparfunktionen som backofficet använder (körs på Cloudflare). Se `BACKOFFICE.md`. |
 | `hockey.json` | Frölundas hemmamatcher (datum) och hockeymenyn med priser. Lägg till/ta bort datum här. |
 | `frukost.json` | Frukostmenyn: tider, dagar, priser och texter. Ändra här när något ändras. |
 | `allergener.json` | Allergener per rätt. **Fylls i av köket varje vecka**, se avsnittet Allergener nedan. |
@@ -32,6 +34,8 @@ varje vardagsmorgon och publiceras på en webbadress som TV:n (UniFi Cast / Smar
 7. **Din adress** blir `https://DITT-ANVÄNDARNAMN.github.io/lunch-tv/`. Öppna den i en webbläsare och kontrollera att dagens lunch visas.
 8. **Peka TV:n mot adressen** (UniFi Connect eller SmartSign: lägg in adressen som webbsida/URL-innehåll).
 
+Vill personalen ändra allergener, frukost och hockey utan GitHub: se `BACKOFFICE.md`.
+
 Därefter sköter det sig självt. Menyn uppdateras varje vardag och sparas som en ny version i repot när något ändrats.
 
 ## Om något blir fel
@@ -47,7 +51,7 @@ Sidan väljer själv vy efter klockan (`visa: "auto"` i `CONFIG`):
 
 | Tid | Vy |
 |---|---|
-| Frölundas hemmamatchdagar 16:30–23:00 | **Hockeykväll**: mörk skylt med priser och paketpris (datum och priser i `hockey.json`) |
+| Frölundas hemmamatchdagar 16:30 till matchstart | **Hockeykväll**: mörk skylt med priser och paketpris (datum och priser i `hockey.json`) |
 | Vardagar 07:00–10:00 | **Frukost**: numrerad prislista från `frukost.json` |
 | Vardagar under lunchtid (11:00–14:30) | **Dagens lunch**: dagens rätter med beskrivning och allergener |
 | Resten av tiden, även helger | **Veckans lunch**: hela veckans meny, dagens rad markerad i rött tills lunchen är slut |
@@ -62,10 +66,14 @@ På frukostskylten står "Allergener: fråga personalen" under varje rad tills d
 
 ## Hockeykvällar
 
-På dagar som står i `datum` i `hockey.json` byter skylten automatiskt till hockeyvyn kl 16:30 och visar den till 23:00.
-Före 16:30 står det "Hockeykväll i kväll: uppladdning från 16:30" i fotraden. Datumen skrivs `"ÅÅÅÅ-MM-DD"` med kommatecken emellan.
+På dagar som står i `datum` i `hockey.json` gäller detta:
+- **Hela dagen fram till matchstart** visas en liten banner under rubriken, oavsett om skylten visar frukost, lunch eller veckan: "Hockeykväll i restaurangen! Uppladdning 16:30 till matchstart 19:00 ikväll".
+- **16:30 till matchstart** byter skylten till hockeyvyn med priser och paketpris.
+- **Efter matchstart** visas inget om hockey, och skylten går tillbaka till vanliga vyn.
+
+Matchstarten står i `matchstart` (nu `"19:00"`), uppladdningens start i `tid.start`. Datumen skrivs `"ÅÅÅÅ-MM-DD"` med kommatecken emellan.
 Schemat är hämtat från goteborg.com och omfattar vardagsmatcher; lördagsmatcher (15:15) är inte med. Klubben kan flytta matcher, så kontrollera ibland.
-Test: `?hockey=hockey.json&visa=hockey` visar skylten direkt.
+Test: `?hockey=hockey.json&visa=hockey` visar hockeyskylten direkt.
 
 ## Allergener
 

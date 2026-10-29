@@ -121,6 +121,8 @@
   .hpris { margin-left: auto; font-weight: 800; font-size: calc(var(--u) * 8 * var(--k, 1)); line-height: 1; color: #fff; white-space: nowrap; }
   .hpaket { margin-top: calc(var(--u) * 2.2 * var(--k, 1)); display: flex; align-items: baseline; gap: calc(var(--u) * 2); background: #e2d77a; color: #0b1733; padding: calc(var(--u) * 1.4 * var(--k, 1)) calc(var(--u) * 2.4); }
   .hpaket .hnamn, .hpaket .hpris { color: #0b1733; }
+  .banner { display: none; align-items: center; gap: calc(var(--u) * 2); margin-top: calc(var(--u) * 1.2); padding: calc(var(--u) * .9) calc(var(--u) * 2.4); background: #0b1733; color: #e2d77a; border-left: calc(var(--u) * 1.2) solid #e2d77a; font-weight: 700; font-size: calc(var(--u) * 3.4); line-height: 1.1; white-space: nowrap; justify-content: space-between; }
+  .banner b { color: #fff; font-weight: 800; text-transform: uppercase; }
   .skylt.hockey #fot, .skylt.hockey .notis { display: none; }
   footer { display: flex; justify-content: space-between; align-items: flex-end; margin-top: calc(var(--u) * 1); }
   #fot { font-weight: 600; font-size: calc(var(--u) * 3.1); }
@@ -155,6 +157,7 @@
 <main class="skylt">
   <h1 id="rubrik" class="fit" data-pct="100"></h1>
   <div class="rad2"><div class="under" id="under"></div><div class="pris fit" id="pris" data-pct="45"></div></div>
+  <div class="banner" id="banner"></div>
   <section id="rätter"></section>
   <footer>
     <div><div id="fot"></div><div class="notis" id="notis"></div><div id="status"></div></div>
@@ -324,11 +327,13 @@ function dagLista(dagar){
 /* Vad som visas när (VISA = "auto"):
    frukost (om frukost.json finns), dagens lunch under lunchtid på vardagar, annars hela veckans lunchmeny. */
 function iso(d){ return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+const matchstart = () => (hockey && (hockey.matchstart || "19:00")) || "19:00";
 const matchIdag = n => !!(hockey && Array.isArray(hockey.datum) && hockey.datum.includes(iso(n)));
+const matchKväll = n => matchIdag(n) && n.getHours()*60 + n.getMinutes() < minuter(matchstart());   // tills matchen startar
 function bestämLäge(n, lunchStart, lunchEnd){
   if(VISA !== "auto") return VISA;
   const min = n.getHours()*60 + n.getMinutes(), dag = n.getDay();
-  if(hockey && hockey.tid && matchIdag(n) && min >= minuter(hockey.tid.start) && min < minuter(hockey.tid.slut)) return "hockey";
+  if(hockey && hockey.tid && matchKväll(n) && min >= minuter(hockey.tid.start)) return "hockey";
   if(frukost && frukost.tid && (frukost.dagar || VECKODAGAR).includes(DAGAR[dag]) &&
      min >= minuter(frukost.tid.start) && min < minuter(frukost.tid.slut)) return "frukost";
   if(dag !== 0 && dag !== 6 && min >= minuter(lunchStart) && min < minuter(lunchEnd)) return "dag";
@@ -357,9 +362,12 @@ function rita(){
   const sallad = pris("salladsbaren");
   document.getElementById("fot").innerHTML =
     (fr && läge !== "frukost" ? `<div>Frukostbuffé serveras ${esc(frDagar)} ${esc(frTid)}</div>` : "") +
-    `<div>Lunch serveras ${esc(lunchStart)}–${esc(lunchEnd)}` + (sallad ? `  ·  Salladsbaren ${esc(sallad)}` : "") + `</div>` +
-    (hockey && hockey.tid && matchIdag(n) && läge !== "hockey" && nuMin < minuter(hockey.tid.slut) ? `<div>Hockeykväll i kväll: uppladdning från ${esc(hockey.tid.start)}</div>` : "");
+    `<div>Lunch serveras ${esc(lunchStart)}–${esc(lunchEnd)}` + (sallad ? `  ·  Salladsbaren ${esc(sallad)}` : "") + `</div>`;
   document.getElementById("notis").textContent = CONFIG.notis || "";
+  const bn = document.getElementById("banner");
+  const visaBanner = läge !== "hockey" && hockey && hockey.tid && matchKväll(n);
+  bn.style.display = visaBanner ? "flex" : "none";
+  if(visaBanner) bn.innerHTML = `<b>${esc(hockey.banner || "Hockeykväll i restaurangen!")}</b><span>Uppladdning ${esc(hockey.tid.start)} till matchstart ${esc(matchstart())} ikväll</span>`;
 
   const msg = (t, s) => { el.className = ""; el.innerHTML = `<div class="msg"><div class="t">${t}</div>${s ? `<div class="s">${s}</div>` : ""}</div>`; passa(); };
 

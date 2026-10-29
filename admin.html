@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Backoffice – Lunch-TV</title>
+<style>
+  :root { --svart:#111; --röd:#c8161d; --grön:#26722e; --grå:#e9e9e6; --linje:#cfcfca; --bg:#f4f4f2; --gul:#fff3c4; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--svart); font: 17px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+  header { background: var(--svart); color: #fff; padding: 12px 16px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 5; }
+  header h1 { margin: 0; font-size: 19px; flex: 1; }
+  header img { height: 34px; width: 34px; }
+  main { max-width: 900px; margin: 0 auto; padding: 14px 14px 120px; }
+  button, input, select { font: inherit; }
+  button { min-height: 46px; padding: 8px 16px; border: 1px solid var(--svart); background: #fff; color: var(--svart); border-radius: 8px; cursor: pointer; }
+  button.prim { background: var(--svart); color: #fff; font-weight: 700; }
+  button.liten { min-height: 38px; padding: 4px 12px; }
+  button.fara { color: var(--röd); border-color: var(--röd); }
+  button:disabled { opacity: .45; }
+  input[type=text], input[type=password], input[type=time], input[type=date], input[type=number] { width: 100%; min-height: 46px; padding: 8px 10px; border: 1px solid #8c8c86; border-radius: 8px; background: #fff; }
+  label.f { display: block; font-weight: 600; margin: 12px 0 4px; }
+  .tabs { display: flex; gap: 6px; margin: 4px 0 14px; flex-wrap: wrap; }
+  .tabs button { flex: 1; min-width: 120px; font-weight: 700; }
+  .tabs button.on { background: var(--svart); color: #fff; }
+  .kort { background: #fff; border: 1px solid var(--linje); border-radius: 10px; padding: 12px 14px; margin: 10px 0; }
+  .kort h3 { margin: 0 0 2px; font-size: 18px; }
+  h2 { margin: 18px 0 4px; font-size: 21px; text-transform: capitalize; }
+  h2.dag { border-bottom: 3px solid var(--svart); padding-bottom: 3px; }
+  .info { background: var(--gul); border: 1px solid #e0c96a; border-radius: 8px; padding: 10px 12px; margin: 10px 0; }
+  .fel { background: #fde4e4; border: 1px solid #e29a9a; color: #7a1010; border-radius: 8px; padding: 10px 12px; margin: 10px 0; }
+  .pill { display: inline-block; font-size: 14px; font-weight: 700; padding: 2px 10px; border-radius: 99px; background: var(--grå); }
+  .pill.ok { background: #d5ecd7; color: #174a1c; }
+  .pill.sak { background: #fde4e4; color: #7a1010; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 8px; }
+  .chip { display: inline-flex; align-items: center; gap: 8px; min-height: 46px; padding: 4px 14px 4px 6px; border: 2px solid var(--linje); border-radius: 99px; background: #fff; font-weight: 600; }
+  .chip .ic { width: 34px; height: 34px; border-radius: 50%; background: #9a9a95; display: inline-flex; align-items: center; justify-content: center; }
+  .chip .ic svg { width: 68%; height: 68%; }
+  .chip.on { border-color: var(--svart); background: #fff; }
+  .chip.on .ic { background: var(--svart); }
+  .rad { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .rad > * { flex: 1; min-width: 120px; }
+  .rad > button { flex: none; min-width: 0; }
+  .sticky { position: fixed; left: 0; right: 0; bottom: 0; background: #fff; border-top: 1px solid var(--linje); padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); display: flex; gap: 10px; align-items: center; z-index: 6; }
+  .sticky .txt { flex: 1; font-size: 15px; }
+  .sticky button { min-width: 150px; }
+  .toast { position: fixed; left: 50%; bottom: 90px; transform: translateX(-50%); background: var(--grön); color: #fff; padding: 12px 18px; border-radius: 10px; z-index: 9; max-width: 90vw; box-shadow: 0 4px 14px rgba(0,0,0,.3); }
+  .toast.fel { background: var(--röd); color: #fff; border: 0; }
+  .dagar label { display: inline-flex; align-items: center; gap: 6px; margin-right: 14px; min-height: 40px; }
+  .dagar input, .kryss input { width: 22px; height: 22px; }
+  .kryss { display: flex; align-items: center; gap: 10px; margin: 12px 0; }
+  .datum { display: inline-flex; align-items: center; gap: 6px; background: #fff; border: 1px solid var(--linje); border-radius: 8px; padding: 4px 4px 4px 12px; margin: 4px 6px 4px 0; }
+  .datum.gammal { opacity: .45; }
+  .datum.idag { border-color: var(--röd); font-weight: 700; }
+  .dim { color: #55554f; font-size: 15px; }
+  #login { max-width: 420px; margin: 12vh auto; padding: 0 16px; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="a-gluten" viewBox="0 0 24 24"><g fill="#fff"><ellipse cx="12" cy="3.8" rx="1.7" ry="2.7"/><ellipse cx="8.5" cy="8" rx="1.6" ry="2.8" transform="rotate(-40 8.5 8)"/><ellipse cx="15.5" cy="8" rx="1.6" ry="2.8" transform="rotate(40 15.5 8)"/><ellipse cx="8.5" cy="13" rx="1.6" ry="2.8" transform="rotate(-40 8.5 13)"/><ellipse cx="15.5" cy="13" rx="1.6" ry="2.8" transform="rotate(40 15.5 13)"/><ellipse cx="9" cy="18" rx="1.5" ry="2.6" transform="rotate(-40 9 18)"/><ellipse cx="15" cy="18" rx="1.5" ry="2.6" transform="rotate(40 15 18)"/></g><path d="M12 8v15" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></symbol>
+    <symbol id="a-laktos" viewBox="0 0 24 24"><path d="M6 21V9.8L8.6 3.4h6.8L18 9.8V21z" fill="#fff"/><path d="M6 9.8h12" stroke="#111" stroke-width="1.3"/><path d="M12 12.4c0 0-2.5 2.8-2.5 4.5a2.5 2.5 0 0 0 5 0c0-1.7-2.5-4.5-2.5-4.5z" fill="#111"/></symbol>
+    <symbol id="a-notter" viewBox="0 0 24 24"><path d="M12 21.5c-4 0-6.6-3.1-6.6-7 0-1.4.4-2.6 1.2-3.5h10.8c.8.9 1.2 2.1 1.2 3.5 0 3.9-2.6 7-6.6 7z" fill="#fff"/><path d="M5.7 11.2C5.7 7.6 8.4 5 12 5s6.3 2.6 6.3 6.2z" fill="#fff"/><path d="M5.7 11.2h12.6" stroke="#111" stroke-width="1.4"/><path d="M12 5V2.6" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/></symbol>
+    <symbol id="a-agg" viewBox="0 0 24 24"><path d="M12 2.6c-3.8 0-6.7 6-6.7 10.6a6.7 6.7 0 0 0 13.4 0C18.7 8.6 15.8 2.6 12 2.6z" fill="#fff"/></symbol>
+    <symbol id="a-fisk" viewBox="0 0 24 24"><path d="M2 12c2.7-4.4 7.6-5.9 12-3.3L20.5 6v12L14 15.3C9.6 17.9 4.7 16.4 2 12z" fill="#fff"/><circle cx="7.2" cy="11" r="1.2" fill="#111"/></symbol>
+    <symbol id="a-skaldjur" viewBox="0 0 24 24"><path d="M6.5 18C3.2 14 6 5.8 14 5.8c3.6 0 5.6 2.6 5.6 5.5 0 2.6-2 4.2-4.2 4.2" stroke="#fff" stroke-width="3.4" stroke-linecap="round" fill="none"/><path d="M5.5 19.5 3 22M8 20.5 7.2 23.4M4 17 1.2 18.4" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/><circle cx="17.2" cy="9.3" r="1" fill="#111"/></symbol>
+    <symbol id="a-blotdjur" viewBox="0 0 24 24"><path d="M12 20.5 3.2 11.2a9.2 9.2 0 0 1 17.6 0z" fill="#fff"/><path d="M12 20V7.5M12 20 7 8.8M12 20l5-11.2M12 20 4.6 12.6M12 20l7.4-7.4" stroke="#111" stroke-width="1.1"/><rect x="8.6" y="20" width="6.8" height="2.2" rx="1.1" fill="#fff"/></symbol>
+    <symbol id="a-selleri" viewBox="0 0 24 24"><path d="M12 22.5V9.5M12 22.5 7 10.5M12 22.5l5-12" stroke="#fff" stroke-width="2.3" stroke-linecap="round"/><g fill="#fff"><ellipse cx="12" cy="5.6" rx="1.9" ry="3.4"/><ellipse cx="6.8" cy="7.2" rx="1.8" ry="3.2" transform="rotate(-32 6.8 7.2)"/><ellipse cx="17.2" cy="7.2" rx="1.8" ry="3.2" transform="rotate(32 17.2 7.2)"/><ellipse cx="9.3" cy="6" rx="1.4" ry="2.6" transform="rotate(-14 9.3 6)"/><ellipse cx="14.7" cy="6" rx="1.4" ry="2.6" transform="rotate(14 14.7 6)"/></g></symbol>
+    <symbol id="a-senap" viewBox="0 0 24 24"><path d="M10.2 9.6V6.8L12 3.4l1.8 3.4v2.8z" fill="#fff"/><path d="M8 9.6h8V20a1.7 1.7 0 0 1-1.7 1.7H9.7A1.7 1.7 0 0 1 8 20z" fill="#fff"/><rect x="9.4" y="13" width="5.2" height="5" rx=".8" fill="#111"/></symbol>
+    <symbol id="a-soja" viewBox="0 0 24 24"><g fill="#fff"><ellipse cx="8.6" cy="12.4" rx="4" ry="6.3" transform="rotate(-18 8.6 12.4)"/><ellipse cx="15.6" cy="11.6" rx="4" ry="6.3" transform="rotate(18 15.6 11.6)"/></g><path d="M6.4 9.4c1.5 1.2 1.5 4.2 0 5.6M17.8 8.8c-1.5 1.2-1.5 4.2 0 5.6" stroke="#111" stroke-width="1.1" fill="none" stroke-linecap="round"/></symbol>
+    <symbol id="a-sesam" viewBox="0 0 24 24"><g fill="#fff"><ellipse cx="7" cy="7" rx="1.8" ry="3" transform="rotate(-35 7 7)"/><ellipse cx="16" cy="6" rx="1.8" ry="3" transform="rotate(25 16 6)"/><ellipse cx="11.5" cy="12" rx="1.8" ry="3" transform="rotate(-10 11.5 12)"/><ellipse cx="18.5" cy="14" rx="1.8" ry="3" transform="rotate(40 18.5 14)"/><ellipse cx="6" cy="16" rx="1.8" ry="3" transform="rotate(30 6 16)"/><ellipse cx="13" cy="19.5" rx="1.8" ry="2.6" transform="rotate(-30 13 19.5)"/></g></symbol>
+    <symbol id="a-jordnotter" viewBox="0 0 24 24"><g transform="rotate(32 12 12)"><circle cx="12" cy="6.6" r="4.3" fill="#fff"/><circle cx="12" cy="17.4" r="4.9" fill="#fff"/><rect x="9.4" y="8.5" width="5.2" height="6" fill="#fff"/><path d="M8.6 5.5c.9.5 1.5.5 2.4 0M13 7.6c.9.5 1.5.5 2.4 0M9 16.2c.9.5 1.5.5 2.4 0M13 18.4c.9.5 1.5.5 2.4 0" stroke="#111" stroke-width=".9" fill="none" stroke-linecap="round"/></g></symbol>
+    <symbol id="a-lupin" viewBox="0 0 24 24"><path d="M12 23V5" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/><g fill="#fff"><circle cx="12" cy="3.6" r="1.7"/><circle cx="9.9" cy="7.2" r="1.9"/><circle cx="14.1" cy="7.2" r="1.9"/><circle cx="8.9" cy="11.4" r="2"/><circle cx="15.1" cy="11.4" r="2"/><circle cx="8" cy="15.8" r="2.1"/><circle cx="16" cy="15.8" r="2.1"/></g></symbol>
+    <symbol id="a-sulfit" viewBox="0 0 24 24"><text x="10.6" y="15.6" text-anchor="middle" font-family="Arial, sans-serif" font-size="10.5" font-weight="700" fill="#fff">SO</text><text x="19.4" y="18" text-anchor="middle" font-family="Arial, sans-serif" font-size="6.5" font-weight="700" fill="#fff">2</text></symbol>
+  </defs>
+</svg>
+
+<div id="login" hidden>
+  <div class="kort">
+    <h3>Backoffice – Lunch-TV</h3>
+    <p class="dim">Skriv in koden för att ändra allergener, frukost och hockeykvällar.</p>
+    <label class="f" for="pin">Kod</label>
+    <input id="pin" type="password" autocomplete="current-password" inputmode="text">
+    <div class="kryss"><input type="checkbox" id="kom" checked><label for="kom">Kom ihåg mig på den här enheten</label></div>
+    <div id="loginfel"></div>
+    <button class="prim" id="loggain" style="width:100%">Logga in</button>
+  </div>
+</div>
+
+<div id="app" hidden>
+  <header><img src="assets/ica-focus-logo.png" alt=""><h1>Backoffice – Lunch-TV</h1><button class="liten" id="loggaut">Logga ut</button></header>
+  <main>
+    <div class="tabs" id="tabs"></div>
+    <div id="vy"></div>
+  </main>
+  <div class="sticky"><div class="txt" id="status"></div><button class="prim" id="spara">Spara</button></div>
+</div>
+
+<script>
+/* ===== INSTÄLLNINGAR ===== */
+const CONFIG = {
+  api: "",   // adressen till din Cloudflare-funktion, t.ex. "https://lunch-tv.dittnamn.workers.dev" (se BACKOFFICE.md)
+};
+
+const API = (new URLSearchParams(location.search).get("api") || CONFIG.api).replace(/\/$/, "");
+const ALLERGENER = [
+  ["gluten","Gluten","gluten"], ["laktos","Laktos","laktos"], ["nötter","Nötter","notter"], ["ägg","Ägg","agg"], ["fisk","Fisk","fisk"],
+  ["skaldjur","Skaldjur","skaldjur"], ["blötdjur","Blötdjur","blotdjur"], ["selleri","Selleri","selleri"], ["senap","Senap","senap"],
+  ["soja","Soja","soja"], ["sesam","Sesam","sesam"], ["jordnötter","Jordnötter","jordnotter"], ["lupin","Lupin","lupin"], ["sulfit","Sulfit","sulfit"],
+];
+const ALIAS = {"mjölk":"laktos","mjolk":"laktos","notter":"nötter","trädnötter":"nötter","agg":"ägg","blotdjur":"blötdjur","mollusker":"blötdjur","kräftdjur":"skaldjur","jordnotter":"jordnötter","sesamfrön":"sesam","spannmål":"gluten","svaveldioxid":"sulfit"};
+const DAGAR = ["måndag","tisdag","onsdag","torsdag","fredag"];
+const ALLA_DAGAR = [...DAGAR, "lördag", "söndag"];
+const FILNAMN = {allergener: "allergener.json", frukost: "frukost.json", hockey: "hockey.json"};
+
+let pin = "", flik = "allergener", menu = null;
+const D = {allergener: null, frukost: null, hockey: null};   // arbetskopior
+const BAS = {};                                              // sparad version som text, för att se om något ändrats
+const MSG = {};                                              // anmärkningar per flik
+
+/* ---------- hjälpare ---------- */
+const nz = s => String(s).toLowerCase().replace(/\s+/g, " ").trim();
+const stor = s => s.charAt(0).toUpperCase() + s.slice(1);
+function h(tag, attrs, ...kids){
+  const e = document.createElement(tag);
+  for(const [k, v] of Object.entries(attrs || {})){
+    if(k === "class") e.className = v; else if(k.startsWith("on")) e.addEventListener(k.slice(2), v);
+    else if(v === true) e.setAttribute(k, ""); else if(v !== false && v != null) e.setAttribute(k, v);
+  }
+  kids.flat().forEach(c => { if(c != null && c !== false) e.append(c.nodeType ? c : document.createTextNode(c)); });
+  return e;
+}
+const $ = id => document.getElementById(id);
+const ser = o => JSON.stringify(o);
+const smutsig = () => D[flik] && BAS[flik] !== ser(D[flik]);
+function toast(t, fel){ const e = h("div", {class: "toast" + (fel ? " fel" : "")}, t); document.body.append(e); setTimeout(() => e.remove(), fel ? 7000 : 3500); }
+const kopia = o => JSON.parse(JSON.stringify(o));
+
+// Samma regel som TV-sidan och hamta_meny.py: namnet på rätten
+function dela(r){
+  if(r && typeof r === "object") return r.namn || "";
+  const t = String(r).trim();
+  let m = /^(.*?)\s+serveras\s+/i.exec(t); if(m) return m[1];
+  m = /^(.*?)\s+[–-]\s+/.exec(t); if(m) return m[1];
+  m = /^(.*?)\s+med\s+/i.exec(t); if(m) return m[1];
+  return t;
+}
+
+async function api(väg, init){
+  if(!API) throw new Error("Backoffice är inte kopplat till sin sparfunktion än (se BACKOFFICE.md).");
+  let r;
+  try { r = await fetch(API + väg, {...init, headers: {"x-pin": pin, ...(init && init.headers)}}); }
+  catch(e){ throw new Error("Ingen kontakt med servern. Kontrollera nätverket."); }
+  const j = await r.json().catch(() => ({}));
+  if(!r.ok){ const e = new Error(j.fel || ("Fel " + r.status)); e.status = r.status; throw e; }
+  return j;
+}
+
+/* ---------- allergenväljare (tre lägen: ej angivet / inga / valda) ---------- */
+function allergVal(get, set, onChange){
+  const wrap = h("div");
+  const rita = () => {
+    const v = get();
+    const valda = Array.isArray(v) ? v : [];
+    const pill = v === null || v === undefined ? h("span", {class: "pill sak"}, "Ej angivet – TV:n visar 'fråga personalen'")
+      : !v.length ? h("span", {class: "pill ok"}, "Inga allergener")
+      : h("span", {class: "pill ok"}, v.length + " valda");
+    const chips = h("div", {class: "chips"}, ALLERGENER.map(([id, text, sym]) => {
+      const på = valda.includes(id);
+      return h("button", {type: "button", class: "chip" + (på ? " on" : ""), "aria-pressed": på, onclick: () => {
+        const nya = på ? valda.filter(x => x !== id) : [...valda, id];
+        set(nya.length ? ALLERGENER.map(a => a[0]).filter(x => nya.includes(x)) : null); rita(); onChange && onChange();
+      }}, h("span", {class: "ic"}, svg(sym)), text);
+    }));
+    const knappar = h("div", {class: "rad"},
+      h("button", {type: "button", class: "liten", onclick: () => { set([]); rita(); onChange && onChange(); }}, "Inga allergener"),
+      h("button", {type: "button", class: "liten", onclick: () => { set(null); rita(); onChange && onChange(); }}, "Rensa (ej angivet)"));
+    wrap.replaceChildren(pill, chips, knappar);
+  };
+  rita(); return wrap;
+}
+function svg(sym){
+  const s = document.createElementNS("http://www.w3.org/2000/svg", "svg"); s.setAttribute("viewBox", "0 0 24 24");
+  const u = document.createElementNS("http://www.w3.org/2000/svg", "use"); u.setAttribute("href", "#a-" + sym); s.append(u); return s;
+}
+
+/* ---------- inläsning ---------- */
+async function läs(){
+  try { const r = await fetch("menu.json?t=" + Date.now(), {cache: "no-store"}); menu = r.ok ? await r.json() : null; } catch(e){ menu = null; }
+  for(const k of Object.keys(FILNAMN)){
+    const j = await api("/api/get?fil=" + FILNAMN[k]);
+    D[k] = j.data ? kopia(j.data) : null;
+    MSG[k] = [];
+    if(k === "allergener") D[k] = byggAllergener(D[k]);
+    if(k === "frukost") D[k] = D[k] || {rubrik: "Frukost", tid: {start: "07:00", slut: "10:00"}, dagar: [...DAGAR], visaAllergener: true, rader: []};
+    if(k === "hockey") D[k] = D[k] || {rubrik: "Hockeykvällar i Focus Restaurang", underrubrik: "", banner: "Hockeykväll i restaurangen!", tid: {start: "16:30"}, matchstart: "19:00", datum: [], rader: [], paket: {namn: "Paketpris mat + dryck", pris: ""}};
+    BAS[k] = k === "allergener" ? ser(D[k]) : ser(D[k]);
+  }
+}
+
+/* Allergener: rätterna kommer från veckans meny (menu.json). Befintliga svar behålls om det är samma vecka. */
+function byggAllergener(a){
+  const ny = {};
+  const veckaOk = a && menu && a.vecka === menu.vecka;
+  const gamla = veckaOk ? a.dagar || {} : {};
+  if(a && a._info) ny._info = a._info;
+  ny.vecka = menu ? menu.vecka : (a ? a.vecka : null);
+  ny.dagar = {};
+  for(const dag of DAGAR){
+    ny.dagar[dag] = {};
+    const befintliga = gamla[dag] || {};
+    ((menu && menu.dagar && menu.dagar[dag]) || []).forEach(r => {
+      const namn = dela(r);
+      const nyckel = Object.keys(befintliga).find(k => nz(k) === nz(namn));
+      ny.dagar[dag][namn] = nyckel === undefined || !Array.isArray(befintliga[nyckel]) ? null : befintliga[nyckel];
+    });
+  }
+  ny.vegetariskt = veckaOk && Array.isArray(a.vegetariskt) ? a.vegetariskt : null;
+  MSG.allergener = [];
+  if(!menu) MSG.allergener.push("Kunde inte läsa veckans meny. Rätterna kan inte visas.");
+  else if(!veckaOk && a) MSG.allergener.push("Det är en ny vecka (vecka " + menu.vecka + "). Allergenerna från förra veckan är rensade. Fyll i för de nya rätterna.");
+  return ny;
+}
+
+/* ---------- vyer ---------- */
+function vyAllergener(){
+  const a = D.allergener, rader = [];
+  if(!menu) return h("div", {class: "fel"}, "Veckans meny kunde inte läsas, så rätterna kan inte visas.");
+  const alla = [];
+  DAGAR.forEach(d => Object.keys(a.dagar[d]).forEach(n => alla.push(a.dagar[d][n])));
+  if(menu.vegetariskt) alla.push(a.vegetariskt);
+  const klara = alla.filter(v => v !== null).length;
+  rader.push(h("div", {class: klara === alla.length ? "info" : "info"}, h("b", {}, "Vecka " + menu.vecka + ": "), klara + " av " + alla.length + " rätter ifyllda.",
+    klara < alla.length ? " Rätter som inte är ifyllda visar 'fråga personalen' på TV:n." : " Allt är ifyllt."));
+  (MSG.allergener || []).forEach(m => rader.push(h("div", {class: "fel"}, m)));
+  rader.push(h("p", {class: "dim"}, "Tryck på de allergener som rätten innehåller. 'Inga allergener' betyder att rätten inte innehåller något av de 14. Rätter som inte rörts visar 'fråga personalen' på TV:n."));
+  DAGAR.forEach(d => {
+    const rätter = Object.keys(a.dagar[d]);
+    if(!rätter.length) return;
+    rader.push(h("h2", {class: "dag"}, d));
+    rätter.forEach(namn => rader.push(h("div", {class: "kort"}, h("h3", {}, namn),
+      allergVal(() => a.dagar[d][namn], v => a.dagar[d][namn] = v, uppdStatus))));
+  });
+  if(menu.vegetariskt){
+    rader.push(h("h2", {class: "dag"}, "Veckans vegetariska"));
+    rader.push(h("div", {class: "kort"}, h("h3", {}, dela(menu.vegetariskt)), allergVal(() => a.vegetariskt, v => a.vegetariskt = v, uppdStatus)));
+  }
+  return h("div", {}, rader);
+}
+
+function vyFrukost(){
+  const f = D.frukost;
+  const rader = f.rader = f.rader || [];
+  const lista = h("div");
+  const ritaRader = () => lista.replaceChildren(...rader.map((r, i) => h("div", {class: "kort"},
+    h("div", {class: "rad"}, h("b", {style: "flex:none;min-width:0"}, (i + 1) + "."),
+      h("input", {type: "text", placeholder: "Namn", value: r.namn || "", oninput: e => { r.namn = e.target.value; uppdStatus(); }}),
+      h("input", {type: "text", placeholder: "Pris, t.ex. 79:-", value: r.pris || "", style: "max-width:150px", oninput: e => { r.pris = e.target.value; uppdStatus(); }})),
+    h("label", {class: "f"}, "Beskrivning (valfri)"),
+    h("input", {type: "text", value: r.beskrivning || "", oninput: e => { r.beskrivning = e.target.value; uppdStatus(); }}),
+    h("label", {class: "f"}, "Allergener"),
+    allergVal(() => r.allergener === undefined ? null : r.allergener, v => { if(v === null) delete r.allergener; else r.allergener = v; }, uppdStatus),
+    h("div", {class: "rad", style: "margin-top:10px"},
+      h("button", {class: "liten", disabled: i === 0, onclick: () => { [rader[i-1], rader[i]] = [rader[i], rader[i-1]]; ritaRader(); uppdStatus(); }}, "↑ Upp"),
+      h("button", {class: "liten", disabled: i === rader.length - 1, onclick: () => { [rader[i+1], rader[i]] = [rader[i], rader[i+1]]; ritaRader(); uppdStatus(); }}, "↓ Ner"),
+      h("button", {class: "liten fara", onclick: () => { if(confirm("Ta bort \"" + (r.namn || "raden") + "\"?")){ rader.splice(i, 1); ritaRader(); uppdStatus(); } }}, "Ta bort"))
+  )));
+  ritaRader();
+  return h("div", {},
+    h("label", {class: "f"}, "Rubrik"), h("input", {type: "text", value: f.rubrik || "", oninput: e => { f.rubrik = e.target.value; uppdStatus(); }}),
+    h("div", {class: "rad"},
+      h("div", {}, h("label", {class: "f"}, "Frukost från"), h("input", {type: "time", value: f.tid.start, oninput: e => { f.tid.start = e.target.value; uppdStatus(); }})),
+      h("div", {}, h("label", {class: "f"}, "Frukost till"), h("input", {type: "time", value: f.tid.slut, oninput: e => { f.tid.slut = e.target.value; uppdStatus(); }}))),
+    h("label", {class: "f"}, "Dagar då frukost serveras"),
+    h("div", {class: "dagar"}, ALLA_DAGAR.map(d => h("label", {}, h("input", {type: "checkbox", checked: (f.dagar || []).includes(d), onchange: e => {
+      f.dagar = ALLA_DAGAR.filter(x => x === d ? e.target.checked : (f.dagar || []).includes(x)); uppdStatus(); }}), d))),
+    h("div", {class: "kryss"}, h("input", {type: "checkbox", id: "visaal", checked: f.visaAllergener !== false, onchange: e => { f.visaAllergener = e.target.checked; uppdStatus(); }}), h("label", {for: "visaal"}, "Visa allergenrader på frukostskylten")),
+    h("h2", {}, "Rader"), lista,
+    h("button", {onclick: () => { rader.push({namn: "", pris: "", beskrivning: ""}); ritaRaderOchScrolla(); }}, "+ Lägg till rad"));
+  function ritaRaderOchScrolla(){ ritaRader(); uppdStatus(); lista.lastElementChild && lista.lastElementChild.scrollIntoView({block: "center"}); }
+}
+
+const iso = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+function vyHockey(){
+  const k = D.hockey, idag = iso(new Date());
+  k.datum = k.datum || []; k.rader = k.rader || []; k.paket = k.paket || {namn: "", pris: ""};
+  const datumDiv = h("div");
+  const ritaDatum = () => {
+    k.datum = [...new Set(k.datum)].sort();
+    const veckodag = s => ["sön","mån","tis","ons","tors","fre","lör"][new Date(s + "T12:00:00").getDay()];
+    datumDiv.replaceChildren(...k.datum.map(s => h("span", {class: "datum" + (s < idag ? " gammal" : s === idag ? " idag" : "")}, veckodag(s) + " " + s,
+      h("button", {class: "liten", "aria-label": "Ta bort " + s, onclick: () => { k.datum = k.datum.filter(x => x !== s); ritaDatum(); uppdStatus(); }}, "✕"))));
+    if(!k.datum.length) datumDiv.append(h("span", {class: "dim"}, "Inga datum. Hockeyskylten visas inte."));
+  };
+  ritaDatum();
+  const nyttDatum = h("input", {type: "date", style: "max-width:220px"});
+  const rDiv = h("div");
+  const ritaRader = () => rDiv.replaceChildren(...k.rader.map((r, i) => h("div", {class: "kort"},
+    h("div", {class: "rad"},
+      h("input", {type: "text", placeholder: "Namn", value: r.namn || "", oninput: e => { r.namn = e.target.value; uppdStatus(); }}),
+      h("input", {type: "text", placeholder: "Pris", value: r.pris || "", style: "max-width:120px", oninput: e => { r.pris = e.target.value; uppdStatus(); }})),
+    h("input", {type: "text", placeholder: "Notering, t.ex. fullständiga rättigheter", value: r.not || "", style: "margin-top:8px", oninput: e => { if(e.target.value) r.not = e.target.value; else delete r.not; uppdStatus(); }}),
+    h("div", {class: "rad", style: "margin-top:8px"},
+      h("button", {class: "liten", disabled: i === 0, onclick: () => { [k.rader[i-1], k.rader[i]] = [k.rader[i], k.rader[i-1]]; ritaRader(); uppdStatus(); }}, "↑"),
+      h("button", {class: "liten", disabled: i === k.rader.length - 1, onclick: () => { [k.rader[i+1], k.rader[i]] = [k.rader[i], k.rader[i+1]]; ritaRader(); uppdStatus(); }}, "↓"),
+      h("button", {class: "liten fara", onclick: () => { if(confirm("Ta bort \"" + (r.namn || "raden") + "\"?")){ k.rader.splice(i, 1); ritaRader(); uppdStatus(); } }}, "Ta bort"))
+  )));
+  ritaRader();
+  const txt = (etikett, get, set, extra) => [h("label", {class: "f"}, etikett), h("input", {type: "text", value: get(), oninput: e => { set(e.target.value); uppdStatus(); }, ...(extra || {})})];
+  return h("div", {},
+    h("div", {class: "info"}, "Hockeyskylten visas från uppladdningens start till matchstart på de dagar som står nedan. Hela dagen fram till matchstart visas dessutom en liten banner på de andra skyltarna. Efter matchstart visas inget om hockey."),
+    h("h2", {}, "Matchdagar (hemma)"), datumDiv,
+    h("div", {class: "rad", style: "margin-top:8px"}, nyttDatum, h("button", {onclick: () => { if(!nyttDatum.value) return; k.datum.push(nyttDatum.value); nyttDatum.value = ""; ritaDatum(); uppdStatus(); }}, "+ Lägg till datum")),
+    h("div", {class: "rad"},
+      h("div", {}, h("label", {class: "f"}, "Uppladdning från"), h("input", {type: "time", value: (k.tid || {}).start || "", oninput: e => { k.tid = {...k.tid, start: e.target.value}; uppdStatus(); }})),
+      h("div", {}, h("label", {class: "f"}, "Matchstart"), h("input", {type: "time", value: k.matchstart || "", oninput: e => { k.matchstart = e.target.value; uppdStatus(); }}))),
+    h("h2", {}, "Texter"),
+    ...txt("Rubrik", () => k.rubrik || "", v => k.rubrik = v),
+    ...txt("Text under rubriken", () => k.underrubrik || "", v => k.underrubrik = v),
+    ...txt("Bannertext (på lunch- och frukostskylten)", () => k.banner || "", v => k.banner = v),
+    h("h2", {}, "Priser"), rDiv,
+    h("button", {onclick: () => { k.rader.push({namn: "", pris: ""}); ritaRader(); uppdStatus(); }}, "+ Lägg till rad"),
+    h("h2", {}, "Paketpris"),
+    h("div", {class: "rad"},
+      h("input", {type: "text", placeholder: "Namn", value: k.paket.namn || "", oninput: e => { k.paket.namn = e.target.value; uppdStatus(); }}),
+      h("input", {type: "text", placeholder: "Pris", value: k.paket.pris || "", style: "max-width:120px", oninput: e => { k.paket.pris = e.target.value; uppdStatus(); }})));
+}
+
+/* ---------- ramverk ---------- */
+const FLIKAR = [["allergener", "Allergener"], ["frukost", "Frukost"], ["hockey", "Hockey"]];
+function ritaFlikar(){
+  $("tabs").replaceChildren(...FLIKAR.map(([id, t]) => h("button", {class: id === flik ? "on" : "", onclick: () => {
+    if(id === flik) return;
+    if(smutsig() && !confirm("Du har ändringar som inte är sparade. Byta flik ändå? (Ändringarna ligger kvar tills du laddar om sidan.)")) return;
+    flik = id; ritaFlikar(); ritaVy(); }}, t + (BAS[id] !== ser(D[id]) ? " •" : ""))));
+}
+function ritaVy(){
+  $("vy").replaceChildren(flik === "allergener" ? vyAllergener() : flik === "frukost" ? vyFrukost() : vyHockey());
+  uppdStatus();
+}
+function uppdStatus(){
+  const s = smutsig();
+  $("status").textContent = s ? "Du har osparade ändringar." : "Inga osparade ändringar.";
+  $("spara").disabled = !s;
+  ritaFlikar();
+}
+async function spara(){
+  const k = flik, knapp = $("spara"); knapp.disabled = true; knapp.textContent = "Sparar…";
+  try {
+    await api("/api/save", {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify({fil: FILNAMN[k], data: D[k]})});
+    BAS[k] = ser(D[k]);
+    toast("Sparat! Ändringen syns på TV:n inom ca 2 minuter.");
+  } catch(e){
+    toast(e.message, true);
+    if(e.status === 401) visaLogin("Koden stämmer inte längre. Logga in igen.");
+  }
+  knapp.textContent = "Spara"; uppdStatus();
+}
+window.addEventListener("beforeunload", e => { if(Object.keys(D).some(k => D[k] && BAS[k] !== ser(D[k]))){ e.preventDefault(); e.returnValue = ""; } });
+
+/* ---------- inloggning ---------- */
+function visaLogin(fel){
+  $("app").hidden = true; $("login").hidden = false;
+  $("loginfel").replaceChildren(fel ? h("div", {class: "fel"}, fel) : "");
+}
+async function start(){
+  $("loginfel").replaceChildren();
+  try {
+    await api("/api/ping");
+    try { $("kom").checked ? localStorage.setItem("lunchtv-pin", pin) : localStorage.removeItem("lunchtv-pin"); } catch(e){}
+    await läs();
+    $("login").hidden = true; $("app").hidden = false; ritaFlikar(); ritaVy();
+  } catch(e){
+    if(e.status === 401){ try { localStorage.removeItem("lunchtv-pin"); } catch(_){} }
+    visaLogin(e.message);
+  }
+}
+$("loggain").onclick = () => { pin = $("pin").value; start(); };
+$("pin").addEventListener("keydown", e => { if(e.key === "Enter") $("loggain").click(); });
+$("spara").onclick = spara;
+$("loggaut").onclick = () => { if(smutsig() && !confirm("Du har osparade ändringar. Logga ut ändå?")) return; try { localStorage.removeItem("lunchtv-pin"); } catch(e){} location.reload(); };
+(function(){
+  $("login").hidden = false;
+  if(!API){ $("loginfel").replaceChildren(h("div", {class: "fel"}, "Backoffice är inte kopplat till sin sparfunktion än. Se BACKOFFICE.md.")); return; }
+  try { const p = localStorage.getItem("lunchtv-pin"); if(p){ pin = p; $("pin").value = p; start(); } } catch(e){}
+})();
+</script>
+</body>
+</html>
