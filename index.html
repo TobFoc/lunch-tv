@@ -12,6 +12,7 @@
     --u: min(1vh, .85vw);           /* grundmått: allt skalar med skärmens höjd */
     --svart: #111;
     --röd: #c8161d;
+    --grön: #26722e;
     --font: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", "DejaVu Sans Condensed", sans-serif;
   }
   * { box-sizing: border-box; }
@@ -61,19 +62,26 @@
   .al-rad .lbl { font-weight: 700; font-size: calc(var(--u) * 2.8 * var(--k, 1)); letter-spacing: .1em; text-transform: uppercase; }
   .okänd { font-weight: 500; font-style: italic; font-size: calc(var(--u) * 3 * var(--k, 1)); color: #2a2a2a; }
 
-  /* Veckoläge: dagnamn till vänster, rätter till höger */
-  .rad { display: grid; grid-template-columns: calc(var(--u) * 33) 1fr; align-items: center; transition: opacity .3s; }
-  .harIdag .rad:not(.idag) { opacity: .6; }
-  .rad.idag .dag { color: var(--röd); }
-  .rad .dag { font-weight: 700; font-size: calc(var(--u) * 8.4); line-height: 1; text-transform: uppercase; display: inline-block; white-space: nowrap; }
+  /* Veckoläge: varje dag är ett eget band med dagnamn och datum i ett mörkt block till vänster */
+  #rätter.vecka { justify-content: flex-start; gap: calc(var(--u) * .9 * var(--k, 1)); }
+  .rad { display: grid; grid-template-columns: calc(var(--u) * 33) 1fr; align-items: stretch; background: rgba(255,255,255,.3); }
+  .dagnamn { background: var(--svart); color: #f4f4f2; padding: calc(var(--u) * .9 * var(--k, 1)) calc(var(--u) * 2.2); display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
+  .rad .dag { font-weight: 700; font-size: calc(var(--u) * 7.2 * var(--k, 1)); line-height: 1; text-transform: uppercase; display: inline-block; white-space: nowrap; }
+  .dagdatum { font-weight: 600; font-size: calc(var(--u) * 3 * var(--k, 1)); margin-top: calc(var(--u) * .4); letter-spacing: .04em; opacity: .85; }
+  .rad.idag { background: rgba(255,255,255,.55); }
+  .rad.idag .dagnamn { background: var(--röd); }
+  .rl { padding: calc(var(--u) * .9 * var(--k, 1)) calc(var(--u) * 2.8); display: flex; flex-direction: column; justify-content: center; }
   .rl > div { display: flex; align-items: center; gap: calc(var(--u) * 1.6 * var(--k, 1)); font-weight: 500; font-size: calc(var(--u) * 4.4 * var(--k, 1)); line-height: 1.2; }
-  .ikoner { display: inline-flex; gap: calc(var(--u) * .5 * var(--k, 1)); }
-  .legend { display: flex; flex-wrap: wrap; align-items: center; gap: calc(var(--u) * .5) calc(var(--u) * 2.2 * var(--k, 1)); border-top: calc(var(--u) * .25) solid rgba(0,0,0,.6); padding-top: calc(var(--u) * 1.1 * var(--k, 1)); }
-  .legend .lbl { font-weight: 700; font-size: calc(var(--u) * 2.6 * var(--k, 1)); letter-spacing: .1em; text-transform: uppercase; }
+  .rad.idag .rl > div { font-weight: 700; }
 
-  .rad.veg .dag { font-size: calc(var(--u) * 6); }
-  .dagunder { font-weight: 700; font-size: calc(var(--u) * 2.6 * var(--k, 1)); letter-spacing: .1em; text-transform: uppercase; margin-top: calc(var(--u) * .3); }
-  .rl > div.vbesk { font-weight: 500; font-size: calc(var(--u) * 3.2 * var(--k, 1)); color: #262626; line-height: 1.15; }
+  /* Veckans vegetariska: grön rad som gäller hela veckan */
+  .rad.veg { margin-top: calc(var(--u) * 1.4 * var(--k, 1)); background: rgba(38,114,46,.2); }
+  .rad.veg .dagnamn { background: var(--grön); }
+  .rad.veg .dag { font-size: calc(var(--u) * 5 * var(--k, 1)); line-height: .95; }
+  .dagunder { font-weight: 700; font-size: calc(var(--u) * 3 * var(--k, 1)); letter-spacing: .08em; text-transform: uppercase; margin-top: calc(var(--u) * .5); }
+  .hv { font-weight: 700; font-size: calc(var(--u) * 2.8 * var(--k, 1)); letter-spacing: .08em; text-transform: uppercase; background: var(--grön); color: #fff; padding: calc(var(--u) * .4) calc(var(--u) * 1.2); }
+  .rad.veg .rl > div:not(.vbesk) { font-weight: 700; }
+  .rl > div.vbesk { font-weight: 500; font-size: calc(var(--u) * 3.2 * var(--k, 1)); color: #1f2a20; line-height: 1.15; }
   /* Kompakt rubrik när hela veckan visas, så att raderna får plats */
   .skylt.kompakt h1 { font-size: calc(var(--u) * 9.5); }
   .skylt.kompakt .pris { font-size: calc(var(--u) * 8.5); }
@@ -87,7 +95,7 @@
   .lista { display: flex; flex-direction: column; gap: calc(var(--u) * 2.4 * var(--k, 1)); border-left: calc(var(--u) * .3) solid var(--svart); padding-left: calc(var(--u) * 3.4); }
   .rätt .namn { font-weight: 700; font-size: calc(var(--u) * 5.2 * var(--k, 1)); line-height: 1.04; }
   .rätt .besk { font-weight: 500; font-size: calc(var(--u) * 3.6 * var(--k, 1)); line-height: 1.15; color: #262626; margin-top: calc(var(--u) * .3); }
-  .rätt .vlabel { font-weight: 700; font-size: calc(var(--u) * 2.8 * var(--k, 1)); letter-spacing: .1em; text-transform: uppercase; color: var(--röd); margin-bottom: calc(var(--u) * .3); }
+  .rätt .vlabel { font-weight: 700; font-size: calc(var(--u) * 2.8 * var(--k, 1)); letter-spacing: .1em; text-transform: uppercase; color: var(--grön); margin-bottom: calc(var(--u) * .3); }
 
   .msg { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
   .msg .t { font-weight: 700; font-size: calc(var(--u) * 8); line-height: 1; text-transform: uppercase; }
@@ -274,7 +282,7 @@ async function hämtaMeny(){
 
 function innerBredd(p){ const cs = getComputedStyle(p); return p.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight); }
 
-function passa(){
+function fitta(){
   const u = Math.min(innerHeight / 100, innerWidth * .0085);
   document.querySelectorAll(".fit").forEach(el => {
     el.style.fontSize = "";
@@ -282,11 +290,15 @@ function passa(){
     const max = el.dataset.pct ? innerBredd(el.parentElement) * parseFloat(el.dataset.pct) / 100 : parseFloat(el.dataset.max) * u;
     while(el.getBoundingClientRect().width > max && px > 10 && n++ < 80){ px *= .97; el.style.fontSize = px + "px"; }
   });
+}
+
+function passa(){
   // Krymp texten stegvis om rätterna inte ryms (långa menyer eller reservtypsnitt)
   const r = document.getElementById("rätter");
   let k = 1, i = 0;
   r.style.setProperty("--k", 1);
-  while(r.scrollHeight > r.clientHeight + 1 && k > .4 && i++ < 60){ k *= .97; r.style.setProperty("--k", k); }
+  fitta();
+  while(r.scrollHeight > r.clientHeight + 1 && k > .4 && i++ < 60){ k *= .97; r.style.setProperty("--k", k); fitta(); }
 }
 
 function dagLista(dagar){
@@ -356,29 +368,20 @@ function rita(){
   /* ----- Hela veckans lunchmeny ----- */
   if(läge === "vecka"){
     const idag = VECKODAGAR.includes(dagNamn) && nuMin < slut ? dagNamn : null;    // markera dagens rad tills lunchen är slut
-    el.className = idag ? "harIdag" : "";
-    const använda = new Set();
-    let saknas = false;
-    const ikoner = ids => {
-      if(!SYN) return "";
-      if(ids === null){ saknas = true; return `<span class="ikoner"><span class="al kort"><span class="ic">?</span></span></span>`; }
-      ids.forEach(x => använda.add(allergId(x) || String(x)));
-      return `<span class="ikoner">${ids.map(x => chip(x, true)).join("")}</span>`;
-    };
-    let html = VECKODAGAR.map(d => {
-      const rader = (dagar[d] || []).map(r => { const nm = dela(r).namn; return {namn: nm, ids: allergenerFör(d, nm)}; });
+    el.className = "vecka" + (idag ? " harIdag" : "");
+    const mån = new Date(n.getFullYear(), n.getMonth(), n.getDate() - ((n.getDay() + 6) % 7));    // veckans måndag
+    const datum = i => new Date(mån.getFullYear(), mån.getMonth(), mån.getDate() + i).toLocaleDateString("sv-SE", {day: "numeric", month: "short"});
+    let html = VECKODAGAR.map((d, i) => {
+      const rader = (dagar[d] || []).map(r => dela(r).namn);
       return `<div class="rad${d === idag ? " idag" : ""}">
-        <div><span class="dag fit" data-max="31">${d}</span></div>
-        <div class="rl">${rader.map(r => `<div><span>${esc(r.namn)}</span>${ikoner(r.ids)}</div>`).join("") || "<div>Ingen meny registrerad</div>"}</div>
+        <div class="dagnamn"><span class="dag fit" data-max="28">${d}</span><span class="dagdatum">${datum(i)}</span></div>
+        <div class="rl">${rader.map(nm => `<div><span>${esc(nm)}</span></div>`).join("") || "<div>Ingen meny registrerad</div>"}</div>
       </div>`;
     }).join("");
     if(veg) html += `<div class="rad veg">
-        <div><span class="dag fit" data-max="31">Vegetariskt</span><div class="dagunder">hela veckan</div></div>
-        <div class="rl"><div><span>${esc(veg.namn)}</span>${ikoner(allergenerFör("vegetariskt"))}</div>${veg.besk ? `<div class="vbesk">${esc(veg.besk)}</div>` : ""}</div>
+        <div class="dagnamn"><span class="dag fit" data-max="28">Veckans<br>vegetariska</span><span class="dagunder">Gäller hela veckan</span></div>
+        <div class="rl"><div><span>${esc(veg.namn)}</span><span class="hv">Mån–fre</span></div>${veg.besk ? `<div class="vbesk">${esc(veg.besk)}</div>` : ""}</div>
       </div>`;
-    if(SYN && (använda.size || saknas)){
-      html += `<div class="legend"><span class="lbl">Allergener:</span>${[...använda].map(x => chip(x)).join("")}${saknas ? `<span class="okänd">? = uppgift saknas, fråga personalen</span>` : ""}</div>`;
-    }
     el.innerHTML = html;
     return passa();
   }
@@ -396,7 +399,7 @@ function rita(){
     <div class="dagkol"><span class="dag fit" data-max="44">${dagNamn}</span><div class="datum">${n.toLocaleDateString("sv-SE", {day: "numeric", month: "long"})}</div></div>
     <div class="lista">${
       rätter.map(r => { const o = dela(r); return rättHtml(o, allergenerFör(dagNamn, o.namn)); }).join("") +
-      (veg ? rättHtml(veg, allergenerFör("vegetariskt"), "Veckans vegetariska") : "")
+      (veg ? rättHtml(veg, allergenerFör("vegetariskt"), "Veckans vegetariska · gäller hela veckan") : "")
     }</div></div>`;
   passa();
 }

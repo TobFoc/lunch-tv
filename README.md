@@ -28,7 +28,7 @@ varje vardagsmorgon och publiceras på en webbadress som TV:n (UniFi Cast / Smar
    (skriver du snedstreck skapas mapparna automatiskt), klistra in innehållet från filen med samma namn och tryck *Commit changes*.
 5. **Slå på Pages:** *Settings → Pages → Build and deployment → Source: GitHub Actions*.
 6. **Starta första körningen:** fliken *Actions* → *Uppdatera lunchmeny* → *Run workflow*. Efter någon minut visas en grön bock.
-7. **Din adress** blir `https://foctob.github.io/lunch-tv/`. Öppna den i en webbläsare och kontrollera att dagens lunch visas.
+7. **Din adress** blir `https://DITT-ANVÄNDARNAMN.github.io/lunch-tv/`. Öppna den i en webbläsare och kontrollera att dagens lunch visas.
 8. **Peka TV:n mot adressen** (UniFi Connect eller SmartSign: lägg in adressen som webbsida/URL-innehåll).
 
 Därefter sköter det sig självt. Menyn uppdateras varje vardag och sparas som en ny version i repot när något ändrats.
@@ -97,7 +97,7 @@ Allergenuppgifterna är köksets ansvar och måste stämma med recepten. Kontrol
 
 Test utan att vänta på lunchtid genom att lägga till detta efter adressen:
 `?dag=torsdag&tid=12:00` visar torsdag klockan 12:00, `?dag=onsdag&tid=08:00` visar frukost, och `?visa=vecka` visar veckovyn.
-I veckovyn visas allergenerna som bara symboler efter varje rätt, med en teckenförklaring längst ner. Dagsvyn är lättast att läsa på en TV.
+Allergener visas i dagsvyn (och på frukostskylten), men inte i veckovyn, som bara visar rätternas namn under varje dag.
 
 Typsnittet (Barlow Condensed) laddas från Google Fonts och TV:n måste därför ha internet. Utan det används ett reservtypsnitt, och layouten anpassar sig själv så att allt ryms.
 

@@ -4,24 +4,24 @@
   "dagar": {
     "måndag": {
       "Långbakad fläsksida": null,
-      "Panerad sej": null,
+      "Panerad sej": null
     },
     "tisdag": {
       "Pannbiff": null,
       "Dagens fångst": null
     },
     "onsdag": {
-      "Coq au vin": "Laktos,"
-      "Asiatiska fish cakes": "Gluten, Ägg, Soja,"
+      "Coq au vin": null,
+      "Asiatiska fish cakes": null
     },
     "torsdag": {
       "Dansk fläskstek med knaprig svål": null,
-      "Stekt Operaströmming": null,
+      "Stekt Operaströmming": null
     },
     "fredag": {
       "Indonesisk biff Rendang med kokosgrädde och citrongräs": null,
-      "Dagens fångst": null,
+      "Dagens fångst": null
     }
   },
-  "vegetariskt": "Laktos"
+  "vegetariskt": null
 }
