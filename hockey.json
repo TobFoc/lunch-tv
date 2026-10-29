@@ -1,0 +1,19 @@
+{
+  "_info": "Hockeykvällar. datum = dagar då Frölunda spelar hemma (ÅÅÅÅ-MM-DD). På de dagarna visas hockeyskylten från tid.start till tid.slut. Lägg till eller ta bort datum här; kommatecken mellan datumen. Priser och texter står i rader och paket. Datumen är hämtade från goteborg.com (vardagsmatcher, lördagsmatcher ej med) och kan ändras av klubben.",
+  "rubrik": "Hockeykvällar i Focus Restaurang",
+  "underrubrik": "Uppladdningen startar 16:30! Inför Frölundas hemmamatcher i Scandinavium på vardagar",
+  "tid": { "start": "16:30", "slut": "23:00" },
+  "datum": [
+    "2026-11-12", "2026-11-26", "2026-12-03",
+    "2027-01-05", "2027-01-21", "2027-01-28",
+    "2027-02-04", "2027-02-18",
+    "2027-03-04", "2027-03-09", "2027-03-11"
+  ],
+  "rader": [
+    { "namn": "Hamburgare", "pris": "149:-" },
+    { "namn": "Räkmacka", "pris": "149:-" },
+    { "namn": "Öl", "pris": "89:-", "not": "fullständiga rättigheter" },
+    { "namn": "Vin", "pris": "99:-", "not": "fullständiga rättigheter" }
+  ],
+  "paket": { "namn": "Paketpris mat + dryck", "pris": "199:-" }
+}

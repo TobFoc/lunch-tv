@@ -12,6 +12,7 @@ varje vardagsmorgon och publiceras på en webbadress som TV:n (UniFi Cast / Smar
 | `assets/ica-focus-logo.png` | Den kvadratiska ICA Focus-logotypen nere till höger. Byt ut filen (samma namn) för att byta logotyp. |
 | `hamta_meny.py` | Läser menyn från ICA:s sida och skriver `menu.json`. |
 | `menu.json` | Veckans meny. Skrivs över automatiskt. |
+| `hockey.json` | Frölundas hemmamatcher (datum) och hockeymenyn med priser. Lägg till/ta bort datum här. |
 | `frukost.json` | Frukostmenyn: tider, dagar, priser och texter. Ändra här när något ändras. |
 | `allergener.json` | Allergener per rätt. **Fylls i av köket varje vecka**, se avsnittet Allergener nedan. |
 | `.github/workflows/uppdatera-lunchmeny.yml` | Schemat som kör allt automatiskt på GitHub. |
@@ -21,7 +22,7 @@ varje vardagsmorgon och publiceras på en webbadress som TV:n (UniFi Cast / Smar
 1. **Skapa konto** på [github.com](https://github.com) (gratis).
 2. **Skapa ett repository:** plusset uppe till höger → *New repository*.
    Namn: `lunch-tv`. Välj **Public** (gratis Pages kräver det; menyn är ändå publik på ICA:s sida). Klicka *Create repository*.
-3. **Ladda upp filerna:** *Add file → Upload files*. Dra in `index.html`, `hamta_meny.py`, `menu.json`, `allergener.json`, `frukost.json`, `README.md` och mappen `assets`. Klicka *Commit changes*.
+3. **Ladda upp filerna:** *Add file → Upload files*. Dra in `index.html`, `hamta_meny.py`, `menu.json`, `allergener.json`, `frukost.json`, `hockey.json`, `README.md` och mappen `assets`. Klicka *Commit changes*.
 4. **Lägg till schemat.** Mappen `.github` är dold på Mac/Windows och följer ibland inte med vid uppladdning, så gör så här:
    *Add file → Create new file*, skriv i namnfältet exakt
    `.github/workflows/uppdatera-lunchmeny.yml`
@@ -46,6 +47,7 @@ Sidan väljer själv vy efter klockan (`visa: "auto"` i `CONFIG`):
 
 | Tid | Vy |
 |---|---|
+| Frölundas hemmamatchdagar 16:30–23:00 | **Hockeykväll**: mörk skylt med priser och paketpris (datum och priser i `hockey.json`) |
 | Vardagar 07:00–10:00 | **Frukost**: numrerad prislista från `frukost.json` |
 | Vardagar under lunchtid (11:00–14:30) | **Dagens lunch**: dagens rätter med beskrivning och allergener |
 | Resten av tiden, även helger | **Veckans lunch**: hela veckans meny, dagens rad markerad i rött tills lunchen är slut |
@@ -57,6 +59,13 @@ Lördagar visas veckomenyn hela dagen, eftersom ICA:s sida anger att det är st�
 står i listan `rader`. Lägg till en rad genom att kopiera en av de andra, och glöm inte kommatecken mellan raderna.
 På frukostskylten står "Allergener: fråga personalen" under varje rad tills du anger allergener:
 `"allergener": ["gluten", "laktos"]` på raden. Skriv `"visaAllergener": false` högst upp om du vill dölja raderna helt.
+
+## Hockeykvällar
+
+På dagar som står i `datum` i `hockey.json` byter skylten automatiskt till hockeyvyn kl 16:30 och visar den till 23:00.
+Före 16:30 står det "Hockeykväll i kväll: uppladdning från 16:30" i fotraden. Datumen skrivs `"ÅÅÅÅ-MM-DD"` med kommatecken emellan.
+Schemat är hämtat från goteborg.com och omfattar vardagsmatcher; lördagsmatcher (15:15) är inte med. Klubben kan flytta matcher, så kontrollera ibland.
+Test: `?hockey=hockey.json&visa=hockey` visar skylten direkt.
 
 ## Allergener
 

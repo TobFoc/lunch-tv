@@ -110,6 +110,18 @@
   .fpris { font-weight: 800; text-align: right; white-space: nowrap; }
   .fbesk { font-weight: 500; font-size: calc(var(--u) * 4.2 * var(--k, 1)); line-height: 1.15; margin-top: calc(var(--u) * .8 * var(--k, 1)); }
 
+  /* Hockeyläge: mörk arenaskylt med guldtext */
+  .skylt.hockey { background: radial-gradient(ellipse at 50% 0%, #1d3f86 0%, #0b1733 55%, #050a18 100%); color: #e2d77a; }
+  .skylt.hockey h1 { color: #e2d77a; font-size: calc(var(--u) * 10); }
+  .skylt.hockey .under { color: #f4f1e6; font-weight: 500; font-size: calc(var(--u) * 4); max-width: none; }
+  #rätter.hockeyläge { justify-content: center; }
+  .hrad { display: flex; align-items: baseline; gap: calc(var(--u) * 2); padding: calc(var(--u) * 1.4 * var(--k, 1)) 0; border-bottom: calc(var(--u) * .2) solid rgba(226,215,122,.35); }
+  .hnamn { font-weight: 800; font-size: calc(var(--u) * 8 * var(--k, 1)); line-height: 1; text-transform: uppercase; color: #fff; }
+  .hnot { font-weight: 500; font-style: italic; font-size: calc(var(--u) * 3.4 * var(--k, 1)); color: #e2d77a; }
+  .hpris { margin-left: auto; font-weight: 800; font-size: calc(var(--u) * 8 * var(--k, 1)); line-height: 1; color: #fff; white-space: nowrap; }
+  .hpaket { margin-top: calc(var(--u) * 2.2 * var(--k, 1)); display: flex; align-items: baseline; gap: calc(var(--u) * 2); background: #e2d77a; color: #0b1733; padding: calc(var(--u) * 1.4 * var(--k, 1)) calc(var(--u) * 2.4); }
+  .hpaket .hnamn, .hpaket .hpris { color: #0b1733; }
+  .skylt.hockey #fot, .skylt.hockey .notis { display: none; }
   footer { display: flex; justify-content: space-between; align-items: flex-end; margin-top: calc(var(--u) * 1); }
   #fot { font-weight: 600; font-size: calc(var(--u) * 3.1); }
   .notis { font-weight: 700; font-size: calc(var(--u) * 3.5); margin-top: calc(var(--u) * .4); }
@@ -156,6 +168,7 @@ const CONFIG = {
   menuUrl: "menu.json",              // veckans meny (skapas av hamta_meny.py)
   allergenUrl: "allergener.json",    // allergener per rätt (fylls i av köket)
   frukostUrl: "frukost.json",        // frukostmeny, tider och priser
+  hockeyUrl: "hockey.json",          // matchdagar för Frölunda (hemma) samt hockeymeny
   visa: "auto",                      // "auto" = frukost på morgonen, dagens lunch under lunchtid, hela veckan resten av tiden. Kan tvingas: "dag", "vecka" eller "frukost"
   underrubrik: "Bröd, salladsbuffé & kaffe ingår",
   pris: null,                        // t.ex. "99:-". null = hämtas från menyn ("Dagens lunch 129:-")
@@ -194,10 +207,11 @@ const ALIAS = {
 const DAGAR = ["söndag","måndag","tisdag","onsdag","torsdag","fredag","lördag"];
 const VECKODAGAR = ["måndag","tisdag","onsdag","torsdag","fredag"];
 const PARAMS = new URLSearchParams(location.search);       // ?visa=vecka  ?dag=torsdag&tid=12:00 (för test)
-const VISA = (v => ["auto", "dag", "vecka", "frukost"].includes(v) ? v : "auto")(PARAMS.get("visa") || CONFIG.visa);
+const VISA = (v => ["auto", "dag", "vecka", "frukost", "hockey"].includes(v) ? v : "auto")(PARAMS.get("visa") || CONFIG.visa);
 const ALLERGEN_URL = PARAMS.get("allergener") || CONFIG.allergenUrl;
 const FRUKOST_URL = PARAMS.get("frukost") || CONFIG.frukostUrl;
-let meny = null, allerg = null, frukost = null;
+const HOCKEY_URL = PARAMS.get("hockey") || CONFIG.hockeyUrl;
+let meny = null, allerg = null, frukost = null, hockey = null;
 
 function nu(){
   const d = new Date(), dg = PARAMS.get("dag"), t = PARAMS.get("tid");
@@ -273,8 +287,8 @@ async function hämtaJson(url, nyckel){
 }
 
 async function hämtaMeny(){
-  const [m, a, f] = await Promise.all([hämtaJson(CONFIG.menuUrl, "lunchmeny"), hämtaJson(ALLERGEN_URL, "allergener"), hämtaJson(FRUKOST_URL, "frukost")]);
-  meny = m.data; allerg = a.data; frukost = f.data;
+  const [m, a, f, h] = await Promise.all([hämtaJson(CONFIG.menuUrl, "lunchmeny"), hämtaJson(ALLERGEN_URL, "allergener"), hämtaJson(FRUKOST_URL, "frukost"), hämtaJson(HOCKEY_URL, "hockey")]);
+  meny = m.data; allerg = a.data; frukost = f.data; hockey = h.data;
   document.getElementById("status").textContent =
     !meny ? "Kunde inte hämta menyn" : (m.sparad ? "Visar sparad meny (ingen anslutning)" : "");
   rita();
@@ -309,9 +323,12 @@ function dagLista(dagar){
 
 /* Vad som visas när (VISA = "auto"):
    frukost (om frukost.json finns), dagens lunch under lunchtid på vardagar, annars hela veckans lunchmeny. */
+function iso(d){ return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+const matchIdag = n => !!(hockey && Array.isArray(hockey.datum) && hockey.datum.includes(iso(n)));
 function bestämLäge(n, lunchStart, lunchEnd){
   if(VISA !== "auto") return VISA;
   const min = n.getHours()*60 + n.getMinutes(), dag = n.getDay();
+  if(hockey && hockey.tid && matchIdag(n) && min >= minuter(hockey.tid.start) && min < minuter(hockey.tid.slut)) return "hockey";
   if(frukost && frukost.tid && (frukost.dagar || VECKODAGAR).includes(DAGAR[dag]) &&
      min >= minuter(frukost.tid.start) && min < minuter(frukost.tid.slut)) return "frukost";
   if(dag !== 0 && dag !== 6 && min >= minuter(lunchStart) && min < minuter(lunchEnd)) return "dag";
@@ -326,23 +343,35 @@ function rita(){
   const läge = bestämLäge(n, lunchStart, lunchEnd);                  // "frukost" | "dag" | "vecka"
   const fr = frukost && frukost.tid ? frukost : null;
   const el = document.getElementById("rätter");
-  el.className = läge === "dag" ? "dagsläge" : läge === "frukost" ? "frukostläge" : "";
+  el.className = läge === "dag" ? "dagsläge" : läge === "frukost" ? "frukostläge" : läge === "hockey" ? "hockeyläge" : "";
   document.querySelector(".skylt").classList.toggle("kompakt", läge === "vecka");
+  document.querySelector(".skylt").classList.toggle("hockey", läge === "hockey");
 
   // Rubrik, pris och fotrad
   const pm = ((meny && meny.priser) || []).map(p => /^(.*?)\s+(\d+\s*:-)/.exec(p)).filter(Boolean);
   const pris = namn => { const m = pm.find(x => x[1].toLowerCase().startsWith(namn)); return m ? m[2].replace(/\s+/g, "") : null; };
   const frTid = fr ? `${fr.tid.start}–${fr.tid.slut}` : "", frDagar = fr ? dagLista(fr.dagar || VECKODAGAR) : "";
-  document.getElementById("rubrik").textContent = läge === "frukost" ? ((fr && fr.rubrik) || "Frukost") : läge === "vecka" ? "Veckans lunch" : "Dagens lunch";
-  document.getElementById("under").textContent = läge === "frukost" ? (fr ? (fr.underrubrik || `Frukostbuffé serveras ${frDagar} ${frTid}`) : "") : CONFIG.underrubrik;
-  document.getElementById("pris").textContent = läge === "frukost" ? "" : (CONFIG.pris || pris("dagens lunch") || "");
+  document.getElementById("rubrik").textContent = läge === "hockey" ? ((hockey && hockey.rubrik) || "Hockeykvällar") : läge === "frukost" ? ((fr && fr.rubrik) || "Frukost") : läge === "vecka" ? "Veckans lunch" : "Dagens lunch";
+  document.getElementById("under").textContent = läge === "hockey" ? ((hockey && hockey.underrubrik) || "") : läge === "frukost" ? (fr ? (fr.underrubrik || `Frukostbuffé serveras ${frDagar} ${frTid}`) : "") : CONFIG.underrubrik;
+  document.getElementById("pris").textContent = läge === "frukost" || läge === "hockey" ? "" : (CONFIG.pris || pris("dagens lunch") || "");
   const sallad = pris("salladsbaren");
   document.getElementById("fot").innerHTML =
     (fr && läge !== "frukost" ? `<div>Frukostbuffé serveras ${esc(frDagar)} ${esc(frTid)}</div>` : "") +
-    `<div>Lunch serveras ${esc(lunchStart)}–${esc(lunchEnd)}` + (sallad ? `  ·  Salladsbaren ${esc(sallad)}` : "") + `</div>`;
+    `<div>Lunch serveras ${esc(lunchStart)}–${esc(lunchEnd)}` + (sallad ? `  ·  Salladsbaren ${esc(sallad)}` : "") + `</div>` +
+    (hockey && hockey.tid && matchIdag(n) && läge !== "hockey" && nuMin < minuter(hockey.tid.slut) ? `<div>Hockeykväll i kväll: uppladdning från ${esc(hockey.tid.start)}</div>` : "");
   document.getElementById("notis").textContent = CONFIG.notis || "";
 
   const msg = (t, s) => { el.className = ""; el.innerHTML = `<div class="msg"><div class="t">${t}</div>${s ? `<div class="s">${s}</div>` : ""}</div>`; passa(); };
+
+  /* ----- Hockeykväll (behöver inte lunchmenyn) ----- */
+  if(läge === "hockey"){
+    if(!hockey || !(hockey.rader || []).length) return msg("Hockeymenyn saknas");
+    const pk = hockey.paket;
+    el.innerHTML = `<div class="hockey">` + hockey.rader.map(r =>
+      `<div class="hrad"><span class="hnamn">${esc(r.namn)}</span>${r.not ? `<span class="hnot">${esc(r.not)}</span>` : ""}<span class="hpris">${esc(r.pris || "")}</span></div>`).join("") +
+      (pk ? `<div class="hpaket"><span class="hnamn">${esc(pk.namn)}</span><span class="hpris">${esc(pk.pris)}</span></div>` : "") + `</div>`;
+    return passa();
+  }
 
   /* ----- Frukost (behöver inte lunchmenyn) ----- */
   if(läge === "frukost"){
