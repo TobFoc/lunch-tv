@@ -15,8 +15,8 @@
       "Asiatiska fish cakes": null
     },
     "torsdag": {
-      "Dansk fläskstek med knaprig svål": null,
-      "Stekt Operaströmming": null
+      "Dansk fläskstek med knaprig svål": Laktos,
+      "Stekt Operaströmming": Gluten, Ägg, Laktos
     },
     "fredag": {
       "Indonesisk biff Rendang med kokosgrädde och citrongräs": null,
