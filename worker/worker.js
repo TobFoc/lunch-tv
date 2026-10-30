@@ -8,8 +8,8 @@
      ALLOWED_ORIGIN (Text)   adressen där TV-sidan ligger, t.ex. "https://anvandarnamn.github.io" (utan snedstreck sist)
 */
 
-const FILER = ["allergener.json", "frukost.json", "hockey.json", "slutsald.json"];   // enda filerna som får ändras
-const MAX_BYTES = 40000;
+const FILER = ["allergener.json", "frukost.json", "hockey.json", "slutsald.json", "brunch.json", "lunch.json", "oppettider.json"];   // enda filerna som får ändras
+const MAX_BYTES = 60000;
 const ALLERGENER = ["gluten", "laktos", "nötter", "ägg", "fisk", "skaldjur", "blötdjur", "selleri", "senap", "soja", "sesam", "jordnötter", "lupin", "sulfit"];
 const DAGAR = ["måndag", "tisdag", "onsdag", "torsdag", "fredag"];
 const TID = /^([01]\d|2[0-3]):[0-5]\d$/;
@@ -44,7 +44,7 @@ function validera(fil, d){
     }
     allergLista(d.vegetariskt === undefined ? null : d.vegetariskt, fel, "vegetariskt");
   }
-  if(fil === "frukost.json"){
+  if(fil === "frukost.json" || fil === "brunch.json"){
     if(!d.tid || !TID.test(d.tid.start || "") || !TID.test(d.tid.slut || "")) fel.push("frukosttid måste vara HH:MM");
     if(!Array.isArray(d.dagar) || d.dagar.some(x => ![...DAGAR, "lördag", "söndag"].includes(x))) fel.push("dagar är felaktiga");
     if(!kort(d.rubrik || "", 60)) fel.push("rubrik för lång");
@@ -54,6 +54,20 @@ function validera(fil, d){
       if(!kort(r.pris || "", 20)) fel.push("rad " + (i + 1) + ": pris");
       if(r.beskrivning !== undefined && !kort(r.beskrivning, 200)) fel.push("rad " + (i + 1) + ": beskrivning för lång");
       if(r.allergener !== undefined) allergLista(r.allergener, fel, "rad " + (i + 1));
+    });
+  }
+  if(fil === "lunch.json"){
+    if(d.tid !== null && (!d.tid || !TID.test(d.tid.start || "") || !TID.test(d.tid.slut || ""))) fel.push("lunchtid måste vara HH:MM eller null");
+    if(!Array.isArray(d.dagar) || d.dagar.some(x => ![...DAGAR, "lördag", "söndag"].includes(x))) fel.push("dagar är felaktiga");
+  }
+  if(fil === "oppettider.json"){
+    if(typeof d.rodaDagarStangt !== "boolean") fel.push("rodaDagarStangt måste vara sant/falskt");
+    if(!Array.isArray(d.undantag) || d.undantag.length > 300) fel.push("undantag saknas eller för många");
+    else d.undantag.forEach((e, i) => {
+      if(!e || !DATUM.test(e.datum || "")) fel.push("undantag " + (i + 1) + ": datum");
+      if(e && e.till !== undefined && (!DATUM.test(e.till) || e.till < e.datum)) fel.push("undantag " + (i + 1) + ": 'till' måste vara ett datum efter början");
+      if(!e || !["stängt", "öppet"].includes(e.status)) fel.push("undantag " + (i + 1) + ": status");
+      if(e && e.text !== undefined && !kort(e.text, 80)) fel.push("undantag " + (i + 1) + ": text för lång");
     });
   }
   if(fil === "slutsald.json"){
