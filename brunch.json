@@ -1,0 +1,18 @@
+{
+  "_info": "Brunchen. Ändra tider, dagar, priser och texter här (eller i backofficet). Lägg till en rad genom att kopiera en av raderna i 'rader' (kommatecken mellan raderna!).",
+  "rubrik": "Brunch",
+  "tid": {
+    "start": "07:00",
+    "slut": "15:00"
+  },
+  "dagar": [
+    "lördag"
+  ],
+  "rader": [
+    {
+      "namn": "Brunchbuffé",
+      "pris": "79:-",
+      "beskrivning": "Inkl gröt, ägg, bacon & våfflor"
+    }
+  ]
+}

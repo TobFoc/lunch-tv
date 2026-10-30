@@ -1,6 +1,6 @@
 # Backoffice för personalen
 
-Sidan `admin.html` låter personalen ändra **allergener**, **frukostmenyn** och **hockeykvällarna** samt markera rätter som **slutsålda** direkt från en iPad eller telefon,
+Sidan `admin.html` låter personalen ändra **allergener**, **frukostmenyn** och **hockeykvällarna** samt ändra **lunchtider**, **brunch** och **stängda dagar** (röda dagar) och markera rätter som **slutsålda** direkt från en iPad eller telefon,
 utan GitHub-konto. De skriver bara in en kod. Ändringen syns på TV:n inom ca 2 minuter.
 
 Adress: `https://DITT-ANVÄNDARNAMN.github.io/lunch-tv/admin.html`
@@ -14,12 +14,12 @@ Personalen  →  admin.html  →  Cloudflare-funktionen (kollar koden)  →  Git
 
 GitHub Pages kan bara visa sidor, inte ta emot ändringar. Därför finns en liten gratis funktion hos Cloudflare (`worker/worker.js`)
 som kontrollerar koden och sparar ändringen i ert repo. GitHub-nyckeln ligger bara i Cloudflare, aldrig på sidan eller hos personalen.
-Funktionen får bara ändra fyra filer (`allergener.json`, `frukost.json`, `hockey.json`, `slutsald.json`) och nekar ändringar som skulle göra TV:n trasig.
+Funktionen får bara ändra sju filer (`allergener.json`, `frukost.json`, `brunch.json`, `lunch.json`, `hockey.json`, `oppettider.json`, `slutsald.json`) och nekar ändringar som skulle göra TV:n trasig.
 
 ## Engångsinställning (ca 20 minuter, görs av en person)
 
 ### 1. Ladda upp de nya filerna till GitHub
-Dra in `admin.html`, `BACKOFFICE.md`, `slutsald.json` och uppdaterade `index.html`, `README.md`, `hockey.json`, `frukost.json`.
+Dra in `admin.html`, `BACKOFFICE.md`, `slutsald.json`, `brunch.json`, `lunch.json`, `oppettider.json` och uppdaterade `index.html`, `README.md`, `hockey.json`, `frukost.json`.
 Skapa mappen `worker` genom *Add file → Create new file*, skriv `worker/worker.js` som filnamn och klistra in innehållet från filen.
 Uppdatera även schemat: öppna `.github/workflows/uppdatera-lunchmeny.yml`, tryck på pennan och ersätt innehållet med den nya versionen.
 (Det nya schemat hanterar att personalen och menyhämtningen sparar samtidigt.)
@@ -61,6 +61,10 @@ Uppdatera även schemat: öppna `.github/workflows/uppdatera-lunchmeny.yml`, try
 - **Allergener:** Varje vecka hämtas nya rätter automatiskt. Öppna fliken *Allergener*, tryck på de allergener som varje rätt innehåller och tryck *Spara*.
   "Inga allergener" betyder att rätten inte innehåller något av de 14. En rätt som inte rörts visar "fråga personalen" på TV:n, aldrig "inga".
   Allergenerna är köksets ansvar och måste stämma med recepten.
+- **Lunch:** Här ändrar ni lunchens tider och vilka dagar lunch serveras. Är rutan *Använd egna lunchtider* ikryssad gäller era tider, annars ICA:s.
+- **Brunch:** Samma som frukost, för lördagsbrunchen (nu 07:00–15:00, 79:-, inkl gröt, ägg, bacon och våfflor). Priset är en egen siffra, så ändrar ni frukostpriset måste ni ändra det här också.
+- **Stängt:** TV:n stänger automatiskt på svenska röda dagar och visar då "Stängt idag" med orsak och när ni öppnar igen (dagen före står "Stängt imorgon" längst ner). Under *Kommande röda dagar* trycker ni *Ha öppet* för att ha öppet en röd dag (och *Stäng igen* för att ångra).
+  Under *Stäng andra dagar* lägger ni in egna stängda dagar, även flera dagar i rad, med valfri orsak. Dagar som passerat städas bort automatiskt. Julafton, Midsommarafton och Nyårsafton är inte röda dagar och måste läggas in som egna stängda dagar.
 - **Frukost:** Ändra rader, priser, beskrivningar, tider och dagar (frukostskylten visar inga allergener). Använd pilarna för att ändra ordning.
 - **Hockey:** Lägg till eller ta bort matchdatum, ändra matchstart, uppladdningstid, texter och priser.
 
@@ -68,7 +72,7 @@ Sidan varnar om något är osparat. Byter ni flik med osparade ändringar får n
 
 ## Uppdatera funktionen när något nytt tillkommit
 
-Har du redan satt upp backofficet och får en ny version av `worker/worker.js` (som nu när *Slutsålt* tillkom) måste den även bytas på Cloudflare, annars nekas sparandet av slutsålda rätter:
+Har du redan satt upp backofficet och får en ny version av `worker/worker.js` (som när *Slutsålt*, *Lunch*, *Brunch* och *Stängt* tillkom) måste den även bytas på Cloudflare, annars nekas sparandet av de nya flikarna:
 *Workers & Pages* → din funktion `lunch-tv` → *Edit code* → radera allt, klistra in hela nya `worker.js` → *Deploy*. Variablerna och koden ligger kvar.
 
 ## Säkerhet

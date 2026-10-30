@@ -15,18 +15,18 @@
   "rader": [
     {
       "namn": "Frukostbuffé",
-      "pris": "99:-",
+      "pris": "79:-",
       "beskrivning": "Inkl gröt, ägg & bacon"
     },
     {
       "namn": "Kaffe & fralla",
-      "pris": "45:-",
+      "pris": "40:-",
       "beskrivning": "1 kaffe & 1 fralla. Frallan gör du själv"
     },
     {
       "namn": "Kaffe",
-      "pris": "25:-",
-      "beskrivning": "Cappuccino, Caffe Latte, Espresso, Varm Choklad"
+      "pris": "20:-",
+      "beskrivning": "Cappuccino, Caffe Latte, Espresso"
     }
   ]
 }

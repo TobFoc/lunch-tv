@@ -111,6 +111,7 @@
   .slut .fbesk, .slut .fpris, .slut .nr { opacity: .45; }
   .fbesk { font-weight: 500; font-size: calc(var(--u) * 4.2 * var(--k, 1)); line-height: 1.15; margin-top: calc(var(--u) * .8 * var(--k, 1)); }
 
+  .imorgon { color: var(--röd); font-weight: 800; }
   /* Slutsåld */
   .sl { display: inline-block; background: var(--röd); color: #fff; font-weight: 800; font-size: .6em; letter-spacing: .08em; text-transform: uppercase; padding: .08em .5em; margin-left: .6em; vertical-align: middle; line-height: 1.2; text-decoration: none; white-space: nowrap; }
   .slut .nm { text-decoration: line-through; text-decoration-thickness: .08em; opacity: .5; }
@@ -177,6 +178,9 @@ const CONFIG = {
   menuUrl: "menu.json",              // veckans meny (skapas av hamta_meny.py)
   allergenUrl: "allergener.json",    // allergener per rätt (fylls i av köket)
   frukostUrl: "frukost.json",        // frukostmeny, tider och priser
+  brunchUrl: "brunch.json",          // brunch (t.ex. lördagar)
+  lunchUrl: "lunch.json",            // lunchtider och lunchdagar (egna tider går före ICA:s)
+  oppettiderUrl: "oppettider.json",  // röda dagar och andra stängda/öppna dagar
   slutUrl: "slutsald.json",          // slutsålda rätter idag (sätts i backofficet, gäller bara den dagen)
   hockeyUrl: "hockey.json",          // matchdagar för Frölunda (hemma) samt hockeymeny
   visa: "auto",                      // "auto" = frukost på morgonen, dagens lunch under lunchtid, hela veckan resten av tiden. Kan tvingas: "dag", "vecka" eller "frukost"
@@ -217,15 +221,19 @@ const ALIAS = {
 const DAGAR = ["söndag","måndag","tisdag","onsdag","torsdag","fredag","lördag"];
 const VECKODAGAR = ["måndag","tisdag","onsdag","torsdag","fredag"];
 const PARAMS = new URLSearchParams(location.search);       // ?visa=vecka  ?dag=torsdag&tid=12:00 (för test)
-const VISA = (v => ["auto", "dag", "vecka", "frukost", "hockey"].includes(v) ? v : "auto")(PARAMS.get("visa") || CONFIG.visa);
+const VISA = (v => ["auto", "dag", "vecka", "frukost", "brunch", "hockey", "stängt"].includes(v) ? v : "auto")(PARAMS.get("visa") || CONFIG.visa);
 const ALLERGEN_URL = PARAMS.get("allergener") || CONFIG.allergenUrl;
 const FRUKOST_URL = PARAMS.get("frukost") || CONFIG.frukostUrl;
 const HOCKEY_URL = PARAMS.get("hockey") || CONFIG.hockeyUrl;
-let meny = null, allerg = null, frukost = null, hockey = null, slutsåld = null;
+const BRUNCH_URL = PARAMS.get("brunch") || CONFIG.brunchUrl;
+const LUNCH_URL = PARAMS.get("lunch") || CONFIG.lunchUrl;
+const OPP_URL = PARAMS.get("oppettider") || CONFIG.oppettiderUrl;
+let meny = null, allerg = null, frukost = null, hockey = null, slutsåld = null, brunch = null, lunch = null, opp = null;
 const SLUT_URL = PARAMS.get("slut") || CONFIG.slutUrl;
 
 function nu(){
-  const d = new Date(), dg = PARAMS.get("dag"), t = PARAMS.get("tid");
+  const d = new Date(), dg = PARAMS.get("dag"), t = PARAMS.get("tid"), dt = PARAMS.get("datum");
+  if(dt && /^\d{4}-\d\d-\d\d$/.test(dt)){ const [y, mo, da] = dt.split("-").map(Number); d.setFullYear(y, mo - 1, da); }
   if(dg){ const i = DAGAR.indexOf(dg.toLowerCase()); if(i >= 0) d.setDate(d.getDate() + i - d.getDay()); }
   if(t){ const [h,m] = t.split(":").map(Number); d.setHours(h, m || 0, 0, 0); }
   return d;
@@ -303,10 +311,15 @@ async function hämtaJson(url, nyckel){
   }
 }
 
+async function hämtaSnabba(){
+  const [s, o] = await Promise.all([hämtaJson(SLUT_URL, "slutsald"), hämtaJson(OPP_URL, "oppettider")]);
+  slutsåld = s.data; opp = o.data;
+}
+
 async function hämtaMeny(){
-  const [m, a, f, h] = await Promise.all([hämtaJson(CONFIG.menuUrl, "lunchmeny"), hämtaJson(ALLERGEN_URL, "allergener"), hämtaJson(FRUKOST_URL, "frukost"), hämtaJson(HOCKEY_URL, "hockey")]);
-  meny = m.data; allerg = a.data; frukost = f.data; hockey = h.data;
-  slutsåld = (await hämtaJson(SLUT_URL, "slutsald")).data;
+  const [m, a, f, h, b, l] = await Promise.all([hämtaJson(CONFIG.menuUrl, "lunchmeny"), hämtaJson(ALLERGEN_URL, "allergener"), hämtaJson(FRUKOST_URL, "frukost"), hämtaJson(HOCKEY_URL, "hockey"), hämtaJson(BRUNCH_URL, "brunch"), hämtaJson(LUNCH_URL, "lunch")]);
+  meny = m.data; allerg = a.data; frukost = f.data; hockey = h.data; brunch = b.data; lunch = l.data;
+  await hämtaSnabba();
   document.getElementById("status").textContent =
     !meny ? "Kunde inte hämta menyn" : (m.sparad ? "Visar sparad meny (ingen anslutning)" : "");
   rita();
@@ -336,7 +349,55 @@ function passa(){
 function dagLista(dagar){
   if(dagar.length === 7) return "dagligen";
   if(dagar.length === 5 && VECKODAGAR.every(d => dagar.includes(d))) return "vardagar";
+  if(dagar.length === 1) return dagar[0] + "ar";                // "lördag" -> "lördagar"
   return dagar.join(", ");
+}
+
+/* ----- Röda dagar och stängt ----- */
+function påsk(y){
+  const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const t = h + l - 7 * m + 114;
+  return new Date(y, Math.floor(t / 31) - 1, (t % 31) + 1);
+}
+const plusDagar = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+function rödaDagar(y){                                              // svenska helgdagar: [datum, namn]
+  const p = påsk(y), r = [], add = (d, n) => r.push([iso(d), n]);
+  add(new Date(y, 0, 1), "Nyårsdagen"); add(new Date(y, 0, 6), "Trettondedag jul"); add(plusDagar(p, -2), "Långfredagen");
+  add(p, "Påskdagen"); add(plusDagar(p, 1), "Annandag påsk"); add(new Date(y, 4, 1), "Första maj");
+  add(plusDagar(p, 39), "Kristi himmelsfärdsdag"); add(plusDagar(p, 49), "Pingstdagen"); add(new Date(y, 5, 6), "Nationaldagen");
+  for(let i = 20; i <= 26; i++){ const x = new Date(y, 5, i); if(x.getDay() === 6) add(x, "Midsommardagen"); }
+  for(let i = 0; i < 7; i++){ const x = new Date(y, 9, 31 + i); if(x.getDay() === 6) add(x, "Alla helgons dag"); }
+  add(new Date(y, 11, 25), "Juldagen"); add(new Date(y, 11, 26), "Annandag jul");
+  return r.sort();
+}
+// Är det stängt detta datum? Returnerar {orsak} eller null. Egna undantag går före röda dagar; "öppet" upphäver en röd dag.
+function stängtInfo(d){
+  const k = iso(d), o = opp || {rodaDagarStangt: true, undantag: []};
+  const ex = (o.undantag || []).filter(e => e && e.datum <= k && k <= (e.till || e.datum));
+  const st = ex.find(e => e.status === "stängt");
+  if(st) return {orsak: st.text || ""};
+  if(ex.some(e => e.status === "öppet")) return null;
+  if(o.rodaDagarStangt !== false){ const rd = rödaDagar(d.getFullYear()).find(x => x[0] === k); if(rd) return {orsak: rd[1]}; }
+  return null;
+}
+const lunchDagar = () => (lunch && Array.isArray(lunch.dagar) && lunch.dagar) || VECKODAGAR;
+function lunchTid(){                                                // egna tider (backoffice) före ICA:s, före reservtider
+  const lt = (lunch && lunch.tid && lunch.tid.start && lunch.tid.slut && lunch.tid) || (meny && meny.lunchtid) || {};
+  return {start: lt.start || CONFIG.lunchStart, slut: lt.slut || CONFIG.lunchEnd};
+}
+// Nästa dag med öppet och när det öppnar
+function öppnarIgen(d){
+  for(let i = 1; i <= 21; i++){
+    const x = plusDagar(d, i), dn = DAGAR[x.getDay()];
+    if(stängtInfo(x)) continue;
+    const tider = [];
+    if(frukost && frukost.tid && (frukost.dagar || VECKODAGAR).includes(dn)) tider.push(frukost.tid.start);
+    if(brunch && brunch.tid && (brunch.dagar || []).includes(dn)) tider.push(brunch.tid.start);
+    if(lunchDagar().includes(dn)) tider.push(lunchTid().start);
+    if(tider.length) return {datum: x, tid: tider.sort()[0]};
+  }
+  return null;
 }
 
 /* Vad som visas när (VISA = "auto"):
@@ -348,22 +409,25 @@ const matchKväll = n => matchIdag(n) && n.getHours()*60 + n.getMinutes() < minu
 function bestämLäge(n, lunchStart, lunchEnd){
   if(VISA !== "auto") return VISA;
   const min = n.getHours()*60 + n.getMinutes(), dag = n.getDay();
+  if(stängtInfo(n)) return "stängt";
   if(hockey && hockey.tid && matchKväll(n) && min >= minuter(hockey.tid.start)) return "hockey";
   if(frukost && frukost.tid && (frukost.dagar || VECKODAGAR).includes(DAGAR[dag]) &&
      min >= minuter(frukost.tid.start) && min < minuter(frukost.tid.slut)) return "frukost";
-  if(dag !== 0 && dag !== 6 && min >= minuter(lunchStart) && min < minuter(lunchEnd)) return "dag";
+  if(brunch && brunch.tid && (brunch.dagar || []).includes(DAGAR[dag]) &&
+     min >= minuter(brunch.tid.start) && min < minuter(brunch.tid.slut)) return "brunch";
+  if(lunchDagar().includes(DAGAR[dag]) && min >= minuter(lunchStart) && min < minuter(lunchEnd)) return "dag";
   return "vecka";
 }
 
 function rita(){
   const n = nu(), dagNamn = DAGAR[n.getDay()], nuMin = n.getHours()*60 + n.getMinutes();
-  const lt = (meny && meny.lunchtid) || {};
-  const lunchStart = lt.start || CONFIG.lunchStart, lunchEnd = lt.slut || CONFIG.lunchEnd;
+  const lunchStart = lunchTid().start, lunchEnd = lunchTid().slut;
   const start = minuter(lunchStart), slut = minuter(lunchEnd);
   const läge = bestämLäge(n, lunchStart, lunchEnd);                  // "frukost" | "dag" | "vecka"
-  const fr = frukost && frukost.tid ? frukost : null;
+  const fr = frukost && frukost.tid ? frukost : null, bl = brunch && brunch.tid ? brunch : null;
+  const buf = läge === "brunch" ? bl : fr;                            // frukost- eller brunchdata när en bufféskylt visas
   const el = document.getElementById("rätter");
-  el.className = läge === "dag" ? "dagsläge" : läge === "frukost" ? "frukostläge" : läge === "hockey" ? "hockeyläge" : "";
+  el.className = läge === "dag" ? "dagsläge" : läge === "frukost" || läge === "brunch" ? "frukostläge" : läge === "hockey" ? "hockeyläge" : "";
   document.querySelector(".skylt").classList.toggle("kompakt", läge === "vecka");
   document.querySelector(".skylt").classList.toggle("hockey", läge === "hockey");
 
@@ -371,20 +435,29 @@ function rita(){
   const pm = ((meny && meny.priser) || []).map(p => /^(.*?)\s+(\d+\s*:-)/.exec(p)).filter(Boolean);
   const pris = namn => { const m = pm.find(x => x[1].toLowerCase().startsWith(namn)); return m ? m[2].replace(/\s+/g, "") : null; };
   const frTid = fr ? `${fr.tid.start}–${fr.tid.slut}` : "", frDagar = fr ? dagLista(fr.dagar || VECKODAGAR) : "";
-  document.getElementById("rubrik").textContent = läge === "hockey" ? ((hockey && hockey.rubrik) || "Hockeykvällar") : läge === "frukost" ? ((fr && fr.rubrik) || "Frukost") : läge === "vecka" ? "Veckans lunch" : "Dagens lunch";
-  document.getElementById("under").textContent = läge === "hockey" ? ((hockey && hockey.underrubrik) || "") : läge === "frukost" ? (fr ? (fr.underrubrik || `Frukostbuffé serveras ${frDagar} ${frTid}`) : "") : CONFIG.underrubrik;
-  document.getElementById("pris").textContent = läge === "frukost" || läge === "hockey" ? "" : (CONFIG.pris || pris("dagens lunch") || "");
+  const blTid = bl ? `${bl.tid.start}–${bl.tid.slut}` : "", blDagar = bl ? dagLista(bl.dagar || []) : "";
+  const stängt = läge === "stängt" ? (stängtInfo(n) || {orsak: ""}) : null;
+  document.getElementById("rubrik").textContent = läge === "hockey" ? ((hockey && hockey.rubrik) || "Hockeykvällar") : läge === "stängt" ? "Stängt idag" : läge === "brunch" ? ((bl && bl.rubrik) || "Brunch") : läge === "frukost" ? ((fr && fr.rubrik) || "Frukost") : läge === "vecka" ? "Veckans lunch" : "Dagens lunch";
+  document.getElementById("under").textContent = läge === "hockey" ? ((hockey && hockey.underrubrik) || "") : läge === "stängt" ? (stängt.orsak || "") : läge === "brunch" ? (bl ? (bl.underrubrik || `Brunch serveras ${blDagar} ${blTid}`) : "") : läge === "frukost" ? (fr ? (fr.underrubrik || `Frukostbuffé serveras ${frDagar} ${frTid}`) : "") : CONFIG.underrubrik;
+  document.getElementById("pris").textContent = läge === "frukost" || läge === "brunch" || läge === "hockey" || läge === "stängt" ? "" : (CONFIG.pris || pris("dagens lunch") || "");
   const sallad = pris("salladsbaren");
   document.getElementById("fot").innerHTML =
-    (fr && läge !== "frukost" ? `<div>Frukostbuffé serveras ${esc(frDagar)} ${esc(frTid)}</div>` : "") +
-    `<div>Lunch serveras ${esc(lunchStart)}–${esc(lunchEnd)}` + (sallad ? `  ·  Salladsbaren ${esc(sallad)}` : "") + `</div>`;
+    (läge !== "frukost" && läge !== "brunch" && (fr || bl) ? `<div>${[fr ? `Frukostbuffé ${frDagar} ${frTid}` : "", bl ? `Brunch ${blDagar} ${blTid}` : ""].filter(Boolean).map(esc).join("  ·  ")}</div>` : "") +
+    `<div>Lunch serveras ${esc(lunchStart)}–${esc(lunchEnd)}` + (sallad ? `  ·  Salladsbaren ${esc(sallad)}` : "") + `</div>` +
+    (läge !== "stängt" && stängtInfo(plusDagar(n, 1)) ? `<div class="imorgon">Stängt imorgon${stängtInfo(plusDagar(n, 1)).orsak ? ": " + esc(stängtInfo(plusDagar(n, 1)).orsak) : ""}</div>` : "");
   document.getElementById("notis").textContent = CONFIG.notis || "";
   const bn = document.getElementById("banner");
-  const visaBanner = läge !== "hockey" && hockey && hockey.tid && matchKväll(n);
+  const visaBanner = läge !== "hockey" && läge !== "stängt" && hockey && hockey.tid && matchKväll(n);
   bn.style.display = visaBanner ? "flex" : "none";
   if(visaBanner) bn.innerHTML = `<b>${esc(hockey.banner || "Hockeykväll i restaurangen!")}</b><span>Uppladdning ${esc(hockey.tid.start)} till matchstart ${esc(matchstart())} ikväll</span>`;
 
   const msg = (t, s) => { el.className = ""; el.innerHTML = `<div class="msg"><div class="t">${t}</div>${s ? `<div class="s">${s}</div>` : ""}</div>`; passa(); };
+
+  /* ----- Stängt ----- */
+  if(läge === "stängt"){
+    const nästa = öppnarIgen(n);
+    return msg("Välkommen åter", nästa ? `Vi öppnar igen ${nästa.datum.toLocaleDateString("sv-SE", {weekday: "long", day: "numeric", month: "long"})} kl ${esc(nästa.tid)}` : "");
+  }
 
   /* ----- Hockeykväll (behöver inte lunchmenyn) ----- */
   if(läge === "hockey"){
@@ -397,9 +470,9 @@ function rita(){
   }
 
   /* ----- Frukost (behöver inte lunchmenyn) ----- */
-  if(läge === "frukost"){
-    if(!fr || !(fr.rader || []).length) return msg("Frukostmenyn saknas");
-    el.innerHTML = `<div class="frukost">` + fr.rader.map((r, i) => {
+  if(läge === "frukost" || läge === "brunch"){
+    if(!buf || !(buf.rader || []).length) return msg(läge === "brunch" ? "Brunchmenyn saknas" : "Frukostmenyn saknas");
+    el.innerHTML = `<div class="frukost">` + buf.rader.map((r, i) => {
       const sl = ärSlut(r.namn, n);
       return `<div class="frad${sl ? " slut" : ""}"><div class="nr">${i + 1}.</div>` +
         `<div class="fmitt"><div class="fnamn"><span class="nm">${esc(r.namn)}</span>${sl ? slutMärke() : ""}</div>${r.beskrivning ? `<div class="fbesk">${esc(r.beskrivning)}</div>` : ""}</div>` +
@@ -457,7 +530,7 @@ function rita(){
 hämtaMeny();
 setInterval(hämtaMeny, CONFIG.hämtaVarjeMinut * 60 * 1000);
 setInterval(rita, 30 * 1000);
-setInterval(async () => { slutsåld = (await hämtaJson(SLUT_URL, "slutsald")).data; rita(); }, 60 * 1000);   // slutsåld hämtas varje minut
+setInterval(async () => { await hämtaSnabba(); rita(); }, 60 * 1000);   // slutsåld och öppettider hämtas varje minut
 addEventListener("resize", passa);
 if(document.fonts && document.fonts.ready) document.fonts.ready.then(passa);
 </script>

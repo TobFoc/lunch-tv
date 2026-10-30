@@ -1,0 +1,11 @@
+{
+  "_info": "Lunchtider och lunchdagar. tid = null betyder att tiderna hämtas från ICA:s sida. Skriv egna tider, t.ex. {\"start\": \"11:00\", \"slut\": \"14:30\"}, så gäller de i stället. dagar = vilka dagar lunch serveras. Kan ändras i backofficet.",
+  "tid": null,
+  "dagar": [
+    "måndag",
+    "tisdag",
+    "onsdag",
+    "torsdag",
+    "fredag"
+  ]
+}

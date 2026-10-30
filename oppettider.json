@@ -1,0 +1,5 @@
+{
+  "_info": "Stängda och öppna dagar. rodaDagarStangt = stäng automatiskt på svenska röda dagar. undantag = egna datum: {\"datum\":\"2026-12-24\",\"status\":\"stängt\",\"text\":\"Julafton\"} stänger (valfritt \"till\" för flera dagar i rad), {\"datum\":\"2026-12-26\",\"status\":\"öppet\"} har öppet på en röd dag. Kan ändras i backofficet.",
+  "rodaDagarStangt": true,
+  "undantag": []
+}

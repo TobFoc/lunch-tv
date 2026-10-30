@@ -14,6 +14,9 @@ varje vardagsmorgon och publiceras på en webbadress som TV:n (UniFi Cast / Smar
 | `menu.json` | Veckans meny. Skrivs över automatiskt. |
 | `admin.html` | Backoffice för personalen: allergener, frukost och hockey utan GitHub-konto. Se `BACKOFFICE.md`. |
 | `worker/worker.js` | Sparfunktionen som backofficet använder (körs på Cloudflare). Se `BACKOFFICE.md`. |
+| `lunch.json` | Egna lunchtider och lunchdagar (går före ICA:s tider). Ändras i backofficet. |
+| `brunch.json` | Brunchen (lördagar 07:00–15:00): tider, dagar, priser. |
+| `oppettider.json` | Röda dagar och andra stängda/öppna dagar. Ändras i backofficet. |
 | `slutsald.json` | Vilka rätter som är slutsålda idag. Sätts i backofficet och nollställs av sig själv nästa dag. |
 | `hockey.json` | Frölundas hemmamatcher (datum) och hockeymenyn med priser. Lägg till/ta bort datum här. |
 | `frukost.json` | Frukostmenyn: tider, dagar, priser och texter. Ändra här när något ändras. |
@@ -25,7 +28,7 @@ varje vardagsmorgon och publiceras på en webbadress som TV:n (UniFi Cast / Smar
 1. **Skapa konto** på [github.com](https://github.com) (gratis).
 2. **Skapa ett repository:** plusset uppe till höger → *New repository*.
    Namn: `lunch-tv`. Välj **Public** (gratis Pages kräver det; menyn är ändå publik på ICA:s sida). Klicka *Create repository*.
-3. **Ladda upp filerna:** *Add file → Upload files*. Dra in `index.html`, `hamta_meny.py`, `menu.json`, `allergener.json`, `frukost.json`, `hockey.json`, `slutsald.json`, `README.md` och mappen `assets`. Klicka *Commit changes*.
+3. **Ladda upp filerna:** *Add file → Upload files*. Dra in `index.html`, `hamta_meny.py`, `menu.json`, `allergener.json`, `frukost.json`, `brunch.json`, `lunch.json`, `oppettider.json`, `hockey.json`, `slutsald.json`, `README.md` och mappen `assets`. Klicka *Commit changes*.
 4. **Lägg till schemat.** Mappen `.github` är dold på Mac/Windows och följer ibland inte med vid uppladdning, så gör så här:
    *Add file → Create new file*, skriv i namnfältet exakt
    `.github/workflows/uppdatera-lunchmeny.yml`
@@ -53,8 +56,10 @@ Sidan väljer själv vy efter klockan (`visa: "auto"` i `CONFIG`):
 | Tid | Vy |
 |---|---|
 | Frölundas hemmamatchdagar 16:30 till matchstart | **Hockeykväll**: mörk skylt med priser och paketpris (datum och priser i `hockey.json`) |
+| Röd dag eller annan stängd dag (hela dagen) | **Stängt idag**: orsak och när ni öppnar igen. Dagen före står "Stängt imorgon" i fotraden |
+| Lördagar 07:00–15:00 | **Brunch**: buffé med pris från `brunch.json` |
 | Vardagar 07:00–10:00 | **Frukost**: numrerad prislista från `frukost.json` |
-| Vardagar under lunchtid (11:00–14:30) | **Dagens lunch**: dagens rätter med beskrivning och allergener |
+| Lunchtid (från `lunch.json`, annars ICA:s tider, vanligen 11:00–14:30) | **Dagens lunch**: dagens rätter med beskrivning och allergener |
 | Resten av tiden, även helger | **Veckans lunch**: hela veckans meny, dagens rad markerad i rött tills lunchen är slut |
 
 Lunchtiderna läses från ICA:s sida. Frukosttiderna och vilka dagar frukost visas står i `frukost.json`.

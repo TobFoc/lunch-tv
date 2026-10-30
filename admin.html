@@ -22,7 +22,7 @@
   input[type=text], input[type=password], input[type=time], input[type=date], input[type=number] { width: 100%; min-height: 46px; padding: 8px 10px; border: 1px solid #8c8c86; border-radius: 8px; background: #fff; }
   label.f { display: block; font-weight: 600; margin: 12px 0 4px; }
   .tabs { display: flex; gap: 6px; margin: 4px 0 14px; flex-wrap: wrap; }
-  .tabs button { flex: 1; min-width: 120px; font-weight: 700; }
+  .tabs button { flex: 1; min-width: 100px; padding: 8px 6px; font-weight: 700; }
   .tabs button.on { background: var(--svart); color: #fff; }
   .kort { background: #fff; border: 1px solid var(--linje); border-radius: 10px; padding: 12px 14px; margin: 10px 0; }
   .kort h3 { margin: 0 0 2px; font-size: 18px; }
@@ -102,7 +102,7 @@
 <script>
 /* ===== INSTÄLLNINGAR ===== */
 const CONFIG = {
-  api: "https://lunch-tv.tobias-roos.workers.dev/",   // adressen till din Cloudflare-funktion, t.ex. "https://lunch-tv.dittnamn.workers.dev" (se BACKOFFICE.md)
+  api: "",   // adressen till din Cloudflare-funktion, t.ex. "https://lunch-tv.dittnamn.workers.dev" (se BACKOFFICE.md)
 };
 
 const API = (new URLSearchParams(location.search).get("api") || CONFIG.api).replace(/\/$/, "");
@@ -114,7 +114,7 @@ const ALLERGENER = [
 const ALIAS = {"mjölk":"laktos","mjolk":"laktos","notter":"nötter","trädnötter":"nötter","agg":"ägg","blotdjur":"blötdjur","mollusker":"blötdjur","kräftdjur":"skaldjur","jordnotter":"jordnötter","sesamfrön":"sesam","spannmål":"gluten","svaveldioxid":"sulfit"};
 const DAGAR = ["måndag","tisdag","onsdag","torsdag","fredag"];
 const ALLA_DAGAR = [...DAGAR, "lördag", "söndag"];
-const FILNAMN = {slut: "slutsald.json", allergener: "allergener.json", frukost: "frukost.json", hockey: "hockey.json"};
+const FILNAMN = {slut: "slutsald.json", allergener: "allergener.json", lunch: "lunch.json", frukost: "frukost.json", brunch: "brunch.json", hockey: "hockey.json", oppett: "oppettider.json"};
 
 let pin = "", flik = "slut", menu = null;
 const D = {allergener: null, frukost: null, hockey: null};   // arbetskopior
@@ -197,6 +197,9 @@ async function läs(){
     if(k === "allergener") D[k] = byggAllergener(D[k]);
     if(k === "slut"){ const i = iso(new Date()); D[k] = D[k] && D[k].datum === i ? D[k] : {...(D[k] && D[k]._info ? {_info: D[k]._info} : {}), datum: i, rätter: []}; }
     if(k === "frukost") D[k] = D[k] || {rubrik: "Frukost", tid: {start: "07:00", slut: "10:00"}, dagar: [...DAGAR], visaAllergener: true, rader: []};
+    if(k === "brunch") D[k] = D[k] || {rubrik: "Brunch", tid: {start: "07:00", slut: "15:00"}, dagar: ["lördag"], rader: [{namn: "Brunchbuffé", pris: "79:-", beskrivning: "Inkl gröt, ägg, bacon & våfflor"}]};
+    if(k === "lunch") D[k] = D[k] || {tid: null, dagar: [...DAGAR]};
+    if(k === "oppett"){ D[k] = D[k] || {rodaDagarStangt: true, undantag: []}; D[k].undantag = (D[k].undantag || []).filter(e => (e.till || e.datum) >= iso(new Date())); }
     if(k === "hockey") D[k] = D[k] || {rubrik: "Hockeykvällar i Focus Restaurang", underrubrik: "", banner: "Hockeykväll i restaurangen!", tid: {start: "16:30"}, matchstart: "19:00", datum: [], rader: [], paket: {namn: "Paketpris mat + dryck", pris: ""}};
     BAS[k] = k === "allergener" ? ser(D[k]) : ser(D[k]);
   }
@@ -252,8 +255,8 @@ function vyAllergener(){
   return h("div", {}, rader);
 }
 
-function vyFrukost(){
-  const f = D.frukost;
+function vyBuffe(key){
+  const f = D[key], ORD = key === "brunch" ? "Brunch" : "Frukost";
   const rader = f.rader = f.rader || [];
   const lista = h("div");
   const ritaRader = () => lista.replaceChildren(...rader.map((r, i) => h("div", {class: "kort"},
@@ -271,9 +274,9 @@ function vyFrukost(){
   return h("div", {},
     h("label", {class: "f"}, "Rubrik"), h("input", {type: "text", value: f.rubrik || "", oninput: e => { f.rubrik = e.target.value; uppdStatus(); }}),
     h("div", {class: "rad"},
-      h("div", {}, h("label", {class: "f"}, "Frukost från"), h("input", {type: "time", value: f.tid.start, oninput: e => { f.tid.start = e.target.value; uppdStatus(); }})),
-      h("div", {}, h("label", {class: "f"}, "Frukost till"), h("input", {type: "time", value: f.tid.slut, oninput: e => { f.tid.slut = e.target.value; uppdStatus(); }}))),
-    h("label", {class: "f"}, "Dagar då frukost serveras"),
+      h("div", {}, h("label", {class: "f"}, ORD + " från"), h("input", {type: "time", value: f.tid.start, oninput: e => { f.tid.start = e.target.value; uppdStatus(); }})),
+      h("div", {}, h("label", {class: "f"}, ORD + " till"), h("input", {type: "time", value: f.tid.slut, oninput: e => { f.tid.slut = e.target.value; uppdStatus(); }}))),
+    h("label", {class: "f"}, "Dagar då " + ORD.toLowerCase() + " serveras"),
     h("div", {class: "dagar"}, ALLA_DAGAR.map(d => h("label", {}, h("input", {type: "checkbox", checked: (f.dagar || []).includes(d), onchange: e => {
       f.dagar = ALLA_DAGAR.filter(x => x === d ? e.target.checked : (f.dagar || []).includes(x)); uppdStatus(); }}), d))),
     h("h2", {}, "Rader"), lista,
@@ -335,6 +338,8 @@ function vySlut(){
   if(menu && menu.vegetariskt) grupper.push(["Veckans vegetariska", [dela(menu.vegetariskt)]]);
   const fr = (D.frukost.rader || []).map(r => r.namn).filter(Boolean);
   if(fr.length) grupper.push(["Frukost", fr]);
+  const br = (D.brunch.rader || []).map(r => r.namn).filter(Boolean);
+  if(br.length) grupper.push(["Brunch", br]);
   const hk = (D.hockey.rader || []).map(r => r.namn).filter(Boolean);
   if(hk.length) grupper.push(["Hockey", hk]);
   const ärSl = n => sl.rätter.some(x => nz(x) === nz(n));
@@ -359,8 +364,85 @@ function vySlut(){
     sl.rätter.length ? h("p", {}, h("button", {class: "liten", onclick: () => { sl.rätter = []; ritaVy(); }}, "Nollställ allt (allt finns igen)")) : null);
 }
 
+/* ---------- röda dagar (samma beräkning som TV-sidan) ---------- */
+function påsk(y){
+  const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const t = h + l - 7 * m + 114;
+  return new Date(y, Math.floor(t / 31) - 1, (t % 31) + 1);
+}
+const plusDagar = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+function rödaDagar(y){                                              // svenska helgdagar: [datum, namn]
+  const p = påsk(y), r = [], add = (d, n) => r.push([iso(d), n]);
+  add(new Date(y, 0, 1), "Nyårsdagen"); add(new Date(y, 0, 6), "Trettondedag jul"); add(plusDagar(p, -2), "Långfredagen");
+  add(p, "Påskdagen"); add(plusDagar(p, 1), "Annandag påsk"); add(new Date(y, 4, 1), "Första maj");
+  add(plusDagar(p, 39), "Kristi himmelsfärdsdag"); add(plusDagar(p, 49), "Pingstdagen"); add(new Date(y, 5, 6), "Nationaldagen");
+  for(let i = 20; i <= 26; i++){ const x = new Date(y, 5, i); if(x.getDay() === 6) add(x, "Midsommardagen"); }
+  for(let i = 0; i < 7; i++){ const x = new Date(y, 9, 31 + i); if(x.getDay() === 6) add(x, "Alla helgons dag"); }
+  add(new Date(y, 11, 25), "Juldagen"); add(new Date(y, 11, 26), "Annandag jul");
+  return r.sort();
+}
+
+function vyLunch(){
+  const l = D.lunch, ica = menu && menu.lunchtid;
+  const tider = h("div");
+  const ritaTider = () => tider.replaceChildren(l.tid ? h("div", {class: "rad"},
+    h("div", {}, h("label", {class: "f"}, "Lunch från"), h("input", {type: "time", value: l.tid.start, oninput: e => { l.tid.start = e.target.value; uppdStatus(); }})),
+    h("div", {}, h("label", {class: "f"}, "Lunch till"), h("input", {type: "time", value: l.tid.slut, oninput: e => { l.tid.slut = e.target.value; uppdStatus(); }}))) : h("p", {class: "dim"}, "Just nu används ICA:s tider" + (ica ? ": " + ica.start + "–" + ica.slut + "." : ".")));
+  ritaTider();
+  return h("div", {},
+    h("div", {class: "info"}, ica ? "ICA:s sida anger lunch " + ica.start + "–" + ica.slut + ". " : "", "Vill ni ha andra tider än ICA:s skriver ni in dem här, så gäller de på TV:n i stället."),
+    h("div", {class: "kryss"}, h("input", {type: "checkbox", id: "egna", checked: !!l.tid, onchange: e => { l.tid = e.target.checked ? {start: (ica && ica.start) || "11:00", slut: (ica && ica.slut) || "14:30"} : null; ritaTider(); uppdStatus(); }}), h("label", {for: "egna"}, "Använd egna lunchtider")),
+    tider,
+    h("label", {class: "f"}, "Dagar då lunch serveras"),
+    h("div", {class: "dagar"}, ALLA_DAGAR.map(d => h("label", {}, h("input", {type: "checkbox", checked: (l.dagar || []).includes(d), onchange: e => {
+      l.dagar = ALLA_DAGAR.filter(x => x === d ? e.target.checked : (l.dagar || []).includes(x)); uppdStatus(); }}), d))));
+}
+
+function vyStangt(){
+  const o = D.oppett, idag = new Date(), iD = iso(idag);
+  o.undantag = o.undantag || [];
+  const vd = s => ["söndag","måndag","tisdag","onsdag","torsdag","fredag","lördag"][new Date(s + "T12:00:00").getDay()] + " " + s;
+  const täcker = (e, k) => e.datum <= k && k <= (e.till || e.datum);
+  const röda = [...rödaDagar(idag.getFullYear()), ...rödaDagar(idag.getFullYear() + 1)].filter(x => x[0] >= iD).slice(0, 8);
+  const lista = h("div"), egna = h("div");
+  const sortera = () => o.undantag.sort((x, y) => x.datum < y.datum ? -1 : 1);
+  const rita = () => {
+    sortera();
+    lista.replaceChildren(...röda.map(([k, namn]) => {
+      const st = o.undantag.find(e => e.status === "stängt" && täcker(e, k)), öpp = o.undantag.find(e => e.status === "öppet" && täcker(e, k));
+      const stängt = !!st || (!öpp && o.rodaDagarStangt);
+      return h("div", {class: "kort rad", style: "border-color:" + (stängt ? "var(--röd)" : "var(--grön)")},
+        h("div", {style: "flex:1;min-width:150px"}, h("h3", {}, namn), h("div", {class: "dim"}, vd(k)),
+          stängt ? h("span", {class: "pill sak"}, "Stängt") : h("span", {class: "pill ok"}, öpp ? "Öppet (undantag)" : "Öppet")),
+        öpp ? h("button", {class: "liten", onclick: () => { o.undantag = o.undantag.filter(e => e !== öpp); rita(); uppdStatus(); }}, "Stäng igen")
+          : !stängt ? null : h("button", {class: "prim", onclick: () => { o.undantag.push({datum: k, status: "öppet", text: namn}); rita(); uppdStatus(); }}, "Ha öppet"));
+    }));
+    const övriga = o.undantag.filter(e => !(e.status === "öppet" && röda.some(r => täcker(e, r[0]))));
+    egna.replaceChildren(...övriga.map(e => h("div", {class: "kort rad"},
+      h("div", {style: "flex:1;min-width:150px"}, h("b", {}, e.till && e.till !== e.datum ? vd(e.datum) + " – " + vd(e.till) : vd(e.datum)), h("div", {class: "dim"}, (e.status === "öppet" ? "Öppet" : "Stängt") + (e.text ? ": " + e.text : ""))),
+      h("button", {class: "liten fara", onclick: () => { o.undantag = o.undantag.filter(x => x !== e); rita(); uppdStatus(); }}, "Ta bort"))));
+    if(!övriga.length) egna.append(h("p", {class: "dim"}, "Inga egna dagar inlagda."));
+  };
+  rita();
+  const från = h("input", {type: "date"}), till = h("input", {type: "date"}), orsak = h("input", {type: "text", placeholder: "Orsak som visas på TV:n, t.ex. Personalfest"});
+  return h("div", {},
+    h("div", {class: "info"}, "På ", h("b", {}, "stängda dagar"), " visar TV:n hela dagen \"Stängt idag\" med orsak och när ni öppnar igen. Dagen före visas \"Stängt imorgon\" längst ner på skylten."),
+    h("div", {class: "kryss"}, h("input", {type: "checkbox", id: "roda", checked: o.rodaDagarStangt !== false, onchange: e => { o.rodaDagarStangt = e.target.checked; rita(); uppdStatus(); }}), h("label", {for: "roda"}, "Stäng automatiskt på svenska röda dagar")),
+    h("h2", {}, "Kommande röda dagar"), lista,
+    h("h2", {}, "Egna stängda dagar"), egna,
+    h("div", {class: "kort"}, h("h3", {}, "Stäng andra dagar"),
+      h("div", {class: "rad"}, h("div", {}, h("label", {class: "f"}, "Från"), från), h("div", {}, h("label", {class: "f"}, "Till (valfritt)"), till)),
+      h("label", {class: "f"}, "Orsak (valfri)"), orsak,
+      h("p", {}, h("button", {class: "prim", onclick: () => {
+        if(!från.value) return toast("Välj ett datum.", true);
+        if(till.value && till.value < från.value) return toast("'Till' måste vara samma dag eller senare.", true);
+        const e = {datum: från.value, status: "stängt"}; if(till.value && till.value !== från.value) e.till = till.value; if(orsak.value.trim()) e.text = orsak.value.trim();
+        o.undantag.push(e); från.value = till.value = orsak.value = ""; rita(); uppdStatus(); }}, "+ Stäng dessa dagar"))));
+}
+
 /* ---------- ramverk ---------- */
-const FLIKAR = [["slut", "Slutsålt"], ["allergener", "Allergener"], ["frukost", "Frukost"], ["hockey", "Hockey"]];
+const FLIKAR = [["slut", "Slutsålt"], ["allergener", "Allergener"], ["lunch", "Lunch"], ["frukost", "Frukost"], ["brunch", "Brunch"], ["hockey", "Hockey"], ["oppett", "Stängt"]];
 function ritaFlikar(){
   $("tabs").replaceChildren(...FLIKAR.map(([id, t]) => h("button", {class: id === flik ? "on" : "", onclick: () => {
     if(id === flik) return;
@@ -368,7 +450,7 @@ function ritaFlikar(){
     flik = id; ritaFlikar(); ritaVy(); }}, t + (BAS[id] !== ser(D[id]) ? " •" : ""))));
 }
 function ritaVy(){
-  $("vy").replaceChildren(flik === "slut" ? vySlut() : flik === "allergener" ? vyAllergener() : flik === "frukost" ? vyFrukost() : vyHockey());
+  $("vy").replaceChildren(flik === "slut" ? vySlut() : flik === "allergener" ? vyAllergener() : flik === "lunch" ? vyLunch() : flik === "frukost" || flik === "brunch" ? vyBuffe(flik) : flik === "oppett" ? vyStangt() : vyHockey());
   uppdStatus();
 }
 function uppdStatus(){
