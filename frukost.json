@@ -1,12 +1,32 @@
 {
-  "_info": "Frukostmenyn. Ändra tider, priser och texter här. tid = när frukosten serveras, dagar = vilka dagar den visas. Lägg till en rad genom att kopiera en av raderna i 'rader' (kommatecken mellan raderna!). Allergener: lägg till \"allergener\": [\"gluten\", \"laktos\"] på en rad, eller [] om rätten inte innehåller något. Utan uppgift visas 'fråga personalen'. Sätt \"visaAllergener\": false för att dölja allergenraderna på frukostskylten.",
-  "tid": { "start": "07:00", "slut": "10:00" },
-  "dagar": ["måndag", "tisdag", "onsdag", "torsdag", "fredag"],
+  "_info": "Frukostmenyn. Ändra tider, priser och texter här (eller i backofficet). tid = när frukosten serveras, dagar = vilka dagar den visas. Lägg till en rad genom att kopiera en av raderna i 'rader' (kommatecken mellan raderna!).",
+  "tid": {
+    "start": "07:00",
+    "slut": "10:00"
+  },
+  "dagar": [
+    "måndag",
+    "tisdag",
+    "onsdag",
+    "torsdag",
+    "fredag"
+  ],
   "rubrik": "Frukost",
-  "visaAllergener": true,
   "rader": [
-    { "namn": "Frukostbuffé", "pris": "79:-", "beskrivning": "Inkl gröt, ägg & bacon" },
-    { "namn": "Kaffe & fralla", "pris": "40:-", "beskrivning": "1 kaffe & 1 fralla. Frallan gör du själv" },
-    { "namn": "Kaffe", "pris": "20:-", "beskrivning": "Cappuccino, Caffe Latte, Espresso" }
+    {
+      "namn": "Frukostbuffé",
+      "pris": "79:-",
+      "beskrivning": "Inkl gröt, ägg & bacon"
+    },
+    {
+      "namn": "Kaffe & fralla",
+      "pris": "40:-",
+      "beskrivning": "1 kaffe & 1 fralla. Frallan gör du själv"
+    },
+    {
+      "namn": "Kaffe",
+      "pris": "20:-",
+      "beskrivning": "Cappuccino, Caffe Latte, Espresso"
+    }
   ]
 }

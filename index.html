@@ -108,8 +108,14 @@
   .frad + .frad { border-top: calc(var(--u) * .25) solid rgba(0,0,0,.45); }
   .nr, .fnamn, .fpris { font-weight: 700; font-size: calc(var(--u) * 8 * var(--k, 1)); line-height: 1; }
   .fpris { font-weight: 800; text-align: right; white-space: nowrap; }
+  .slut .fbesk, .slut .fpris, .slut .nr { opacity: .45; }
   .fbesk { font-weight: 500; font-size: calc(var(--u) * 4.2 * var(--k, 1)); line-height: 1.15; margin-top: calc(var(--u) * .8 * var(--k, 1)); }
 
+  /* Slutsåld */
+  .sl { display: inline-block; background: var(--röd); color: #fff; font-weight: 800; font-size: .6em; letter-spacing: .08em; text-transform: uppercase; padding: .08em .5em; margin-left: .6em; vertical-align: middle; line-height: 1.2; text-decoration: none; white-space: nowrap; }
+  .slut .nm { text-decoration: line-through; text-decoration-thickness: .08em; opacity: .5; }
+  .slut .besk, .slut .al-rad { opacity: .45; }
+  .hrad.slut .nm, .hpaket.slut .nm { opacity: .55; }
   /* Hockeyläge: mörk arenaskylt med guldtext */
   .skylt.hockey { background: radial-gradient(ellipse at 50% 0%, #1d3f86 0%, #0b1733 55%, #050a18 100%); color: #e2d77a; }
   .skylt.hockey h1 { color: #e2d77a; font-size: calc(var(--u) * 10); }
@@ -171,6 +177,7 @@ const CONFIG = {
   menuUrl: "menu.json",              // veckans meny (skapas av hamta_meny.py)
   allergenUrl: "allergener.json",    // allergener per rätt (fylls i av köket)
   frukostUrl: "frukost.json",        // frukostmeny, tider och priser
+  slutUrl: "slutsald.json",          // slutsålda rätter idag (sätts i backofficet, gäller bara den dagen)
   hockeyUrl: "hockey.json",          // matchdagar för Frölunda (hemma) samt hockeymeny
   visa: "auto",                      // "auto" = frukost på morgonen, dagens lunch under lunchtid, hela veckan resten av tiden. Kan tvingas: "dag", "vecka" eller "frukost"
   underrubrik: "Bröd, salladsbuffé & kaffe ingår",
@@ -214,7 +221,8 @@ const VISA = (v => ["auto", "dag", "vecka", "frukost", "hockey"].includes(v) ? v
 const ALLERGEN_URL = PARAMS.get("allergener") || CONFIG.allergenUrl;
 const FRUKOST_URL = PARAMS.get("frukost") || CONFIG.frukostUrl;
 const HOCKEY_URL = PARAMS.get("hockey") || CONFIG.hockeyUrl;
-let meny = null, allerg = null, frukost = null, hockey = null;
+let meny = null, allerg = null, frukost = null, hockey = null, slutsåld = null;
+const SLUT_URL = PARAMS.get("slut") || CONFIG.slutUrl;
 
 function nu(){
   const d = new Date(), dg = PARAMS.get("dag"), t = PARAMS.get("tid");
@@ -232,6 +240,12 @@ function isoVecka(d){
 function esc(s){ return String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 const stor = s => s.charAt(0).toUpperCase() + s.slice(1);
 const nz = s => String(s).toLowerCase().replace(/\s+/g, " ").trim();
+// Slutsåld gäller bara det datum som står i filen, så den nollställs av sig själv nästa dag
+function ärSlut(namn, n){
+  const d = n || nu(), y = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  return !!(slutsåld && slutsåld.datum === y && Array.isArray(slutsåld.rätter) && slutsåld.rätter.some(x => nz(x) === nz(namn)));
+}
+const slutMärke = () => `<span class="sl">Slutsåld</span>`;
 
 // "Slottsstek serveras med skysås, ..." -> namn "Slottsstek", beskrivning "Med skysås, ..."
 function dela(r){
@@ -292,6 +306,7 @@ async function hämtaJson(url, nyckel){
 async function hämtaMeny(){
   const [m, a, f, h] = await Promise.all([hämtaJson(CONFIG.menuUrl, "lunchmeny"), hämtaJson(ALLERGEN_URL, "allergener"), hämtaJson(FRUKOST_URL, "frukost"), hämtaJson(HOCKEY_URL, "hockey")]);
   meny = m.data; allerg = a.data; frukost = f.data; hockey = h.data;
+  slutsåld = (await hämtaJson(SLUT_URL, "slutsald")).data;
   document.getElementById("status").textContent =
     !meny ? "Kunde inte hämta menyn" : (m.sparad ? "Visar sparad meny (ingen anslutning)" : "");
   rita();
@@ -376,7 +391,7 @@ function rita(){
     if(!hockey || !(hockey.rader || []).length) return msg("Hockeymenyn saknas");
     const pk = hockey.paket;
     el.innerHTML = `<div class="hockey">` + hockey.rader.map(r =>
-      `<div class="hrad"><span class="hnamn">${esc(r.namn)}</span>${r.not ? `<span class="hnot">${esc(r.not)}</span>` : ""}<span class="hpris">${esc(r.pris || "")}</span></div>`).join("") +
+      `<div class="hrad${ärSlut(r.namn, n) ? " slut" : ""}"><span class="hnamn"><span class="nm">${esc(r.namn)}</span>${ärSlut(r.namn, n) ? slutMärke() : ""}</span>${r.not ? `<span class="hnot">${esc(r.not)}</span>` : ""}<span class="hpris">${esc(r.pris || "")}</span></div>`).join("") +
       (pk ? `<div class="hpaket"><span class="hnamn">${esc(pk.namn)}</span><span class="hpris">${esc(pk.pris)}</span></div>` : "") + `</div>`;
     return passa();
   }
@@ -384,12 +399,10 @@ function rita(){
   /* ----- Frukost (behöver inte lunchmenyn) ----- */
   if(läge === "frukost"){
     if(!fr || !(fr.rader || []).length) return msg("Frukostmenyn saknas");
-    const SYNF = CONFIG.visaAllergener && fr.visaAllergener !== false;
     el.innerHTML = `<div class="frukost">` + fr.rader.map((r, i) => {
-      let lista = r.allergener;
-      if(typeof lista === "string") lista = lista.split(/[,;]/).map(x => x.trim()).filter(Boolean);
-      return `<div class="frad"><div class="nr">${i + 1}.</div>` +
-        `<div class="fmitt"><div class="fnamn">${esc(r.namn)}</div>${r.beskrivning ? `<div class="fbesk">${esc(r.beskrivning)}</div>` : ""}${SYNF ? allergRad(Array.isArray(lista) ? lista : null) : ""}</div>` +
+      const sl = ärSlut(r.namn, n);
+      return `<div class="frad${sl ? " slut" : ""}"><div class="nr">${i + 1}.</div>` +
+        `<div class="fmitt"><div class="fnamn"><span class="nm">${esc(r.namn)}</span>${sl ? slutMärke() : ""}</div>${r.beskrivning ? `<div class="fbesk">${esc(r.beskrivning)}</div>` : ""}</div>` +
         `<div class="fpris">${esc(r.pris || "")}</div></div>`;
     }).join("") + `</div>`;
     return passa();
@@ -412,12 +425,12 @@ function rita(){
       const rader = (dagar[d] || []).map(r => dela(r).namn);
       return `<div class="rad${d === idag ? " idag" : ""}">
         <div class="dagnamn"><span class="dag fit" data-max="28">${d}</span><span class="dagdatum">${datum(i)}</span></div>
-        <div class="rl">${rader.map(nm => `<div><span>${esc(nm)}</span></div>`).join("") || "<div>Ingen meny registrerad</div>"}</div>
+        <div class="rl">${rader.map(nm => { const sl = d === idag && ärSlut(nm, n); return `<div class="${sl ? "slut" : ""}"><span class="nm">${esc(nm)}</span>${sl ? slutMärke() : ""}</div>`; }).join("") || "<div>Ingen meny registrerad</div>"}</div>
       </div>`;
     }).join("");
     if(veg) html += `<div class="rad veg">
         <div class="dagnamn"><span class="dag fit" data-max="28">Veckans<br>vegetariska</span><span class="dagunder">Gäller hela veckan</span></div>
-        <div class="rl"><div><span>${esc(veg.namn)}</span><span class="hv">Mån–fre</span></div>${veg.besk ? `<div class="vbesk">${esc(veg.besk)}</div>` : ""}</div>
+        <div class="rl"><div class="${ärSlut(veg.namn, n) ? "slut" : ""}"><span class="nm">${esc(veg.namn)}</span>${ärSlut(veg.namn, n) ? slutMärke() : ""}<span class="hv">Mån–fre</span></div>${veg.besk ? `<div class="vbesk">${esc(veg.besk)}</div>` : ""}</div>
       </div>`;
     el.innerHTML = html;
     return passa();
@@ -431,7 +444,7 @@ function rita(){
   const rätter = dagar[dagNamn];
   if(!rätter || !rätter.length) return msg("Ingen meny registrerad för idag");
 
-  const rättHtml = (o, ids, etikett) => `<div class="rätt">${etikett ? `<div class="vlabel">${etikett}</div>` : ""}<div class="namn">${esc(o.namn)}</div>${o.besk ? `<div class="besk">${esc(o.besk)}</div>` : ""}${SYN ? allergRad(ids) : ""}</div>`;
+  const rättHtml = (o, ids, etikett) => { const sl = ärSlut(o.namn, n); return `<div class="rätt${sl ? " slut" : ""}">${etikett ? `<div class="vlabel">${etikett}</div>` : ""}<div class="namn"><span class="nm">${esc(o.namn)}</span>${sl ? slutMärke() : ""}</div>${o.besk ? `<div class="besk">${esc(o.besk)}</div>` : ""}${SYN ? allergRad(ids) : ""}</div>`; };
   el.innerHTML = `<div class="dagrad">
     <div class="dagkol"><span class="dag fit" data-max="44">${dagNamn}</span><div class="datum">${n.toLocaleDateString("sv-SE", {day: "numeric", month: "long"})}</div></div>
     <div class="lista">${
@@ -444,6 +457,7 @@ function rita(){
 hämtaMeny();
 setInterval(hämtaMeny, CONFIG.hämtaVarjeMinut * 60 * 1000);
 setInterval(rita, 30 * 1000);
+setInterval(async () => { slutsåld = (await hämtaJson(SLUT_URL, "slutsald")).data; rita(); }, 60 * 1000);   // slutsåld hämtas varje minut
 addEventListener("resize", passa);
 if(document.fonts && document.fonts.ready) document.fonts.ready.then(passa);
 </script>

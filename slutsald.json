@@ -1,0 +1,5 @@
+{
+  "_info": "Slutsålda rätter. Sätts i backofficet. Gäller bara det datum som står i 'datum' och nollställs därför av sig själv nästa dag. rätter = namn exakt som på TV:n.",
+  "datum": "2000-01-01",
+  "rätter": []
+}

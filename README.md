@@ -14,6 +14,7 @@ varje vardagsmorgon och publiceras på en webbadress som TV:n (UniFi Cast / Smar
 | `menu.json` | Veckans meny. Skrivs över automatiskt. |
 | `admin.html` | Backoffice för personalen: allergener, frukost och hockey utan GitHub-konto. Se `BACKOFFICE.md`. |
 | `worker/worker.js` | Sparfunktionen som backofficet använder (körs på Cloudflare). Se `BACKOFFICE.md`. |
+| `slutsald.json` | Vilka rätter som är slutsålda idag. Sätts i backofficet och nollställs av sig själv nästa dag. |
 | `hockey.json` | Frölundas hemmamatcher (datum) och hockeymenyn med priser. Lägg till/ta bort datum här. |
 | `frukost.json` | Frukostmenyn: tider, dagar, priser och texter. Ändra här när något ändras. |
 | `allergener.json` | Allergener per rätt. **Fylls i av köket varje vecka**, se avsnittet Allergener nedan. |
@@ -24,7 +25,7 @@ varje vardagsmorgon och publiceras på en webbadress som TV:n (UniFi Cast / Smar
 1. **Skapa konto** på [github.com](https://github.com) (gratis).
 2. **Skapa ett repository:** plusset uppe till höger → *New repository*.
    Namn: `lunch-tv`. Välj **Public** (gratis Pages kräver det; menyn är ändå publik på ICA:s sida). Klicka *Create repository*.
-3. **Ladda upp filerna:** *Add file → Upload files*. Dra in `index.html`, `hamta_meny.py`, `menu.json`, `allergener.json`, `frukost.json`, `hockey.json`, `README.md` och mappen `assets`. Klicka *Commit changes*.
+3. **Ladda upp filerna:** *Add file → Upload files*. Dra in `index.html`, `hamta_meny.py`, `menu.json`, `allergener.json`, `frukost.json`, `hockey.json`, `slutsald.json`, `README.md` och mappen `assets`. Klicka *Commit changes*.
 4. **Lägg till schemat.** Mappen `.github` är dold på Mac/Windows och följer ibland inte med vid uppladdning, så gör så här:
    *Add file → Create new file*, skriv i namnfältet exakt
    `.github/workflows/uppdatera-lunchmeny.yml`
@@ -61,8 +62,7 @@ Lördagar visas veckomenyn hela dagen, eftersom ICA:s sida anger att det är st�
 
 **Frukostmenyn** ändrar du genom att öppna `frukost.json` på github.com och trycka på pennikonen. Priser och texter
 står i listan `rader`. Lägg till en rad genom att kopiera en av de andra, och glöm inte kommatecken mellan raderna.
-På frukostskylten står "Allergener: fråga personalen" under varje rad tills du anger allergener:
-`"allergener": ["gluten", "laktos"]` på raden. Skriv `"visaAllergener": false` högst upp om du vill dölja raderna helt.
+Frukostskylten visar inga allergenrader.
 
 ## Hockeykvällar
 
@@ -114,7 +114,7 @@ Allergenuppgifterna är köksets ansvar och måste stämma med recepten. Kontrol
 
 Test utan att vänta på lunchtid genom att lägga till detta efter adressen:
 `?dag=torsdag&tid=12:00` visar torsdag klockan 12:00, `?dag=onsdag&tid=08:00` visar frukost, och `?visa=vecka` visar veckovyn.
-Allergener visas i dagsvyn (och på frukostskylten), men inte i veckovyn, som bara visar rätternas namn under varje dag.
+Allergener visas i dagsvyn, men inte i veckovyn eller på frukostskylten, som bara visar rätternas namn under varje dag.
 
 Typsnittet (Barlow Condensed) laddas från Google Fonts och TV:n måste därför ha internet. Utan det används ett reservtypsnitt, och layouten anpassar sig själv så att allt ryms.
 

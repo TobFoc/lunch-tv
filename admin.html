@@ -26,7 +26,8 @@
   .tabs button.on { background: var(--svart); color: #fff; }
   .kort { background: #fff; border: 1px solid var(--linje); border-radius: 10px; padding: 12px 14px; margin: 10px 0; }
   .kort h3 { margin: 0 0 2px; font-size: 18px; }
-  h2 { margin: 18px 0 4px; font-size: 21px; text-transform: capitalize; }
+  h2 { margin: 18px 0 4px; font-size: 21px; }
+  h2.dag { text-transform: capitalize; }
   h2.dag { border-bottom: 3px solid var(--svart); padding-bottom: 3px; }
   .info { background: var(--gul); border: 1px solid #e0c96a; border-radius: 8px; padding: 10px 12px; margin: 10px 0; }
   .fel { background: #fde4e4; border: 1px solid #e29a9a; color: #7a1010; border-radius: 8px; padding: 10px 12px; margin: 10px 0; }
@@ -101,7 +102,7 @@
 <script>
 /* ===== INSTÄLLNINGAR ===== */
 const CONFIG = {
-  api: "https://lunch-tv.tobias-roos.workers.dev/",   // adressen till din Cloudflare-funktion, t.ex. "https://lunch-tv.dittnamn.workers.dev" (se BACKOFFICE.md)
+  api: "",   // adressen till din Cloudflare-funktion, t.ex. "https://lunch-tv.dittnamn.workers.dev" (se BACKOFFICE.md)
 };
 
 const API = (new URLSearchParams(location.search).get("api") || CONFIG.api).replace(/\/$/, "");
@@ -113,9 +114,9 @@ const ALLERGENER = [
 const ALIAS = {"mjölk":"laktos","mjolk":"laktos","notter":"nötter","trädnötter":"nötter","agg":"ägg","blotdjur":"blötdjur","mollusker":"blötdjur","kräftdjur":"skaldjur","jordnotter":"jordnötter","sesamfrön":"sesam","spannmål":"gluten","svaveldioxid":"sulfit"};
 const DAGAR = ["måndag","tisdag","onsdag","torsdag","fredag"];
 const ALLA_DAGAR = [...DAGAR, "lördag", "söndag"];
-const FILNAMN = {allergener: "allergener.json", frukost: "frukost.json", hockey: "hockey.json"};
+const FILNAMN = {slut: "slutsald.json", allergener: "allergener.json", frukost: "frukost.json", hockey: "hockey.json"};
 
-let pin = "", flik = "allergener", menu = null;
+let pin = "", flik = "slut", menu = null;
 const D = {allergener: null, frukost: null, hockey: null};   // arbetskopior
 const BAS = {};                                              // sparad version som text, för att se om något ändrats
 const MSG = {};                                              // anmärkningar per flik
@@ -194,6 +195,7 @@ async function läs(){
     D[k] = j.data ? kopia(j.data) : null;
     MSG[k] = [];
     if(k === "allergener") D[k] = byggAllergener(D[k]);
+    if(k === "slut"){ const i = iso(new Date()); D[k] = D[k] && D[k].datum === i ? D[k] : {...(D[k] && D[k]._info ? {_info: D[k]._info} : {}), datum: i, rätter: []}; }
     if(k === "frukost") D[k] = D[k] || {rubrik: "Frukost", tid: {start: "07:00", slut: "10:00"}, dagar: [...DAGAR], visaAllergener: true, rader: []};
     if(k === "hockey") D[k] = D[k] || {rubrik: "Hockeykvällar i Focus Restaurang", underrubrik: "", banner: "Hockeykväll i restaurangen!", tid: {start: "16:30"}, matchstart: "19:00", datum: [], rader: [], paket: {namn: "Paketpris mat + dryck", pris: ""}};
     BAS[k] = k === "allergener" ? ser(D[k]) : ser(D[k]);
@@ -260,8 +262,6 @@ function vyFrukost(){
       h("input", {type: "text", placeholder: "Pris, t.ex. 79:-", value: r.pris || "", style: "max-width:150px", oninput: e => { r.pris = e.target.value; uppdStatus(); }})),
     h("label", {class: "f"}, "Beskrivning (valfri)"),
     h("input", {type: "text", value: r.beskrivning || "", oninput: e => { r.beskrivning = e.target.value; uppdStatus(); }}),
-    h("label", {class: "f"}, "Allergener"),
-    allergVal(() => r.allergener === undefined ? null : r.allergener, v => { if(v === null) delete r.allergener; else r.allergener = v; }, uppdStatus),
     h("div", {class: "rad", style: "margin-top:10px"},
       h("button", {class: "liten", disabled: i === 0, onclick: () => { [rader[i-1], rader[i]] = [rader[i], rader[i-1]]; ritaRader(); uppdStatus(); }}, "↑ Upp"),
       h("button", {class: "liten", disabled: i === rader.length - 1, onclick: () => { [rader[i+1], rader[i]] = [rader[i], rader[i+1]]; ritaRader(); uppdStatus(); }}, "↓ Ner"),
@@ -276,7 +276,6 @@ function vyFrukost(){
     h("label", {class: "f"}, "Dagar då frukost serveras"),
     h("div", {class: "dagar"}, ALLA_DAGAR.map(d => h("label", {}, h("input", {type: "checkbox", checked: (f.dagar || []).includes(d), onchange: e => {
       f.dagar = ALLA_DAGAR.filter(x => x === d ? e.target.checked : (f.dagar || []).includes(x)); uppdStatus(); }}), d))),
-    h("div", {class: "kryss"}, h("input", {type: "checkbox", id: "visaal", checked: f.visaAllergener !== false, onchange: e => { f.visaAllergener = e.target.checked; uppdStatus(); }}), h("label", {for: "visaal"}, "Visa allergenrader på frukostskylten")),
     h("h2", {}, "Rader"), lista,
     h("button", {onclick: () => { rader.push({namn: "", pris: "", beskrivning: ""}); ritaRaderOchScrolla(); }}, "+ Lägg till rad"));
   function ritaRaderOchScrolla(){ ritaRader(); uppdStatus(); lista.lastElementChild && lista.lastElementChild.scrollIntoView({block: "center"}); }
@@ -328,8 +327,40 @@ function vyHockey(){
       h("input", {type: "text", placeholder: "Pris", value: k.paket.pris || "", style: "max-width:120px", oninput: e => { k.paket.pris = e.target.value; uppdStatus(); }})));
 }
 
+function vySlut(){
+  const sl = D.slut, idag = new Date(), dagNamn = ["söndag","måndag","tisdag","onsdag","torsdag","fredag","lördag"][idag.getDay()];
+  const grupper = [];
+  const lunch = ((menu && menu.dagar && menu.dagar[dagNamn]) || []).map(dela);
+  if(lunch.length) grupper.push(["Lunch idag", lunch]);
+  if(menu && menu.vegetariskt) grupper.push(["Veckans vegetariska", [dela(menu.vegetariskt)]]);
+  const fr = (D.frukost.rader || []).map(r => r.namn).filter(Boolean);
+  if(fr.length) grupper.push(["Frukost", fr]);
+  const hk = (D.hockey.rader || []).map(r => r.namn).filter(Boolean);
+  if(hk.length) grupper.push(["Hockey", hk]);
+  const ärSl = n => sl.rätter.some(x => nz(x) === nz(n));
+  const växla = n => { sl.rätter = ärSl(n) ? sl.rätter.filter(x => nz(x) !== nz(n)) : [...sl.rätter, n]; };
+  const lista = h("div");
+  const rita = () => {
+    lista.replaceChildren(...grupper.flatMap(([titel, namn]) => [h("h2", {}, titel), ...namn.map(n => {
+      const slut = ärSl(n);
+      return h("div", {class: "kort rad", style: "border-color:" + (slut ? "var(--röd)" : "var(--linje)")},
+        h("div", {style: "flex:1;min-width:140px"}, h("h3", {style: slut ? "text-decoration:line-through;opacity:.6" : ""}, n), slut ? h("span", {class: "pill sak"}, "Slutsåld – syns på TV:n") : h("span", {class: "pill ok"}, "Finns")),
+        h("button", {class: slut ? "prim" : "fara", style: "min-width:170px", onclick: () => { växla(n); rita(); uppdStatus(); }}, slut ? "Finns igen" : "Markera slutsåld"));
+    })]));
+  };
+  rita();
+  const extra = sl.rätter.filter(x => !grupper.some(([, ns]) => ns.some(n => nz(n) === nz(x))));
+  return h("div", {},
+    h("div", {class: "info"}, "Tryck på ", h("b", {}, "Markera slutsåld"), " när en rätt tar slut. Den visas överstruken med en röd ", h("b", {}, "SLUTSÅLD"), "-skylt på TV:n. Allt nollställs automatiskt i morgon bitti."),
+    !menu ? h("div", {class: "fel"}, "Veckans meny kunde inte läsas. Lunchrätterna visas inte här.") : null,
+    !lunch.length && menu ? h("div", {class: "dim"}, "Ingen lunchmeny finns för idag (" + dagNamn + ").") : null,
+    lista,
+    extra.length ? h("div", {}, h("h2", {}, "Övriga markeringar"), extra.map(x => h("div", {class: "kort rad"}, h("b", {}, x), h("button", {class: "liten", onclick: () => { växla(x); ritaVy(); }}, "Ta bort")))) : null,
+    sl.rätter.length ? h("p", {}, h("button", {class: "liten", onclick: () => { sl.rätter = []; ritaVy(); }}, "Nollställ allt (allt finns igen)")) : null);
+}
+
 /* ---------- ramverk ---------- */
-const FLIKAR = [["allergener", "Allergener"], ["frukost", "Frukost"], ["hockey", "Hockey"]];
+const FLIKAR = [["slut", "Slutsålt"], ["allergener", "Allergener"], ["frukost", "Frukost"], ["hockey", "Hockey"]];
 function ritaFlikar(){
   $("tabs").replaceChildren(...FLIKAR.map(([id, t]) => h("button", {class: id === flik ? "on" : "", onclick: () => {
     if(id === flik) return;
@@ -337,7 +368,7 @@ function ritaFlikar(){
     flik = id; ritaFlikar(); ritaVy(); }}, t + (BAS[id] !== ser(D[id]) ? " •" : ""))));
 }
 function ritaVy(){
-  $("vy").replaceChildren(flik === "allergener" ? vyAllergener() : flik === "frukost" ? vyFrukost() : vyHockey());
+  $("vy").replaceChildren(flik === "slut" ? vySlut() : flik === "allergener" ? vyAllergener() : flik === "frukost" ? vyFrukost() : vyHockey());
   uppdStatus();
 }
 function uppdStatus(){

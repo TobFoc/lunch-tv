@@ -1,6 +1,6 @@
 # Backoffice för personalen
 
-Sidan `admin.html` låter personalen ändra **allergener**, **frukostmenyn** och **hockeykvällarna** direkt från en iPad eller telefon,
+Sidan `admin.html` låter personalen ändra **allergener**, **frukostmenyn** och **hockeykvällarna** samt markera rätter som **slutsålda** direkt från en iPad eller telefon,
 utan GitHub-konto. De skriver bara in en kod. Ändringen syns på TV:n inom ca 2 minuter.
 
 Adress: `https://DITT-ANVÄNDARNAMN.github.io/lunch-tv/admin.html`
@@ -14,12 +14,12 @@ Personalen  →  admin.html  →  Cloudflare-funktionen (kollar koden)  →  Git
 
 GitHub Pages kan bara visa sidor, inte ta emot ändringar. Därför finns en liten gratis funktion hos Cloudflare (`worker/worker.js`)
 som kontrollerar koden och sparar ändringen i ert repo. GitHub-nyckeln ligger bara i Cloudflare, aldrig på sidan eller hos personalen.
-Funktionen får bara ändra tre filer (`allergener.json`, `frukost.json`, `hockey.json`) och nekar ändringar som skulle göra TV:n trasig.
+Funktionen får bara ändra fyra filer (`allergener.json`, `frukost.json`, `hockey.json`, `slutsald.json`) och nekar ändringar som skulle göra TV:n trasig.
 
 ## Engångsinställning (ca 20 minuter, görs av en person)
 
 ### 1. Ladda upp de nya filerna till GitHub
-Dra in `admin.html`, `BACKOFFICE.md` och uppdaterade `index.html`, `README.md`, `hockey.json`.
+Dra in `admin.html`, `BACKOFFICE.md`, `slutsald.json` och uppdaterade `index.html`, `README.md`, `hockey.json`, `frukost.json`.
 Skapa mappen `worker` genom *Add file → Create new file*, skriv `worker/worker.js` som filnamn och klistra in innehållet från filen.
 Uppdatera även schemat: öppna `.github/workflows/uppdatera-lunchmeny.yml`, tryck på pennan och ersätt innehållet med den nya versionen.
 (Det nya schemat hanterar att personalen och menyhämtningen sparar samtidigt.)
@@ -56,13 +56,20 @@ Uppdatera även schemat: öppna `.github/workflows/uppdatera-lunchmeny.yml`, try
 
 ## Så använder personalen det
 
+- **Slutsålt:** Fliken *Slutsålt* visar dagens lunch, veckans vegetariska, frukostraderna och hockeyraderna. Tryck *Markera slutsåld* på en rätt och sedan *Spara*.
+  På TV:n blir rätten överstruken med en röd SLUTSÅLD-skylt inom ca 2 minuter. Allt nollställs automatiskt nästa dag, och *Finns igen* tar bort markeringen direkt.
 - **Allergener:** Varje vecka hämtas nya rätter automatiskt. Öppna fliken *Allergener*, tryck på de allergener som varje rätt innehåller och tryck *Spara*.
   "Inga allergener" betyder att rätten inte innehåller något av de 14. En rätt som inte rörts visar "fråga personalen" på TV:n, aldrig "inga".
   Allergenerna är köksets ansvar och måste stämma med recepten.
-- **Frukost:** Ändra rader, priser, beskrivningar, tider och dagar. Använd pilarna för att ändra ordning.
+- **Frukost:** Ändra rader, priser, beskrivningar, tider och dagar (frukostskylten visar inga allergener). Använd pilarna för att ändra ordning.
 - **Hockey:** Lägg till eller ta bort matchdatum, ändra matchstart, uppladdningstid, texter och priser.
 
 Sidan varnar om något är osparat. Byter ni flik med osparade ändringar får ni en fråga först.
+
+## Uppdatera funktionen när något nytt tillkommit
+
+Har du redan satt upp backofficet och får en ny version av `worker/worker.js` (som nu när *Slutsålt* tillkom) måste den även bytas på Cloudflare, annars nekas sparandet av slutsålda rätter:
+*Workers & Pages* → din funktion `lunch-tv` → *Edit code* → radera allt, klistra in hela nya `worker.js` → *Deploy*. Variablerna och koden ligger kvar.
 
 ## Säkerhet
 
