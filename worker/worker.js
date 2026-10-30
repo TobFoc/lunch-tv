@@ -8,7 +8,7 @@
      ALLOWED_ORIGIN (Text)   adressen där TV-sidan ligger, t.ex. "https://anvandarnamn.github.io" (utan snedstreck sist)
 */
 
-const FILER = ["allergener.json", "frukost.json", "hockey.json"];   // enda filerna som får ändras
+const FILER = ["allergener.json", "frukost.json", "hockey.json", "slutsald.json"];   // enda filerna som får ändras
 const MAX_BYTES = 40000;
 const ALLERGENER = ["gluten", "laktos", "nötter", "ägg", "fisk", "skaldjur", "blötdjur", "selleri", "senap", "soja", "sesam", "jordnötter", "lupin", "sulfit"];
 const DAGAR = ["måndag", "tisdag", "onsdag", "torsdag", "fredag"];
@@ -55,6 +55,10 @@ function validera(fil, d){
       if(r.beskrivning !== undefined && !kort(r.beskrivning, 200)) fel.push("rad " + (i + 1) + ": beskrivning för lång");
       if(r.allergener !== undefined) allergLista(r.allergener, fel, "rad " + (i + 1));
     });
+  }
+  if(fil === "slutsald.json"){
+    if(!DATUM.test(d.datum || "")) fel.push("datum måste vara ÅÅÅÅ-MM-DD");
+    if(!Array.isArray(d.rätter) || d.rätter.length > 60 || d.rätter.some(x => !kort(x, 300))) fel.push("rätter är felaktiga");
   }
   if(fil === "hockey.json"){
     if(!d.tid || !TID.test(d.tid.start || "")) fel.push("uppladdningens starttid måste vara HH:MM");
