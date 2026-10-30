@@ -27,6 +27,11 @@
       "namn": "Kaffe",
       "pris": "25:-",
       "beskrivning": "Cappuccino, Caffe Latte, Espresso, Choklad"
+    },
+    {
+      "namn": "Gröt",
+      "pris": "100",
+      "beskrivning": "med saftsås"
     }
   ]
 }
