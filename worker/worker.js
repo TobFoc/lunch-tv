@@ -8,7 +8,7 @@
      ALLOWED_ORIGIN (Text)   adressen där TV-sidan ligger, t.ex. "https://anvandarnamn.github.io" (utan snedstreck sist)
 */
 
-const FILER = ["allergener.json", "frukost.json", "hockey.json", "slutsald.json", "brunch.json", "lunch.json", "oppettider.json"];   // enda filerna som får ändras
+const FILER = ["allergener.json", "frukost.json", "hockey.json", "slutsald.json", "brunch.json", "lunch.json", "oppettider.json", "ean.json"];   // enda filerna som får ändras
 const LÄS = [...FILER, "menu.json"];           // filer som får läsas (menu.json bara läsas, aldrig skrivas)
 const WORKFLOW = "uppdatera-lunchmeny.yml";   // schemat som hämtar menyn från ICA
 const MAX_BYTES = 60000;
@@ -32,6 +32,12 @@ function allergLista(v, fel, var_){
   if(v === null) return;
   if(!Array.isArray(v)) return fel.push(var_ + ": måste vara en lista eller null");
   v.forEach(x => { if(!ALLERGENER.includes(x)) fel.push(var_ + ": okänd allergen " + JSON.stringify(x)); });
+}
+function eanOk(k){                                          // EAN-13 eller EAN-8 med rätt kontrollsiffra
+  if(!/^(\d{8}|\d{13})$/.test(k)) return false;
+  let sum = 0;
+  for(let i = k.length - 2, vikt = 3; i >= 0; i--, vikt = 4 - vikt) sum += Number(k[i]) * vikt;
+  return (10 - sum % 10) % 10 === Number(k[k.length - 1]);
 }
 function validera(fil, d){
   const fel = [];
@@ -57,6 +63,14 @@ function validera(fil, d){
       if(r.beskrivning !== undefined && !kort(r.beskrivning, 200)) fel.push("rad " + (i + 1) + ": beskrivning för lång");
       if(r.allergener !== undefined) allergLista(r.allergener, fel, "rad " + (i + 1));
     });
+  }
+  if(fil === "ean.json"){
+    if(d.standardLunch !== undefined && d.standardLunch !== "" && !eanOk(String(d.standardLunch))) fel.push("standardkoden är inte en giltig EAN");
+    if(typeof d.rätter !== "object" || d.rätter === null || Array.isArray(d.rätter) || Object.keys(d.rätter).length > 300) fel.push("rätter saknas eller för många");
+    else for(const [namn, k] of Object.entries(d.rätter)){
+      if(!kort(namn, 300)) fel.push("för långt rättnamn");
+      if(typeof k !== "string" || !eanOk(k)) fel.push("\"" + namn.slice(0, 40) + "\": ogiltig EAN (fel längd eller kontrollsiffra)");
+    }
   }
   if(fil === "lunch.json"){
     if(d.tid !== null && (!d.tid || !TID.test(d.tid.start || "") || !TID.test(d.tid.slut || ""))) fel.push("lunchtid måste vara HH:MM eller null");
