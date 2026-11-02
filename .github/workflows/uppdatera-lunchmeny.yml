@@ -37,21 +37,21 @@ jobs:
           python-version: "3.12"
 
       - name: Hämta veckans meny från ICA
-        # Misslyckas hämtningen behålls den senast sparade menu.json
-        run: python hamta_meny.py menu.json || echo "Kunde inte hämta ny meny, behåller den gamla."
+        # Misslyckas hämtningen behålls den senast sparade menu.json (sidan publiceras ändå, men körningen markeras som misslyckad sist)
+        run: python hamta_meny.py menu.json || { echo "Kunde inte hämta ny meny, behåller den gamla."; touch "$RUNNER_TEMP/hamtning_misslyckades"; }
 
       - name: Spara menyn i repot om den ändrats
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add menu.json allergener.json
-          git diff --cached --quiet || (git commit -m "Uppdatera lunchmeny" && git push)
+          git diff --cached --quiet || (git commit -m "Uppdatera lunchmeny" && git pull --rebase && git push)
 
       - name: Förbered webbplatsen
         run: |
           mkdir _site
           # Allt i repot utom git, schemat, README och skriptet publiceras (så nya filer följer med automatiskt)
-          rsync -a --exclude='.git' --exclude='.github' --exclude='_site' --exclude='README.md' --exclude='hamta_meny.py' ./ _site/
+          rsync -a --exclude='.git' --exclude='.github' --exclude='_site' --exclude='README.md' --exclude='BACKOFFICE.md' --exclude='hamta_meny.py' --exclude='worker' ./ _site/
 
       - name: Ställ in Pages
         uses: actions/configure-pages@v5
@@ -64,3 +64,8 @@ jobs:
       - name: Publicera
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Markera körningen som misslyckad om menyn inte kunde hämtas
+        # Så att backofficets knapp "Hämta veckans meny" kan visa att ICA:s sida inte gick att läsa
+        run: |
+          if [ -f "$RUNNER_TEMP/hamtning_misslyckades" ]; then echo "Menyn kunde inte hämtas från ICA:s sida."; exit 1; fi
