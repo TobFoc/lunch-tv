@@ -1,0 +1,5 @@
+{
+  "_info": "Streckkoder (EAN-13 eller EAN-8) per rätt, används av kassasidan (kassa.html). rätter = rättens namn exakt som på TV:n -> kod. standardLunch = kod som används för lunchrätter som saknar egen kod. Ändras i backofficet under Streckkoder.",
+  "standardLunch": "",
+  "rätter": {}
+}

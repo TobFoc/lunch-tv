@@ -2,7 +2,12 @@
 <html lang="sv">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kassa">
+<link rel="apple-touch-icon" href="assets/ica-focus-logo.png">
 <title>Veckans lunch</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -112,6 +117,22 @@
   .fbesk { font-weight: 500; font-size: calc(var(--u) * 4.2 * var(--k, 1)); line-height: 1.15; margin-top: calc(var(--u) * .8 * var(--k, 1)); }
 
   .imorgon { color: var(--röd); font-weight: 800; }
+  /* Kassaläge (kassa.html): streckkoder bredvid rätterna, tillräckligt långt från varandra för att kunna scannas en i taget */
+  body.kassa { cursor: auto; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; overscroll-behavior: none; touch-action: manipulation; }
+  body.kassa .skylt { top: max(3vh, env(safe-area-inset-top)); height: calc(100% - max(3vh, env(safe-area-inset-top)) - max(3vh, env(safe-area-inset-bottom))); }
+  .kod { flex: none; align-self: center; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fff; border: calc(var(--u) * .15) solid #111; padding: calc(var(--u) * .8) calc(var(--u) * 1.4); line-height: 0; width: calc(var(--u) * var(--bw, 30)); min-height: calc(var(--u) * 6); }
+  .kod svg { display: block; width: 100%; height: auto; shape-rendering: crispEdges; }
+  .kod.ingen { background: transparent; border: calc(var(--u) * .2) dashed #777; color: #555; font-weight: 600; font-size: calc(var(--u) * 2.6); line-height: 1.1; text-align: center; text-transform: uppercase; letter-spacing: .06em; }
+  .kod.ingen.sl2 { border-color: var(--röd); color: var(--röd); }
+  .rätt.k { display: grid; grid-template-columns: 1fr auto; column-gap: calc(var(--u) * 3); align-items: center; }
+  .kassa .lista { gap: calc(var(--u) * 3.4 * var(--k, 1)); }
+  .kassa .frad { grid-template-columns: calc(var(--u) * 11) 1fr calc(var(--u) * 25) calc(var(--u) * 34); column-gap: calc(var(--u) * 2); align-items: center; }
+  .kassa .frad .fpris { text-align: right; }
+  .kassa .frad .kod { width: 100%; }
+  .kassa .hrad .kod, .kassa .hpaket .kod { --bw: 34; margin-left: auto; }
+  .kassa .hrad .kod + .hpris, .kassa .hpaket .kod + .hpris { margin-left: calc(var(--u) * 3); }
+  .kassa .hrad .hpris, .kassa .hpaket .hpris { min-width: calc(var(--u) * 20); text-align: right; }
+  .kassa .hnamn { font-size: calc(var(--u) * 6.4 * var(--k, 1)); }
   /* Slutsåld */
   .sl { display: inline-block; background: var(--röd); color: #fff; font-weight: 800; font-size: .6em; letter-spacing: .08em; text-transform: uppercase; padding: .08em .5em; margin-left: .6em; vertical-align: middle; line-height: 1.2; text-decoration: none; white-space: nowrap; }
   .slut .nm { text-decoration: line-through; text-decoration-thickness: .08em; opacity: .5; }
@@ -180,6 +201,7 @@ const CONFIG = {
   frukostUrl: "frukost.json",        // frukostmeny, tider och priser
   brunchUrl: "brunch.json",          // brunch (t.ex. lördagar)
   lunchUrl: "lunch.json",            // lunchtider och lunchdagar (egna tider går före ICA:s)
+  eanUrl: "ean.json",                // streckkoder (EAN) per rätt, används bara av kassa.html
   oppettiderUrl: "oppettider.json",  // röda dagar och andra stängda/öppna dagar
   slutUrl: "slutsald.json",          // slutsålda rätter idag (sätts i backofficet, gäller bara den dagen)
   hockeyUrl: "hockey.json",          // matchdagar för Frölunda (hemma) samt hockeymeny
@@ -228,7 +250,9 @@ const HOCKEY_URL = PARAMS.get("hockey") || CONFIG.hockeyUrl;
 const BRUNCH_URL = PARAMS.get("brunch") || CONFIG.brunchUrl;
 const LUNCH_URL = PARAMS.get("lunch") || CONFIG.lunchUrl;
 const OPP_URL = PARAMS.get("oppettider") || CONFIG.oppettiderUrl;
-let meny = null, allerg = null, frukost = null, hockey = null, slutsåld = null, brunch = null, lunch = null, opp = null;
+const KASSA = PARAMS.has("kassa");                          // kassa.html: visar streckkoder (EAN) bredvid rätterna
+const EAN_URL = PARAMS.get("ean") || CONFIG.eanUrl;
+let meny = null, allerg = null, frukost = null, hockey = null, slutsåld = null, ean = null, brunch = null, lunch = null, opp = null;
 const SLUT_URL = PARAMS.get("slut") || CONFIG.slutUrl;
 
 function nu(){
@@ -314,6 +338,7 @@ async function hämtaJson(url, nyckel){
 async function hämtaSnabba(){
   const [s, o] = await Promise.all([hämtaJson(SLUT_URL, "slutsald"), hämtaJson(OPP_URL, "oppettider")]);
   slutsåld = s.data; opp = o.data;
+  if(KASSA) ean = (await hämtaJson(EAN_URL, "ean")).data;
 }
 
 async function hämtaMeny(){
@@ -351,6 +376,55 @@ function dagLista(dagar){
   if(dagar.length === 5 && VECKODAGAR.every(d => dagar.includes(d))) return "vardagar";
   if(dagar.length === 1) return dagar[0] + "ar";                // "lördag" -> "lördagar"
   return dagar.join(", ");
+}
+
+/*EAN-START*/
+/* ----- EAN-13 / EAN-8 streckkoder ----- */
+const EAN_L = ["0001101","0011001","0010011","0111101","0100011","0110001","0101111","0111011","0110111","0001011"];
+const EAN_G = ["0100111","0110011","0011011","0100001","0011101","0111001","0000101","0010001","0001001","0010111"];
+const EAN_R = ["1110010","1100110","1101100","1000010","1011100","1001110","1010000","1000100","1001000","1110100"];
+const EAN_PAR = ["LLLLLL","LLGLGG","LLGGLG","LLGGGL","LGLLGG","LGGLLG","LGGGLL","LGLGLG","LGLGGL","LGGLGL"];
+function eanKontroll(d){                                           // kontrollsiffra för en sifferrad utan kontrollsiffra
+  let sum = 0;
+  for(let i = d.length - 1, vikt = 3; i >= 0; i--, vikt = 4 - vikt) sum += Number(d[i]) * vikt;
+  return (10 - sum % 10) % 10;
+}
+function eanOk(kod){                                               // giltig EAN-13 eller EAN-8 med rätt kontrollsiffra
+  return /^(\d{8}|\d{13})$/.test(kod) && eanKontroll(kod.slice(0, -1)) === Number(kod.slice(-1));
+}
+function eanSvg(kod){
+  const l13 = kod.length === 13, d = kod.split("").map(Number);
+  let bitar = "101";
+  if(l13){ const par = EAN_PAR[d[0]]; for(let i = 1; i <= 6; i++) bitar += (par[i - 1] === "L" ? EAN_L : EAN_G)[d[i]]; bitar += "01010"; for(let i = 7; i <= 12; i++) bitar += EAN_R[d[i]]; }
+  else { for(let i = 0; i < 4; i++) bitar += EAN_L[d[i]]; bitar += "01010"; for(let i = 4; i < 8; i++) bitar += EAN_R[d[i]]; }
+  bitar += "101";
+  const vänster = l13 ? 11 : 7, höger = 7, bredd = vänster + bitar.length + höger, hög = 42, stapel = 34, vakt = 38;
+  const vaktStap = i => i < 3 || i >= bitar.length - 3 || (l13 ? (i >= 45 && i < 50) : (i >= 31 && i < 36));
+  let rect = "";
+  for(let i = 0; i < bitar.length; ){
+    if(bitar[i] !== "1"){ i++; continue; }
+    let j = i; while(j < bitar.length && bitar[j] === "1") j++;
+    rect += `<rect x="${vänster + i}" y="0" width="${j - i}" height="${vaktStap(i) ? vakt : stapel}"/>`; i = j;
+  }
+  const t = (x, y, str) => `<text x="${x}" y="${y}" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="7.2" fill="#000">${str}</text>`;
+  let tecken = "";
+  if(l13){ tecken += t(vänster / 2 - .5, hög - .6, d[0]) + t(vänster + 3 + 21, hög - .6, d.slice(1, 7).join("")) + t(vänster + 50 + 21, hög - .6, d.slice(7).join("")); }
+  else { tecken += t(vänster + 3 + 14, hög - .6, d.slice(0, 4).join("")) + t(vänster + 36 + 14, hög - .6, d.slice(4).join("")); }
+  return `<svg viewBox="0 0 ${bredd} ${hög}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Streckkod ${kod}"><rect width="${bredd}" height="${hög}" fill="#fff"/><g fill="#000">${rect}</g>${tecken}</svg>`;
+}
+/*EAN-SLUT*/
+// Kod för en rätt i kassaläge: streckkoden, "Slutsåld" eller "Ingen streckkod"
+function eanFör(namn, reserv){
+  if(!ean) return null;
+  const k = Object.keys(ean.rätter || {}).find(x => nz(x) === nz(namn));
+  const c = k !== undefined ? String(ean.rätter[k]) : (reserv === "lunch" && ean.standardLunch ? String(ean.standardLunch) : "");
+  return eanOk(c) ? c : null;
+}
+function kod(namn, n, reserv){
+  if(!KASSA) return "";
+  if(ärSlut(namn, n)) return `<div class="kod ingen sl2">Slutsåld</div>`;
+  const c = eanFör(namn, reserv);
+  return c ? `<div class="kod">${eanSvg(c)}</div>` : `<div class="kod ingen">Ingen streckkod</div>`;
 }
 
 /* ----- Röda dagar och stängt ----- */
@@ -470,8 +544,8 @@ function rita(){
     if(!hockey || !(hockey.rader || []).length) return msg("Hockeymenyn saknas");
     const pk = hockey.paket;
     el.innerHTML = `<div class="hockey">` + hockey.rader.map(r =>
-      `<div class="hrad${ärSlut(r.namn, n) ? " slut" : ""}"><span class="hnamn"><span class="nm">${esc(r.namn)}</span>${ärSlut(r.namn, n) ? slutMärke() : ""}</span>${r.not ? `<span class="hnot">${esc(r.not)}</span>` : ""}<span class="hpris">${esc(r.pris || "")}</span></div>`).join("") +
-      (pk ? `<div class="hpaket"><span class="hnamn">${esc(pk.namn)}</span><span class="hpris">${esc(pk.pris)}</span></div>` : "") + `</div>`;
+      `<div class="hrad${ärSlut(r.namn, n) ? " slut" : ""}"><span class="hnamn"><span class="nm">${esc(r.namn)}</span>${ärSlut(r.namn, n) ? slutMärke() : ""}</span>${r.not ? `<span class="hnot">${esc(r.not)}</span>` : ""}${kod(r.namn, n)}<span class="hpris">${esc(r.pris || "")}</span></div>`).join("") +
+      (pk ? `<div class="hpaket"><span class="hnamn">${esc(pk.namn)}</span>${kod(pk.namn, n)}<span class="hpris">${esc(pk.pris)}</span></div>` : "") + `</div>`;
     return passa();
   }
 
@@ -482,7 +556,7 @@ function rita(){
       const sl = ärSlut(r.namn, n);
       return `<div class="frad${sl ? " slut" : ""}"><div class="nr">${i + 1}.</div>` +
         `<div class="fmitt"><div class="fnamn"><span class="nm">${esc(r.namn)}</span>${sl ? slutMärke() : ""}</div>${r.beskrivning ? `<div class="fbesk">${esc(r.beskrivning)}</div>` : ""}</div>` +
-        `<div class="fpris">${esc(r.pris || "")}</div></div>`;
+        kod(r.namn, n) + `<div class="fpris">${esc(r.pris || "")}</div></div>`;
     }).join("") + `</div>`;
     return passa();
   }
@@ -523,7 +597,11 @@ function rita(){
   const rätter = dagar[dagNamn];
   if(!rätter || !rätter.length) return msg("Ingen meny registrerad för idag");
 
-  const rättHtml = (o, ids, etikett) => { const sl = ärSlut(o.namn, n); return `<div class="rätt${sl ? " slut" : ""}">${etikett ? `<div class="vlabel">${etikett}</div>` : ""}<div class="namn"><span class="nm">${esc(o.namn)}</span>${sl ? slutMärke() : ""}</div>${o.besk ? `<div class="besk">${esc(o.besk)}</div>` : ""}${SYN ? allergRad(ids) : ""}</div>`; };
+  const rättHtml = (o, ids, etikett) => {
+    const sl = ärSlut(o.namn, n);
+    const text = `${etikett ? `<div class="vlabel">${etikett}</div>` : ""}<div class="namn"><span class="nm">${esc(o.namn)}</span>${sl ? slutMärke() : ""}</div>${o.besk ? `<div class="besk">${esc(o.besk)}</div>` : ""}${SYN ? allergRad(ids) : ""}`;
+    return KASSA ? `<div class="rätt k${sl ? " slut" : ""}"><div class="rtext">${text}</div>${kod(o.namn, n, "lunch")}</div>` : `<div class="rätt${sl ? " slut" : ""}">${text}</div>`;
+  };
   el.innerHTML = `<div class="dagrad">
     <div class="dagkol"><span class="dag fit" data-max="44">${dagNamn}</span><div class="datum">${n.toLocaleDateString("sv-SE", {day: "numeric", month: "long"})}</div></div>
     <div class="lista">${
@@ -533,6 +611,14 @@ function rita(){
   passa();
 }
 
+if(KASSA){
+  document.body.classList.add("kassa"); document.title = "Kassa – streckkoder";
+  const mf = document.createElement("link"); mf.rel = "manifest"; mf.href = "kassa.webmanifest"; document.head.append(mf);      // så att startskärmsikonen öppnas utan webbläsarens fält (helskärm)
+  // Håll skärmen tänd och hindra att sidan zoomas eller dras
+  const vaken = async () => { try { if(navigator.wakeLock) await navigator.wakeLock.request("screen"); } catch(e){} };
+  vaken(); document.addEventListener("visibilitychange", () => { if(document.visibilityState === "visible") vaken(); });
+  ["gesturestart", "gesturechange", "dblclick"].forEach(e => document.addEventListener(e, ev => ev.preventDefault()));
+}
 hämtaMeny();
 setInterval(hämtaMeny, CONFIG.hämtaVarjeMinut * 60 * 1000);
 setInterval(rita, 30 * 1000);

@@ -102,7 +102,7 @@
 <script>
 /* ===== INSTÄLLNINGAR ===== */
 const CONFIG = {
-  api: "https://lunch-tv.tobias-roos.workers.dev/",   // adressen till din Cloudflare-funktion, t.ex. "https://lunch-tv.dittnamn.workers.dev" (se BACKOFFICE.md)
+  api: "",   // adressen till din Cloudflare-funktion, t.ex. "https://lunch-tv.dittnamn.workers.dev" (se BACKOFFICE.md)
 };
 
 const API = (new URLSearchParams(location.search).get("api") || CONFIG.api).replace(/\/$/, "");
@@ -114,7 +114,7 @@ const ALLERGENER = [
 const ALIAS = {"mjölk":"laktos","mjolk":"laktos","notter":"nötter","trädnötter":"nötter","agg":"ägg","blotdjur":"blötdjur","mollusker":"blötdjur","kräftdjur":"skaldjur","jordnotter":"jordnötter","sesamfrön":"sesam","spannmål":"gluten","svaveldioxid":"sulfit"};
 const DAGAR = ["måndag","tisdag","onsdag","torsdag","fredag"];
 const ALLA_DAGAR = [...DAGAR, "lördag", "söndag"];
-const FILNAMN = {slut: "slutsald.json", allergener: "allergener.json", lunch: "lunch.json", frukost: "frukost.json", brunch: "brunch.json", hockey: "hockey.json", oppett: "oppettider.json"};
+const FILNAMN = {ean: "ean.json", slut: "slutsald.json", allergener: "allergener.json", lunch: "lunch.json", frukost: "frukost.json", brunch: "brunch.json", hockey: "hockey.json", oppett: "oppettider.json"};
 
 let pin = "", flik = "slut", menu = null;
 const D = {allergener: null, frukost: null, hockey: null};   // arbetskopior
@@ -201,7 +201,8 @@ async function läs(){
     if(k === "allergener") D[k] = byggAllergener(D[k]);
     if(k === "slut"){ const i = iso(new Date()); D[k] = D[k] && D[k].datum === i ? D[k] : {...(D[k] && D[k]._info ? {_info: D[k]._info} : {}), datum: i, rätter: []}; }
     if(k === "frukost") D[k] = D[k] || {rubrik: "Frukost", tid: {start: "07:00", slut: "10:00"}, dagar: [...DAGAR], visaAllergener: true, rader: []};
-    if(k === "brunch") D[k] = D[k] || {rubrik: "Brunch", tid: {start: "07:00", slut: "15:00"}, dagar: ["lördag"], rader: [{namn: "Brunchbuffé", pris: "79:-", beskrivning: "Inkl gröt, ägg, bacon & våfflor"}]};
+    if(k === "brunch") D[k] = D[k] || {rubrik: "Brunch", tid: {start: "07:00", slut: "15:00"}, dagar: ["lördag"], rader: [{namn: "Brunchbuffé", pris: "99:-", beskrivning: "Inkl gröt, ägg, bacon & våfflor"}]};
+    if(k === "ean") D[k] = D[k] ? {...D[k], rätter: D[k].rätter || {}} : {standardLunch: "", rätter: {}};
     if(k === "lunch") D[k] = D[k] || {tid: null, dagar: [...DAGAR]};
     if(k === "oppett"){ D[k] = D[k] || {rodaDagarStangt: true, undantag: []}; D[k].undantag = (D[k].undantag || []).filter(e => (e.till || e.datum) >= iso(new Date())); }
     if(k === "hockey") D[k] = D[k] || {rubrik: "Hockeykvällar i Focus Restaurang", underrubrik: "", banner: "Hockeykväll i restaurangen!", tid: {start: "16:30"}, matchstart: "19:00", datum: [], rader: [], paket: {namn: "Paketpris mat + dryck", pris: ""}};
@@ -267,7 +268,7 @@ function vyBuffe(key){
   const ritaRader = () => lista.replaceChildren(...rader.map((r, i) => h("div", {class: "kort"},
     h("div", {class: "rad"}, h("b", {style: "flex:none;min-width:0"}, (i + 1) + "."),
       h("input", {type: "text", placeholder: "Namn", value: r.namn || "", oninput: e => { r.namn = e.target.value; uppdStatus(); }}),
-      h("input", {type: "text", placeholder: "Pris, t.ex. 79:-", value: r.pris || "", style: "max-width:150px", oninput: e => { r.pris = e.target.value; uppdStatus(); }})),
+      h("input", {type: "text", placeholder: "Pris, t.ex. 99:-", value: r.pris || "", style: "max-width:150px", oninput: e => { r.pris = e.target.value; uppdStatus(); }})),
     h("label", {class: "f"}, "Beskrivning (valfri)"),
     h("input", {type: "text", value: r.beskrivning || "", oninput: e => { r.beskrivning = e.target.value; uppdStatus(); }}),
     h("div", {class: "rad", style: "margin-top:10px"},
@@ -333,6 +334,84 @@ function vyHockey(){
     h("div", {class: "rad"},
       h("input", {type: "text", placeholder: "Namn", value: k.paket.namn || "", oninput: e => { k.paket.namn = e.target.value; uppdStatus(); }}),
       h("input", {type: "text", placeholder: "Pris", value: k.paket.pris || "", style: "max-width:120px", oninput: e => { k.paket.pris = e.target.value; uppdStatus(); }})));
+}
+
+/*EAN-START*/
+/* ----- EAN-13 / EAN-8 streckkoder ----- */
+const EAN_L = ["0001101","0011001","0010011","0111101","0100011","0110001","0101111","0111011","0110111","0001011"];
+const EAN_G = ["0100111","0110011","0011011","0100001","0011101","0111001","0000101","0010001","0001001","0010111"];
+const EAN_R = ["1110010","1100110","1101100","1000010","1011100","1001110","1010000","1000100","1001000","1110100"];
+const EAN_PAR = ["LLLLLL","LLGLGG","LLGGLG","LLGGGL","LGLLGG","LGGLLG","LGGGLL","LGLGLG","LGLGGL","LGGLGL"];
+function eanKontroll(d){                                           // kontrollsiffra för en sifferrad utan kontrollsiffra
+  let sum = 0;
+  for(let i = d.length - 1, vikt = 3; i >= 0; i--, vikt = 4 - vikt) sum += Number(d[i]) * vikt;
+  return (10 - sum % 10) % 10;
+}
+function eanOk(kod){                                               // giltig EAN-13 eller EAN-8 med rätt kontrollsiffra
+  return /^(\d{8}|\d{13})$/.test(kod) && eanKontroll(kod.slice(0, -1)) === Number(kod.slice(-1));
+}
+function eanSvg(kod){
+  const l13 = kod.length === 13, d = kod.split("").map(Number);
+  let bitar = "101";
+  if(l13){ const par = EAN_PAR[d[0]]; for(let i = 1; i <= 6; i++) bitar += (par[i - 1] === "L" ? EAN_L : EAN_G)[d[i]]; bitar += "01010"; for(let i = 7; i <= 12; i++) bitar += EAN_R[d[i]]; }
+  else { for(let i = 0; i < 4; i++) bitar += EAN_L[d[i]]; bitar += "01010"; for(let i = 4; i < 8; i++) bitar += EAN_R[d[i]]; }
+  bitar += "101";
+  const vänster = l13 ? 11 : 7, höger = 7, bredd = vänster + bitar.length + höger, hög = 42, stapel = 34, vakt = 38;
+  const vaktStap = i => i < 3 || i >= bitar.length - 3 || (l13 ? (i >= 45 && i < 50) : (i >= 31 && i < 36));
+  let rect = "";
+  for(let i = 0; i < bitar.length; ){
+    if(bitar[i] !== "1"){ i++; continue; }
+    let j = i; while(j < bitar.length && bitar[j] === "1") j++;
+    rect += `<rect x="${vänster + i}" y="0" width="${j - i}" height="${vaktStap(i) ? vakt : stapel}"/>`; i = j;
+  }
+  const t = (x, y, str) => `<text x="${x}" y="${y}" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="7.2" fill="#000">${str}</text>`;
+  let tecken = "";
+  if(l13){ tecken += t(vänster / 2 - .5, hög - .6, d[0]) + t(vänster + 3 + 21, hög - .6, d.slice(1, 7).join("")) + t(vänster + 50 + 21, hög - .6, d.slice(7).join("")); }
+  else { tecken += t(vänster + 3 + 14, hög - .6, d.slice(0, 4).join("")) + t(vänster + 36 + 14, hög - .6, d.slice(4).join("")); }
+  return `<svg viewBox="0 0 ${bredd} ${hög}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Streckkod ${kod}"><rect width="${bredd}" height="${hög}" fill="#fff"/><g fill="#000">${rect}</g>${tecken}</svg>`;
+}
+/*EAN-SLUT*/
+
+function vyEan(){
+  const e = D.ean, grupper = [];
+  const lunchNamn = [];
+  if(menu && menu.dagar) Object.values(menu.dagar).forEach(r => (r || []).forEach(x => { const n = dela(x); if(!lunchNamn.some(y => nz(y) === nz(n))) lunchNamn.push(n); }));
+  if(menu && menu.vegetariskt){ const n = dela(menu.vegetariskt); if(!lunchNamn.some(y => nz(y) === nz(n))) lunchNamn.push(n); }
+  if(lunchNamn.length) grupper.push(["Lunch (veckans rätter)", lunchNamn]);
+  const fr = (D.frukost.rader || []).map(r => r.namn).filter(Boolean); if(fr.length) grupper.push(["Frukost", fr]);
+  const br = (D.brunch.rader || []).map(r => r.namn).filter(Boolean); if(br.length) grupper.push(["Brunch", br]);
+  const hk = [...(D.hockey.rader || []).map(r => r.namn), D.hockey.paket && D.hockey.paket.namn].filter(Boolean); if(hk.length) grupper.push(["Hockey", hk]);
+  const visade = grupper.flatMap(g => g[1]);
+  const nyckel = n => Object.keys(e.rätter).find(k => nz(k) === nz(n));
+  const fält = [];                                             // för Enter → nästa fält (streckkodsläsare skickar Enter)
+  function rad(namn, hämta, sätt, ta_bort){
+    const v = hämta() || "", svgDiv = h("div", {style: "flex:none;width:130px;background:#fff;border:1px solid var(--linje);line-height:0;min-height:44px"}), pill = h("span", {class: "pill"});
+    const uppd = () => {
+      const k = inp.value.replace(/\D/g, "");
+      if(!k){ pill.className = "pill"; pill.textContent = "Ingen kod"; svgDiv.replaceChildren(); return; }
+      if(eanOk(k)){ pill.className = "pill ok"; pill.textContent = (k.length === 13 ? "EAN-13" : "EAN-8") + " ✓"; svgDiv.innerHTML = eanSvg(k); svgDiv.firstChild.style.width = "100%"; }
+      else { pill.className = "pill sak"; svgDiv.replaceChildren();
+        pill.textContent = (k.length === 13 || k.length === 8) ? "Fel kontrollsiffra – kontrollera koden" : (k.length === 12 || k.length === 7) ? "Saknar sista siffran (kontrollsiffra " + eanKontroll(k) + ")" : "Ska vara 13 eller 8 siffror (" + k.length + " nu)"; }
+    };
+    const inp = h("input", {type: "text", inputmode: "numeric", autocomplete: "off", placeholder: "Scanna eller skriv EAN", value: v, style: "flex:1;min-width:170px", oninput: () => { sätt(inp.value.replace(/\D/g, "")); uppd(); uppdStatus(); },
+      onkeydown: ev => { if(ev.key === "Enter"){ ev.preventDefault(); const i = fält.indexOf(inp); if(fält[i + 1]) fält[i + 1].focus(); } }});
+    fält.push(inp); uppd();
+    return h("div", {class: "kort"}, h("div", {class: "rad"}, h("div", {style: "flex:2;min-width:180px"}, h("b", {}, namn), h("div", {}, pill)), inp, svgDiv, ta_bort ? h("button", {class: "liten fara", onclick: ta_bort}, "Ta bort") : null));
+  }
+  const kort = [];
+  kort.push(h("div", {class: "info"}, "Koppla en streckkod (EAN) till varje rätt. Koden visas bredvid rätten på ", h("b", {}, "kassa.html"), " (inte i veckomenyn), så kassan kan scanna direkt från skärmen. Med en streckkodsläsare scannar ni bara koden i fältet, så hoppar markören till nästa rätt. Kontrollsiffran kontrolleras automatiskt. Rätter utan kod visas som \"Ingen streckkod\"."));
+  kort.push(h("h2", {}, "Alla lunchrätter"));
+  kort.push(rad("Gemensam kod för lunchrätter som saknar egen kod", () => e.standardLunch, v => e.standardLunch = v));
+  grupper.forEach(([titel, namn]) => {
+    kort.push(h("h2", {}, titel));
+    namn.forEach(n => kort.push(rad(n, () => { const k = nyckel(n); return k === undefined ? "" : e.rätter[k]; }, v => { const k = nyckel(n); if(k !== undefined) delete e.rätter[k]; if(v) e.rätter[n] = v; })));
+  });
+  const övriga = Object.keys(e.rätter).filter(k => !visade.some(n => nz(n) === nz(k)));
+  if(övriga.length){
+    kort.push(h("h2", {}, "Sparade koder för rätter som inte finns just nu"), h("p", {class: "dim"}, "Behålls så att koden finns kvar när rätten kommer tillbaka."));
+    övriga.forEach(k => kort.push(rad(k, () => e.rätter[k], v => { if(v) e.rätter[k] = v; else delete e.rätter[k]; }, () => { delete e.rätter[k]; ritaVy(); uppdStatus(); })));
+  }
+  return h("div", {}, kort);
 }
 
 /* ---------- hämta veckans meny från ICA ---------- */
@@ -491,7 +570,7 @@ function vyStangt(){
 }
 
 /* ---------- ramverk ---------- */
-const FLIKAR = [["slut", "Slutsålt"], ["allergener", "Allergener"], ["lunch", "Lunch"], ["frukost", "Frukost"], ["brunch", "Brunch"], ["hockey", "Hockey"], ["oppett", "Stängt"]];
+const FLIKAR = [["slut", "Slutsålt"], ["ean", "Streckkoder"], ["allergener", "Allergener"], ["lunch", "Lunch"], ["frukost", "Frukost"], ["brunch", "Brunch"], ["hockey", "Hockey"], ["oppett", "Stängt"]];
 function ritaFlikar(){
   $("tabs").replaceChildren(...FLIKAR.map(([id, t]) => h("button", {class: id === flik ? "on" : "", onclick: () => {
     if(id === flik) return;
@@ -500,7 +579,7 @@ function ritaFlikar(){
 }
 function ritaVy(){
   hämtaKort.aktiva = [];
-  $("vy").replaceChildren(flik === "slut" ? vySlut() : flik === "allergener" ? vyAllergener() : flik === "lunch" ? vyLunch() : flik === "frukost" || flik === "brunch" ? vyBuffe(flik) : flik === "oppett" ? vyStangt() : vyHockey());
+  $("vy").replaceChildren(flik === "slut" ? vySlut() : flik === "ean" ? vyEan() : flik === "allergener" ? vyAllergener() : flik === "lunch" ? vyLunch() : flik === "frukost" || flik === "brunch" ? vyBuffe(flik) : flik === "oppett" ? vyStangt() : vyHockey());
   uppdStatus();
 }
 function uppdStatus(){
@@ -510,7 +589,12 @@ function uppdStatus(){
   ritaFlikar();
 }
 async function spara(){
-  const k = flik, knapp = $("spara"); knapp.disabled = true; knapp.textContent = "Sparar…";
+  const k = flik, knapp = $("spara");
+  if(k === "ean"){
+    const dåliga = [["Gemensam kod", D.ean.standardLunch], ...Object.entries(D.ean.rätter)].filter(([, c]) => c && !eanOk(c));
+    if(dåliga.length) return toast("Rätta först: " + dåliga.slice(0, 3).map(x => x[0]).join(", ") + " har en ogiltig kod.", true);
+    D.ean.rätter = Object.fromEntries(Object.entries(D.ean.rätter).filter(([, c]) => c));
+  } knapp.disabled = true; knapp.textContent = "Sparar…";
   try {
     await api("/api/save", {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify({fil: FILNAMN[k], data: D[k]})});
     BAS[k] = ser(D[k]);

@@ -1,0 +1,17 @@
+{
+  "name": "Kassa – ICA Focus streckkoder",
+  "short_name": "Kassa",
+  "start_url": "index.html?kassa=1",
+  "scope": ".",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#f4f4f2",
+  "theme_color": "#111111",
+  "icons": [
+    {
+      "src": "assets/ica-focus-logo.png",
+      "sizes": "455x454",
+      "type": "image/png"
+    }
+  ]
+}

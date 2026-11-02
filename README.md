@@ -17,6 +17,8 @@ varje vardagsmorgon och publiceras på en webbadress som TV:n (UniFi Cast / Smar
 | `lunch.json` | Egna lunchtider och lunchdagar (går före ICA:s tider). Ändras i backofficet. |
 | `brunch.json` | Brunchen (lördagar 07:00–15:00): tider, dagar, priser. |
 | `oppettider.json` | Röda dagar och andra stängda/öppna dagar. Ändras i backofficet. |
+| `kassa.html`, `kassa.webmanifest` | Kassasidan för surfplatta: samma skylt som TV:n, men med streckkod (EAN) bredvid varje rätt. Se avsnittet Kassasidan. |
+| `ean.json` | Vilken streckkod (EAN) som hör till vilken rätt. Ändras i backofficet under *Streckkoder*. |
 | `slutsald.json` | Vilka rätter som är slutsålda idag. Sätts i backofficet och nollställs av sig själv nästa dag. |
 | `hockey.json` | Frölundas hemmamatcher (datum) och hockeymenyn med priser. Lägg till/ta bort datum här. |
 | `frukost.json` | Frukostmenyn: tider, dagar, priser och texter. Ändra här när något ändras. |
@@ -69,6 +71,24 @@ Lördagar visas veckomenyn hela dagen, eftersom ICA:s sida anger att det är st�
 **Frukostmenyn** ändrar du genom att öppna `frukost.json` på github.com och trycka på pennikonen. Priser och texter
 står i listan `rader`. Lägg till en rad genom att kopiera en av de andra, och glöm inte kommatecken mellan raderna.
 Frukostskylten visar inga allergenrader.
+
+## Kassasidan (streckkoder på surfplatta)
+
+Adress: `https://DITT-ANVÄNDARNAMN.github.io/lunch-tv/kassa.html`
+
+Sidan visar exakt samma sak som TV:n, men med en streckkod (EAN-13 eller EAN-8) bredvid varje rätt på **frukost, brunch, dagens lunch och hockeykväll**.
+Veckomenyn har inga streckkoder. Koderna ligger med god marginal så att kassan kan scanna rätt kod direkt från skärmen. En slutsåld rätt visar "Slutsåld" i stället för streckkod,
+och en rätt utan kod visar "Ingen streckkod". Koderna kopplas till rätterna i backofficet (fliken *Streckkoder*), inte i någon fil.
+
+**Visa i helskärm på iPad (utan adress- och menyfält):**
+1. Öppna adressen i Safari på iPaden.
+2. Tryck på delaknappen och välj *Lägg till på hemskärmen*, tryck *Lägg till*.
+3. Öppna sidan via den nya ikonen på hemskärmen (inte via Safari). Då visas den utan adressfält och menyer, och skärmen hålls tänd.
+4. Vill ni låsa iPaden vid sidan: *Inställningar → Hjälpmedel → Guidad åtkomst*, slå på den och trippelklicka på sidoknappen (eller hemknappen) när sidan är öppen.
+
+Snabbaste sättet utan ikon: i Safari, tryck på *aA* i adressfältet och välj *Dölj verktygsfält*.
+På Android-surfplatta: Chrome → ⋮ → *Lägg till på startskärmen* (eller *Installera app*) och öppna via ikonen.
+Använd helst liggande läge, där streckkoderna blir som störst. Test utan surfplatta: `index.html?kassa=1`.
 
 ## Hockeykvällar
 
