@@ -1,5 +1,5 @@
 {
-  "vecka": 44,
+  "vecka": 45,
   "lunchtid": {
     "start": "11:00",
     "slut": "14:30"
@@ -8,27 +8,27 @@
     "Dagens lunch 129:-",
     "Salladsbaren 99:-"
   ],
-  "vegetariskt": "Halloumi Stroganoff serveras med paprika, champinjoner, ris, saltgurka och persilja.",
+  "vegetariskt": "Svamppasta med grönkål, parmesan och friterad schalottenlök",
   "dagar": {
     "måndag": [
-      "Långbakad fläsksida serveras med gräddsås, rostad potatis och haricots verts",
-      "Panerad sej serveras med räkröra, potatis, citron, ärtor och dill"
+      "Pannbiff med grönpepparsås, rostad potatis och haricots verts",
+      "Fisk och skaldjursgryta serveras med potatis, morot, räkor, kräftstjärtar och dill"
     ],
     "tisdag": [
-      "Pannbiff med porter- och löksky samt potatismos och pressgurka",
-      "Dagens fångst serveras med kokt potatis, persiljesås, gräslök, tryffelstekt vitkål och krasse"
+      "Stekt fläsk med raggmunk, rårörda lingon och persilja",
+      "Bohuslänsk fiskpudding serveras med skirat smör, räkor, pepparrot, dill och citron"
     ],
     "onsdag": [
-      "Coq au vin – fransk kycklinggryta med rökt sidfläsk, champinjoner, lök och potatismos",
-      "Asiatiska fish cakes serveras med chilimajonnäs, ris, koriander, böngroddar, chili och lime"
+      "Paneng Chicken – Thailändsk kycklinggryta med cashewnötter, ris, koriander, salladslök, chili och lime",
+      "Panerad sej serveras med dillkokt potatis, räkröra, gröna ärtor, citron och dill"
     ],
     "torsdag": [
-      "Dansk fläskstek med knaprig svål serveras med brune kartoffler, rödkål och gräddsås",
-      "Stekt Operaströmming med potatismos, brynt smör, rårörda lingon och dill"
+      "Viltskavsgryta med champinjoner, lök, varmrökt sidfläsk samt potatismos och svartvinbärsgelé",
+      "Dagens fångst serveras med knaperstekt chorizo, rimmad gurka, jordärtskockspuré och brynt smör"
     ],
     "fredag": [
-      "Indonesisk biff Rendang med kokosgrädde och citrongräs serveras med saffransris, koriander, salladslök och chili",
-      "Dagens fångst serveras parmesanöverbakad med vitlök och pangrattato samt rostad fänkål och risoni med kycklingsky och tomat"
+      "Rosastekt flankstek serveras med nattbakad tomat, Café de Paris-sås och pommes frites",
+      "Dagens fångst med Vermouth-sås, glaserad morot, pommes ecrassé och vattenkrasse"
     ]
   }
 }

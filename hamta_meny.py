@@ -17,10 +17,29 @@ URL = "https://www.ica.se/butiker/kvantum/goteborg/ica-focus-1004247/tjanster/lu
 DAGAR = ["måndag", "tisdag", "onsdag", "torsdag", "fredag"]
 
 
-def hamta_html(url=URL):
-    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (lunch-tv)"})
-    with urllib.request.urlopen(req, timeout=30) as r:
-        return r.read().decode("utf-8", errors="replace")
+def hamta_html(url=URL, forsok=3):
+    """Hämtar sidan med webbläsarlika rubriker och upp till tre försök. Skriver tydligt vad som gick fel."""
+    import time
+    import urllib.error
+    rubriker = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "sv-SE,sv;q=0.9,en;q=0.5",
+    }
+    senaste = None
+    for i in range(1, forsok + 1):
+        try:
+            req = urllib.request.Request(url, headers=rubriker)
+            with urllib.request.urlopen(req, timeout=30) as r:
+                return r.read().decode("utf-8", errors="replace")
+        except urllib.error.HTTPError as e:
+            senaste = f"ICA svarade HTTP {e.code} {e.reason}"
+        except Exception as e:  # nätverksfel, timeout med mera
+            senaste = f"Kunde inte nå ICA: {type(e).__name__}: {e}"
+        print(f"Försök {i}/{forsok} misslyckades: {senaste}", file=sys.stderr)
+        if i < forsok:
+            time.sleep(5 * i)
+    sys.exit(f"FEL: {senaste}")
 
 
 def till_rader(sida):
@@ -102,9 +121,13 @@ def allergenmall(meny, sokvag):
 
 def main():
     ut = sys.argv[1] if len(sys.argv) > 1 else "menu.json"
-    meny = tolka(till_rader(hamta_html()))
+    rader = till_rader(hamta_html())
+    meny = tolka(rader)
     if not any(meny["dagar"].values()):
-        sys.exit("Hittade ingen meny på sidan – sparar inte (behåller gamla filen).")
+        print("Första raderna på sidan (för felsökning):", file=sys.stderr)
+        for r in rader[:40]:
+            print("  |", r[:120], file=sys.stderr)
+        sys.exit("FEL: Hittade ingen meny på sidan (ICA kan ha ändrat sidan) – sparar inte, behåller gamla filen.")
     with open(ut, "w", encoding="utf-8") as f:
         json.dump(meny, f, ensure_ascii=False, indent=2)
     print(f"Sparade vecka {meny['vecka']} till {ut}")
