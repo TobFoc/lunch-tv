@@ -1,5 +1,11 @@
 {
   "_info": "Streckkoder (EAN-13 eller EAN-8) per rätt, används av kassasidan (kassa.html). rätter = rättens namn exakt som på TV:n -> kod. standardLunch = kod som används för lunchrätter som saknar egen kod. Ändras i backofficet under Streckkoder.",
-  "standardLunch": "",
-  "rätter": {}
+  "standardLunch": "2095052500002",
+  "rätter": {
+    "Frukostbuffé": "2095050100006",
+    "Kaffe": "2095020100005",
+    "Kaffe & fralla": "2095050500004",
+    "Brunchbuffé": "2095050100006",
+    "Hamburgare": "2095061200009"
+  }
 }
