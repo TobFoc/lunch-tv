@@ -9,6 +9,8 @@
 */
 
 const FILER = ["allergener.json", "frukost.json", "hockey.json", "slutsald.json", "brunch.json", "lunch.json", "oppettider.json"];   // enda filerna som får ändras
+const LÄS = [...FILER, "menu.json"];           // filer som får läsas (menu.json bara läsas, aldrig skrivas)
+const WORKFLOW = "uppdatera-lunchmeny.yml";   // schemat som hämtar menyn från ICA
 const MAX_BYTES = 60000;
 const ALLERGENER = ["gluten", "laktos", "nötter", "ägg", "fisk", "skaldjur", "blötdjur", "selleri", "senap", "soja", "sesam", "jordnötter", "lupin", "sulfit"];
 const DAGAR = ["måndag", "tisdag", "onsdag", "torsdag", "fredag"];
@@ -93,6 +95,10 @@ function gh(env, path, init){
   return fetch(`https://api.github.com/repos/${env.REPO}/contents/${path}`, { ...init, headers: { authorization: "Bearer " + env.GITHUB_TOKEN, accept: "application/vnd.github+json", "user-agent": "lunch-tv-backoffice", "x-github-api-version": "2022-11-28", ...(init && init.headers) } });
 }
 
+function ghActions(env, path, init){
+  return fetch(`https://api.github.com/repos/${env.REPO}/actions/${path}`, { ...init, headers: { authorization: "Bearer " + env.GITHUB_TOKEN, accept: "application/vnd.github+json", "user-agent": "lunch-tv-backoffice", "x-github-api-version": "2022-11-28", ...(init && init.headers) } });
+}
+
 export default {
   async fetch(req, env){
     const origin = req.headers.get("origin") || "";
@@ -113,12 +119,26 @@ export default {
 
       if(req.method === "GET" && url.pathname === "/api/get"){
         const fil = url.searchParams.get("fil");
-        if(!FILER.includes(fil)) return json({ fel: "Okänd fil" }, 400, cors);
+        if(!LÄS.includes(fil)) return json({ fel: "Okänd fil" }, 400, cors);
         const r = await gh(env, fil + "?ref=" + encodeURIComponent(gren));
         if(r.status === 404) return json({ data: null }, 200, cors);
         if(!r.ok) return json({ fel: "GitHub svarade " + r.status }, 502, cors);
         const j = await r.json();
         return json({ data: JSON.parse(unb64(j.content)) }, 200, cors);
+      }
+
+      // Starta hämtningen av veckans meny från ICA (kör GitHub-schemat, som hämtar, sparar och publicerar)
+      if(req.method === "POST" && url.pathname === "/api/hamta"){
+        const r = await ghActions(env, `workflows/${WORKFLOW}/dispatches`, { method: "POST", body: JSON.stringify({ ref: gren }) });
+        if(r.status === 204) return json({ ok: true }, 200, cors);
+        if(r.status === 403 || r.status === 404) return json({ fel: "Nyckeln saknar behörighet att starta hämtningen. Lägg till 'Actions: Read and write' på GitHub-nyckeln (se BACKOFFICE.md)." }, 502, cors);
+        return json({ fel: "GitHub svarade " + r.status }, 502, cors);
+      }
+      if(req.method === "GET" && url.pathname === "/api/hamtastatus"){
+        const r = await ghActions(env, `workflows/${WORKFLOW}/runs?branch=${encodeURIComponent(gren)}&per_page=5`);
+        if(!r.ok) return json({ fel: "GitHub svarade " + r.status }, 502, cors);
+        const j = await r.json();
+        return json({ runs: (j.workflow_runs || []).map(x => ({ id: x.id, event: x.event, status: x.status, conclusion: x.conclusion, skapad: x.created_at })) }, 200, cors);
       }
 
       if(req.method === "POST" && url.pathname === "/api/save"){
