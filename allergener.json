@@ -3,7 +3,7 @@
   "vecka": 45,
   "dagar": {
     "måndag": {
-      "Pannbiff": null,
+      "Pannbiff": [],
       "Fisk och skaldjursgryta": null
     },
     "tisdag": {
@@ -23,5 +23,8 @@
       "Dagens fångst": null
     }
   },
-  "vegetariskt": null
+  "vegetariskt": [
+    "gluten",
+    "ägg"
+  ]
 }
