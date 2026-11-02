@@ -59,6 +59,7 @@ Sidan väljer själv vy efter klockan (`visa: "auto"` i `CONFIG`):
 | Röd dag eller annan stängd dag (hela dagen) | **Stängt idag**: orsak och när ni öppnar igen. Dagen före står "Stängt imorgon" i fotraden |
 | Lördagar 07:00–15:00 | **Brunch**: buffé med pris från `brunch.json` |
 | Vardagar 07:00–10:00 | **Frukost**: numrerad prislista från `frukost.json` |
+| Veckovyn visar vilken vecka menyn gäller (t.ex. "Vecka 45 · 2–6 nov.") under rubriken |
 | Lunchtid (från `lunch.json`, annars ICA:s tider, vanligen 11:00–14:30) | **Dagens lunch**: dagens rätter med beskrivning och allergener |
 | Resten av tiden, även helger | **Veckans lunch**: hela veckans meny, dagens rad markerad i rött tills lunchen är slut |
 

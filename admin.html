@@ -102,7 +102,7 @@
 <script>
 /* ===== INSTÄLLNINGAR ===== */
 const CONFIG = {
-  api: "https://lunch-tv.tobias-roos.workers.dev/",   // adressen till din Cloudflare-funktion, t.ex. "https://lunch-tv.dittnamn.workers.dev" (se BACKOFFICE.md)
+  api: "",   // adressen till din Cloudflare-funktion, t.ex. "https://lunch-tv.dittnamn.workers.dev" (se BACKOFFICE.md)
 };
 
 const API = (new URLSearchParams(location.search).get("api") || CONFIG.api).replace(/\/$/, "");
@@ -188,8 +188,12 @@ function svg(sym){
 }
 
 /* ---------- inläsning ---------- */
+async function läsMeny(){
+  try { menu = (await api("/api/get?fil=menu.json")).data; } catch(e){ menu = null; }               // färskaste versionen direkt från GitHub
+  if(!menu){ try { const r = await fetch("menu.json?t=" + Date.now(), {cache: "no-store"}); menu = r.ok ? await r.json() : null; } catch(e){ menu = null; } }
+}
 async function läs(){
-  try { const r = await fetch("menu.json?t=" + Date.now(), {cache: "no-store"}); menu = r.ok ? await r.json() : null; } catch(e){ menu = null; }
+  await läsMeny();
   for(const k of Object.keys(FILNAMN)){
     const j = await api("/api/get?fil=" + FILNAMN[k]);
     D[k] = j.data ? kopia(j.data) : null;
@@ -240,6 +244,7 @@ function vyAllergener(){
   rader.push(h("div", {class: klara === alla.length ? "info" : "info"}, h("b", {}, "Vecka " + menu.vecka + ": "), klara + " av " + alla.length + " rätter ifyllda.",
     klara < alla.length ? " Rätter som inte är ifyllda visar 'fråga personalen' på TV:n." : " Allt är ifyllt."));
   (MSG.allergener || []).forEach(m => rader.push(h("div", {class: "fel"}, m)));
+  rader.unshift(hämtaKort());
   rader.push(h("p", {class: "dim"}, "Tryck på de allergener som rätten innehåller. 'Inga allergener' betyder att rätten inte innehåller något av de 14. Rätter som inte rörts visar 'fråga personalen' på TV:n."));
   DAGAR.forEach(d => {
     const rätter = Object.keys(a.dagar[d]);
@@ -330,6 +335,49 @@ function vyHockey(){
       h("input", {type: "text", placeholder: "Pris", value: k.paket.pris || "", style: "max-width:120px", oninput: e => { k.paket.pris = e.target.value; uppdStatus(); }})));
 }
 
+/* ---------- hämta veckans meny från ICA ---------- */
+let hämtar = false, hämtaMsg = null;
+const någonSmutsig = () => Object.keys(D).some(k => D[k] && BAS[k] !== ser(D[k]));
+function hämtaKort(){
+  const kort = h("div", {class: "kort"});
+  const rita = () => kort.replaceChildren(
+    h("h3", {}, "Veckans meny från ICA"),
+    h("p", {class: "dim", style: "margin:2px 0 8px"}, menu ? "Menyn i systemet gäller vecka " + menu.vecka + "." : "Ingen meny finns i systemet."),
+    hämtaMsg ? h("div", {class: hämtaMsg.fel ? "fel" : "info"}, hämtaMsg.text) : null,
+    h("button", {class: "prim", disabled: hämtar, onclick: hämtaNu}, hämtar ? "Hämtar… (tar 1–2 minuter)" : "Hämta veckans meny från ICA"),
+    h("p", {class: "dim", style: "margin:8px 0 0"}, "Menyn hämtas annars automatiskt varje vardagsmorgon. Använd knappen när ICA lagt upp en ny meny och ni vill ha den direkt."));
+  rita(); kort._rita = rita; hämtaKort.aktiva.push(kort);
+  return kort;
+}
+hämtaKort.aktiva = [];
+const ritaHämta = () => hämtaKort.aktiva.forEach(k => k.isConnected && k._rita());
+async function hämtaNu(){
+  if(någonSmutsig()){ hämtaMsg = {fel: true, text: "Spara eller ångra dina ändringar först (se flikar med •), annars kan de försvinna när menyn byts."}; return ritaHämta(); }
+  hämtar = true; hämtaMsg = null; ritaHämta();
+  try {
+    const innan = (await api("/api/hamtastatus")).runs;
+    const förstaId = innan.length ? innan[0].id : 0;
+    await api("/api/hamta", {method: "POST"});
+    let run = null;
+    for(let i = 0; i < 60 && !(run && run.status === "completed"); i++){                    // väntar högst ca 5 minuter
+      await new Promise(r => setTimeout(r, 5000));
+      const nya = (await api("/api/hamtastatus")).runs.filter(r => r.id > förstaId && r.event === "workflow_dispatch");
+      run = nya.length ? nya[nya.length - 1] : null;
+    }
+    if(!run || run.status !== "completed") throw new Error("Hämtningen tog för lång tid. Kontrollera fliken Actions på GitHub, eller försök igen om en stund.");
+    if(run.conclusion !== "success") throw new Error("Kunde inte hämta menyn från ICA:s sida. Den gamla menyn ligger kvar. Försök igen senare.");
+    const före = menu && menu.vecka;
+    await läsMeny();
+    const j = await api("/api/get?fil=allergener.json");                                  // en ny vecka ger en ny tom allergenmall
+    D.allergener = byggAllergener(j.data ? kopia(j.data) : null); BAS.allergener = ser(D.allergener);
+    hämtaMsg = {text: "Klart! Menyn gäller vecka " + (menu ? menu.vecka : "?") + (menu && before(före, menu.vecka) ? " (ny vecka, fyll i allergenerna)." : ".") + " TV:n visar den inom någon minut."};
+  } catch(e){
+    hämtaMsg = {fel: true, text: e.message};
+  }
+  hämtar = false; ritaVy();
+}
+const before = (a, b) => a !== b;
+
 function vySlut(){
   const sl = D.slut, idag = new Date(), dagNamn = ["söndag","måndag","tisdag","onsdag","torsdag","fredag","lördag"][idag.getDay()];
   const grupper = [];
@@ -356,6 +404,7 @@ function vySlut(){
   rita();
   const extra = sl.rätter.filter(x => !grupper.some(([, ns]) => ns.some(n => nz(n) === nz(x))));
   return h("div", {},
+    hämtaKort(),
     h("div", {class: "info"}, "Tryck på ", h("b", {}, "Markera slutsåld"), " när en rätt tar slut. Den visas överstruken med en röd ", h("b", {}, "SLUTSÅLD"), "-skylt på TV:n. Allt nollställs automatiskt i morgon bitti."),
     !menu ? h("div", {class: "fel"}, "Veckans meny kunde inte läsas. Lunchrätterna visas inte här.") : null,
     !lunch.length && menu ? h("div", {class: "dim"}, "Ingen lunchmeny finns för idag (" + dagNamn + ").") : null,
@@ -450,6 +499,7 @@ function ritaFlikar(){
     flik = id; ritaFlikar(); ritaVy(); }}, t + (BAS[id] !== ser(D[id]) ? " •" : ""))));
 }
 function ritaVy(){
+  hämtaKort.aktiva = [];
   $("vy").replaceChildren(flik === "slut" ? vySlut() : flik === "allergener" ? vyAllergener() : flik === "lunch" ? vyLunch() : flik === "frukost" || flik === "brunch" ? vyBuffe(flik) : flik === "oppett" ? vyStangt() : vyHockey());
   uppdStatus();
 }

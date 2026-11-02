@@ -28,7 +28,8 @@ Uppdatera även schemat: öppna `.github/workflows/uppdatera-lunchmeny.yml`, try
 1. github.com → din profilbild → *Settings* → längst ner *Developer settings* → *Personal access tokens* → *Fine-grained tokens* → *Generate new token*.
 2. Namn: `lunch-tv-backoffice`. Giltighet: längsta möjliga (1 år). Lägg en påminnelse i kalendern att göra en ny då.
 3. *Repository access* → *Only select repositories* → välj `lunch-tv`.
-4. *Permissions* → *Repository permissions* → *Contents* → **Read and write**. Inget annat.
+4. *Permissions* → *Repository permissions* → *Contents* → **Read and write**, och *Actions* → **Read and write** (behövs för knappen *Hämta veckans meny från ICA*). Inget annat.
+   Har du redan en nyckel utan *Actions*: öppna den under *Developer settings → Fine-grained tokens*, tryck *Edit*, lägg till *Actions: Read and write* och spara. Nyckeln behöver inte bytas.
 5. *Generate token* och **kopiera den** (visas bara en gång).
 
 ### 3. Skapa funktionen på Cloudflare
@@ -56,6 +57,7 @@ Uppdatera även schemat: öppna `.github/workflows/uppdatera-lunchmeny.yml`, try
 
 ## Så använder personalen det
 
+- **Hämta veckans meny:** Överst under *Slutsålt* och *Allergener* finns knappen *Hämta veckans meny från ICA*. Tryck på den när ICA lagt upp en ny meny. Efter 1–2 minuter står det "Klart! Menyn gäller vecka 45" och TV:n visar den. Står det att hämtningen misslyckades ligger den gamla menyn kvar. Spara först eventuella ändringar i andra flikar. Menyn hämtas annars automatiskt varje vardagsmorgon.
 - **Slutsålt:** Fliken *Slutsålt* visar dagens lunch, veckans vegetariska, frukostraderna och hockeyraderna. Tryck *Markera slutsåld* på en rätt och sedan *Spara*.
   På TV:n blir rätten överstruken med en röd SLUTSÅLD-skylt inom ca 2 minuter. Allt nollställs automatiskt nästa dag, och *Finns igen* tar bort markeringen direkt.
 - **Allergener:** Varje vecka hämtas nya rätter automatiskt. Öppna fliken *Allergener*, tryck på de allergener som varje rätt innehåller och tryck *Spara*.
@@ -89,6 +91,7 @@ Har du redan satt upp backofficet och får en ny version av `worker/worker.js` (
 | "Fel kod" | Koden stämmer inte med `PIN` i Cloudflare |
 | "Otillåten avsändare" | `ALLOWED_ORIGIN` är fel. Ska vara `https://DITT-ANVÄNDARNAMN.github.io` |
 | "GitHub svarade 401/403/404" | Nyckeln har gått ut eller saknar behörighet, eller `REPO` är fel (steg 2 och 3) |
+| "Nyckeln saknar behörighet att starta hämtningen" | Lägg till *Actions: Read and write* på GitHub-nyckeln (steg 2) |
 | "Någon annan sparade samtidigt" | Tryck *Spara* igen |
 | "Ändringen sparades inte: …" | Något värde är ogiltigt, t.ex. en tid som inte är HH:MM. Texten säger vad |
 

@@ -91,7 +91,7 @@
   #rätter.dagsläge { justify-content: center; }
   .dagrad { display: grid; grid-template-columns: calc(var(--u) * 44) 1fr; column-gap: calc(var(--u) * 3.4); align-items: center; }
   .dagkol .dag { font-weight: 700; font-size: calc(var(--u) * 14); line-height: .95; text-transform: uppercase; display: inline-block; white-space: nowrap; }
-  .dagkol .datum { font-weight: 600; font-size: calc(var(--u) * 4.2); margin-top: calc(var(--u) * .8); }
+  .dagkol .datum { font-weight: 700; font-size: calc(var(--u) * 6.2); margin-top: calc(var(--u) * .8); text-transform: uppercase; letter-spacing: .02em; }
   .lista { display: flex; flex-direction: column; gap: calc(var(--u) * 2.4 * var(--k, 1)); border-left: calc(var(--u) * .3) solid var(--svart); padding-left: calc(var(--u) * 3.4); }
   .rätt .namn { font-weight: 700; font-size: calc(var(--u) * 5.2 * var(--k, 1)); line-height: 1.04; }
   .rätt .besk { font-weight: 500; font-size: calc(var(--u) * 3.6 * var(--k, 1)); line-height: 1.15; color: #262626; margin-top: calc(var(--u) * .3); }
@@ -419,6 +419,12 @@ function bestämLäge(n, lunchStart, lunchEnd){
   return "vecka";
 }
 
+function veckoSpann(n){                                           // "2–6 nov." för veckan som n ligger i
+  const mån = new Date(n.getFullYear(), n.getMonth(), n.getDate() - ((n.getDay() + 6) % 7)), fre = plusDagar(mån, 4);
+  const mnd = d => d.toLocaleDateString("sv-SE", {month: "short"});
+  return mån.getMonth() === fre.getMonth() ? `${mån.getDate()}–${fre.getDate()} ${mnd(fre)}` : `${mån.getDate()} ${mnd(mån)}–${fre.getDate()} ${mnd(fre)}`;
+}
+
 function rita(){
   const n = nu(), dagNamn = DAGAR[n.getDay()], nuMin = n.getHours()*60 + n.getMinutes();
   const lunchStart = lunchTid().start, lunchEnd = lunchTid().slut;
@@ -438,7 +444,7 @@ function rita(){
   const blTid = bl ? `${bl.tid.start}–${bl.tid.slut}` : "", blDagar = bl ? dagLista(bl.dagar || []) : "";
   const stängt = läge === "stängt" ? (stängtInfo(n) || {orsak: ""}) : null;
   document.getElementById("rubrik").textContent = läge === "hockey" ? ((hockey && hockey.rubrik) || "Hockeykvällar") : läge === "stängt" ? "Stängt idag" : läge === "brunch" ? ((bl && bl.rubrik) || "Brunch") : läge === "frukost" ? ((fr && fr.rubrik) || "Frukost") : läge === "vecka" ? "Veckans lunch" : "Dagens lunch";
-  document.getElementById("under").textContent = läge === "hockey" ? ((hockey && hockey.underrubrik) || "") : läge === "stängt" ? (stängt.orsak || "") : läge === "brunch" ? (bl ? (bl.underrubrik || `Brunch serveras ${blDagar} ${blTid}`) : "") : läge === "frukost" ? (fr ? (fr.underrubrik || `Frukostbuffé serveras ${frDagar} ${frTid}`) : "") : CONFIG.underrubrik;
+  document.getElementById("under").textContent = läge === "hockey" ? ((hockey && hockey.underrubrik) || "") : läge === "stängt" ? (stängt.orsak || "") : läge === "brunch" ? (bl ? (bl.underrubrik || `Brunch serveras ${blDagar} ${blTid}`) : "") : läge === "frukost" ? (fr ? (fr.underrubrik || `Frukostbuffé serveras ${frDagar} ${frTid}`) : "") : (läge === "vecka" && meny && meny.vecka ? `Vecka ${meny.vecka} · ${veckoSpann(n)}  ·  ` : "") + CONFIG.underrubrik;
   document.getElementById("pris").textContent = läge === "frukost" || läge === "brunch" || läge === "hockey" || läge === "stängt" ? "" : (CONFIG.pris || pris("dagens lunch") || "");
   const sallad = pris("salladsbaren");
   document.getElementById("fot").innerHTML =
