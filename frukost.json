@@ -27,6 +27,11 @@
       "namn": "Kaffe",
       "pris": "25:-",
       "beskrivning": "Cappuccino, Caffe Latte, Espresso"
+    },
+    {
+      "namn": "Barnfrukost",
+      "pris": "49",
+      "beskrivning": "Gäller för barn under 12 år"
     }
   ]
 }
