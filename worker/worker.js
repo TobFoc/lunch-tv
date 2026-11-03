@@ -79,6 +79,7 @@ function validera(fil, d){
       if(!Array.isArray(d.extra) || d.extra.length > 100) fel.push("extra rätter: felaktig lista eller för många");
       else d.extra.forEach((e, i) => {
         if(!e || (e.alltid !== true && !DATUM.test(e.datum || ""))) fel.push("extra rätt " + (i + 1) + ": ogiltigt datum");
+        if(e && e.pris !== undefined && !kort(e.pris, 20)) fel.push("extra rätt " + (i + 1) + ": för långt pris");
         if(e && e.etikett !== undefined && !kort(e.etikett, 40)) fel.push("extra rätt " + (i + 1) + ": för lång etikett");
         if(!e || !kort(e.namn, 120) || !e.namn.trim()) fel.push("extra rätt " + (i + 1) + ": namn saknas eller är för långt");
         if(e && e.beskrivning !== undefined && !kort(e.beskrivning, 300)) fel.push("extra rätt " + (i + 1) + ": för lång beskrivning");
