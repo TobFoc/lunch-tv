@@ -99,6 +99,22 @@
   .dagkol .datum { font-weight: 700; font-size: calc(var(--u) * 6.2); margin-top: calc(var(--u) * .8); text-transform: uppercase; letter-spacing: .02em; }
   .lista { display: flex; flex-direction: column; gap: calc(var(--u) * 2.4 * var(--k, 1)); border-left: calc(var(--u) * .3) solid var(--svart); padding-left: calc(var(--u) * 3.4); }
   .rätt .namn { font-weight: 700; font-size: calc(var(--u) * 5.2 * var(--k, 1)); line-height: 1.04; }
+  .skylt.kompakt h1 { font-size: calc(var(--u) * 8); }
+  .skylt.kompakt .pris { font-size: calc(var(--u) * 8); }
+  .skylt.kompakt .under { font-size: calc(var(--u) * 3.4); }
+  .skylt.kompakt footer { display: none; }
+  .dagrad.bred { grid-template-columns: 1fr; row-gap: calc(var(--u) * 2); align-items: start; }
+  .bred .dagkol { display: flex; align-items: baseline; gap: calc(var(--u) * 3); }
+  .bred .dagkol .dag { font-size: calc(var(--u) * 9); }
+  .bred .dagkol .datum { margin-top: 0; font-size: calc(var(--u) * 5); }
+  .bred .lista { border-left: 0; padding-left: 0; }
+  .kassa .bred .lista { display: grid; grid-template-columns: 1fr 1fr; column-gap: calc(var(--u) * 4); row-gap: calc(var(--u) * 2 * var(--k, 1)); align-items: start; }
+  .kassa .bred .rätt.k { grid-template-columns: 1fr; row-gap: calc(var(--u) * .8); align-items: start; }
+  .kassa .bred .rätt.k .kod { justify-self: start; --bw: 34; }
+  .gkod { display: flex; flex-direction: column; align-items: flex-start; align-self: center; gap: calc(var(--u) * .6); }
+  .gkod .kod { align-self: flex-start; }
+  .gtxt { font-weight: 700; font-size: calc(var(--u) * 2.6); text-transform: uppercase; letter-spacing: .05em; line-height: 1.1; text-align: left; width: 0; min-width: 100%; }
+  .rätt.grupp .rtext { display: flex; flex-direction: column; gap: calc(var(--u) * 2 * var(--k, 1)); }
   .rätt .rpris { font-weight: 800; margin-left: .7em; white-space: nowrap; }
   .rätt .besk { font-weight: 500; font-size: calc(var(--u) * 3.6 * var(--k, 1)); line-height: 1.15; color: #262626; margin-top: calc(var(--u) * .3); }
   .rätt .vlabel { font-weight: 700; font-size: calc(var(--u) * 2.8 * var(--k, 1)); letter-spacing: .1em; text-transform: uppercase; color: var(--grön); margin-bottom: calc(var(--u) * .3); }
@@ -385,6 +401,7 @@ function passa(){
   r.style.setProperty("--k", 1);
   fitta();
   while(r.scrollHeight > r.clientHeight + 1 && k > .4 && i++ < 60){ k *= .97; r.style.setProperty("--k", k); fitta(); }
+  return k;
 }
 
 function dagLista(dagar){
@@ -523,9 +540,11 @@ function rita(){
   const fr = frukost && frukost.tid ? frukost : null, bl = brunch && brunch.tid ? brunch : null;
   const buf = läge === "brunch" ? bl : fr;                            // frukost- eller brunchdata när en bufféskylt visas
   const el = document.getElementById("rätter");
+  document.querySelector(".skylt").classList.remove("kompakt");
   el.className = läge === "dag" ? "dagsläge" : läge === "frukost" || läge === "brunch" ? "frukostläge" : läge === "hockey" ? "hockeyläge" : "";
   document.querySelector(".skylt").classList.toggle("kompakt", läge === "vecka");
   document.querySelector(".skylt").classList.toggle("hockey", läge === "hockey");
+  document.querySelector(".skylt").classList.remove("kompakt");
 
   // Rubrik, pris och fotrad
   const pm = ((meny && meny.priser) || []).map(p => /^(.*?)\s+(\d+\s*:-)/.exec(p)).filter(Boolean);
@@ -616,18 +635,50 @@ function rita(){
   const rätter = [...(dagar[dagNamn] || []), ...extraIdag.map(e => ({namn: e.namn, beskrivning: e.beskrivning || "", allergener: e.allergener, etikett: e.etikett || "", pris: e.pris || ""}))];
   if(!rätter || !rätter.length) return msg("Ingen meny registrerad för idag");
 
-  const rättHtml = (o, ids, etikett) => {
-    const sl = ärSlut(o.namn, n);
-    const text = `${etikett ? `<div class="vlabel">${etikett}</div>` : ""}<div class="namn"><span class="nm">${esc(o.namn)}</span>${o.pris ? `<span class="rpris">${esc(o.pris)}</span>` : ""}${sl ? slutMärke() : ""}</div>${o.besk ? `<div class="besk">${esc(o.besk)}</div>` : ""}${SYN ? allergRad(ids) : ""}`;
-    return KASSA ? `<div class="rätt k${sl ? " slut" : ""}"><div class="rtext">${text}</div>${kod(o.namn, n, "lunch")}</div>` : `<div class="rätt${sl ? " slut" : ""}">${text}</div>`;
+  const textHtml = (o, ids, etikett, sl) =>
+    `${etikett ? `<div class="vlabel">${etikett}</div>` : ""}<div class="namn"><span class="nm">${esc(o.namn)}</span>${o.pris ? `<span class="rpris">${esc(o.pris)}</span>` : ""}${sl ? slutMärke() : ""}</div>${o.besk ? `<div class="besk">${esc(o.besk)}</div>` : ""}${SYN ? allergRad(ids) : ""}`;
+  const rättHtml = p => {
+    const sl = ärSlut(p.o.namn, n), text = textHtml(p.o, p.ids, p.et, sl);
+    return KASSA ? `<div class="rätt k${sl ? " slut" : ""}"><div class="rtext">${text}</div>${kod(p.o.namn, n, "lunch")}</div>` : `<div class="rätt${sl ? " slut" : ""}">${text}</div>`;
   };
+  const poster = rätter.map(r => { const o = dela(r); return {o, ids: r && typeof r === "object" && r.allergener !== undefined ? r.allergener : allergenerFör(dagNamn, o.namn), et: r && r.etikett ? r.etikett : ""}; });
+  if(veg) poster.push({o: veg, ids: allergenerFör("vegetariskt"), et: "Veckans vegetariska · gäller hela veckan"});
+  let lista;
+  if(!KASSA) lista = poster.map(rättHtml).join("");
+  else {
+    // Kassa: rätter med samma streckkod läggs ihop och delar på en kod
+    const grupper = [];
+    poster.forEach(p => {
+      p.c = eanFör(p.o.namn, "lunch");
+      const g = p.c ? grupper.find(x => x.c === p.c) : null;
+      if(g) g.p.push(p); else grupper.push({c: p.c, p: [p]});
+    });
+    lista = grupper.map(g => {
+      if(g.p.length === 1) return rättHtml(g.p[0]);
+      const alla = g.p.every(p => ärSlut(p.o.namn, n));
+      return `<div class="rätt k grupp${alla ? " slut" : ""}"><div class="rtext">${g.p.map(p => { const sl = ärSlut(p.o.namn, n); return `<div class="gi${sl ? " slut" : ""}">${textHtml(p.o, p.ids, p.et, sl)}</div>`; }).join("")}</div>` +
+        `<div class="gkod">` + (alla ? `<div class="kod ingen sl2">Slutsåld</div>` : `<div class="kod">${eanSvg(g.c)}</div>`) + `<div class="gtxt">En kod för alla ${g.p.length} rätter</div></div></div>`;
+    }).join("");
+  }
   el.innerHTML = `<div class="dagrad">
     <div class="dagkol"><span class="dag fit" data-max="44">${dagNamn}</span><div class="datum">${n.toLocaleDateString("sv-SE", {day: "numeric", month: "long"})}</div></div>
-    <div class="lista">${
-      rätter.map(r => { const o = dela(r); return rättHtml(o, r && typeof r === "object" && r.allergener !== undefined ? r.allergener : allergenerFör(dagNamn, o.namn), r && r.etikett ? r.etikett : ""); }).join("") +
-      (veg ? rättHtml(veg, allergenerFör("vegetariskt"), "Veckans vegetariska · gäller hela veckan") : "")
-    }</div></div>`;
-  passa();
+    <div class="lista">${lista}</div></div>`;
+  // Blir texten liten med dagen i en egen kolumn: lägg dagen överst och använd hela bredden
+  let k1 = passa();
+  if(KASSA && k1 < .8){                       // kassa: kompakt skylt (mindre rubrik, ingen fotrad) ger rätterna mer höjd
+    const sk = document.querySelector(".skylt");
+    sk.classList.add("kompakt");
+    const kk = passa();
+    if(kk <= k1 + .02) sk.classList.remove("kompakt"); else k1 = kk;
+    passa();
+    k1 = Number(el.style.getPropertyValue("--k")) || 1;
+  }
+  if(k1 < .8){
+    const dr = el.querySelector(".dagrad");
+    dr.classList.add("bred");
+    const k2 = passa();
+    if(k2 <= k1 + .02){ dr.classList.remove("bred"); passa(); }
+  }
 }
 
 if(KASSA){
