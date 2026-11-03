@@ -69,6 +69,16 @@
 
   /* Veckoläge: varje dag är ett eget band med dagnamn och datum i ett mörkt block till vänster */
   #rätter.vecka { justify-content: flex-start; gap: calc(var(--u) * .9 * var(--k, 1)); }
+  #rätter.vecka.medAlltid { justify-content: stretch; }
+  .vkgrid { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr calc(var(--u) * 44); column-gap: calc(var(--u) * 2.4); align-items: stretch; }
+  .vkdagar { display: flex; flex-direction: column; justify-content: flex-start; gap: calc(var(--u) * .9 * var(--k, 1)); min-height: 0; }
+  .vkalltid { display: flex; flex-direction: column; background: rgba(255,255,255,.3); min-height: 0; }
+  .vkrubrik { background: var(--svart); color: #f4f4f2; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; font-size: calc(var(--u) * 4.6 * var(--k, 1)); padding: calc(var(--u) * 1.4 * var(--k, 1)) calc(var(--u) * 2.2); line-height: 1.05; }
+  .vklista { flex: 1; display: flex; flex-direction: column; justify-content: space-around; padding: calc(var(--u) * 1.4 * var(--k, 1)) calc(var(--u) * 2.2); gap: calc(var(--u) * 1.6 * var(--k, 1)); }
+  .vkalltid .ae { font-weight: 700; font-size: calc(var(--u) * 3.4 * var(--k, 1)); letter-spacing: .1em; text-transform: uppercase; color: var(--grön); }
+  .vkalltid .an { font-weight: 800; font-size: calc(var(--u) * 7 * var(--k, 1)); line-height: 1.1; }
+  .vkalltid .ap { margin-left: .6em; white-space: nowrap; }
+  .vkalltid .ab { font-weight: 500; font-size: calc(var(--u) * 4.2 * var(--k, 1)); line-height: 1.15; margin-top: calc(var(--u) * .3); }
   .rad { display: grid; grid-template-columns: calc(var(--u) * 33) 1fr; align-items: stretch; background: rgba(255,255,255,.3); }
   .dagnamn { background: var(--svart); color: #f4f4f2; padding: calc(var(--u) * .9 * var(--k, 1)) calc(var(--u) * 2.2); display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
   .rad .dag { font-weight: 700; font-size: calc(var(--u) * 7.2 * var(--k, 1)); line-height: 1; text-transform: uppercase; display: inline-block; white-space: nowrap; }
@@ -76,6 +86,12 @@
   .rad.idag { background: rgba(255,255,255,.55); }
   .rad.idag .dagnamn { background: var(--röd); }
   .rl { padding: calc(var(--u) * .9 * var(--k, 1)) calc(var(--u) * 2.8); display: flex; flex-direction: column; justify-content: center; }
+  #rätter.vecka .rad { grid-template-columns: calc(var(--u) * 44) 1fr; }
+  #rätter.vecka.medAlltid .rad { grid-template-columns: calc(var(--u) * 42) 1fr; }
+  #rätter.vecka.medAlltid .rad:not(.veg) .rl { grid-template-columns: 1fr; }
+  #rätter.vecka .rad:not(.veg) .dagnamn { flex-direction: row; align-items: baseline; justify-content: flex-start; gap: calc(var(--u) * 1.8 * var(--k, 1)); }
+  #rätter.vecka .rad:not(.veg) .dagdatum { margin-top: 0; font-size: calc(var(--u) * 3.6 * var(--k, 1)); white-space: nowrap; }
+  #rätter.vecka .rad:not(.veg) .rl { display: grid; grid-template-columns: 1fr 1fr; column-gap: calc(var(--u) * 2); align-content: center; }
   .rl > div { display: flex; align-items: center; gap: calc(var(--u) * 1.6 * var(--k, 1)); font-weight: 500; font-size: calc(var(--u) * 4.4 * var(--k, 1)); line-height: 1.2; }
   .rad.idag .rl > div { font-weight: 700; }
 
@@ -99,10 +115,10 @@
   .dagkol .datum { font-weight: 700; font-size: calc(var(--u) * 6.2); margin-top: calc(var(--u) * .8); text-transform: uppercase; letter-spacing: .02em; }
   .lista { display: flex; flex-direction: column; gap: calc(var(--u) * 2.4 * var(--k, 1)); border-left: calc(var(--u) * .3) solid var(--svart); padding-left: calc(var(--u) * 3.4); }
   .rätt .namn { font-weight: 700; font-size: calc(var(--u) * 5.2 * var(--k, 1)); line-height: 1.04; }
-  .skylt.kompakt h1 { font-size: calc(var(--u) * 8); }
-  .skylt.kompakt .pris { font-size: calc(var(--u) * 8); }
-  .skylt.kompakt .under { font-size: calc(var(--u) * 3.4); }
-  .skylt.kompakt footer { display: none; }
+  .skylt.kassakompakt h1 { font-size: calc(var(--u) * 8); }
+  .skylt.kassakompakt .pris { font-size: calc(var(--u) * 8); }
+  .skylt.kassakompakt .under { font-size: calc(var(--u) * 3.4); }
+  .skylt.kassakompakt footer { display: none; }
   .dagrad.bred { grid-template-columns: 1fr; row-gap: calc(var(--u) * 2); align-items: start; }
   .bred .dagkol { display: flex; align-items: baseline; gap: calc(var(--u) * 3); }
   .bred .dagkol .dag { font-size: calc(var(--u) * 9); }
@@ -540,11 +556,10 @@ function rita(){
   const fr = frukost && frukost.tid ? frukost : null, bl = brunch && brunch.tid ? brunch : null;
   const buf = läge === "brunch" ? bl : fr;                            // frukost- eller brunchdata när en bufféskylt visas
   const el = document.getElementById("rätter");
-  document.querySelector(".skylt").classList.remove("kompakt");
   el.className = läge === "dag" ? "dagsläge" : läge === "frukost" || läge === "brunch" ? "frukostläge" : läge === "hockey" ? "hockeyläge" : "";
   document.querySelector(".skylt").classList.toggle("kompakt", läge === "vecka");
   document.querySelector(".skylt").classList.toggle("hockey", läge === "hockey");
-  document.querySelector(".skylt").classList.remove("kompakt");
+  document.querySelector(".skylt").classList.remove("kassakompakt");
 
   // Rubrik, pris och fotrad
   const pm = ((meny && meny.priser) || []).map(p => /^(.*?)\s+(\d+\s*:-)/.exec(p)).filter(Boolean);
@@ -613,7 +628,7 @@ function rita(){
     const mån = new Date(n.getFullYear(), n.getMonth(), n.getDate() - ((n.getDay() + 6) % 7));    // veckans måndag
     const datum = i => new Date(mån.getFullYear(), mån.getMonth(), mån.getDate() + i).toLocaleDateString("sv-SE", {day: "numeric", month: "short"});
     let html = VECKODAGAR.map((d, i) => {
-      const rader = (dagar[d] || []).map(r => dela(r).namn).concat(extraDag(iso(new Date(mån.getFullYear(), mån.getMonth(), mån.getDate() + i))).map(e => e.namn));
+      const rader = (dagar[d] || []).map(r => dela(r).namn).concat(extraDag(iso(new Date(mån.getFullYear(), mån.getMonth(), mån.getDate() + i))).filter(e => e.alltid !== true).map(e => e.namn));
       return `<div class="rad${d === idag ? " idag" : ""}">
         <div class="dagnamn"><span class="dag fit" data-max="28">${d}</span><span class="dagdatum">${datum(i)}</span></div>
         <div class="rl">${rader.map(nm => { const sl = d === idag && ärSlut(nm, n); return `<div class="${sl ? "slut" : ""}"><span class="nm">${esc(nm)}</span>${sl ? slutMärke() : ""}</div>`; }).join("") || "<div>Ingen meny registrerad</div>"}</div>
@@ -623,6 +638,13 @@ function rita(){
         <div class="dagnamn"><span class="dag fit" data-max="28">Veckans<br>vegetariska</span><span class="dagunder">Gäller hela veckan</span></div>
         <div class="rl"><div class="${ärSlut(veg.namn, n) ? "slut" : ""}"><span class="nm">${esc(veg.namn)}</span>${ärSlut(veg.namn, n) ? slutMärke() : ""}<span class="hv">Mån–fre</span></div>${veg.besk ? `<div class="vbesk">${esc(veg.besk)}</div>` : ""}</div>
       </div>`;
+    // Rätter som alltid serveras (alltid på) får en egen ruta till höger, så att de inte trängs bland dagarnas rader
+    const alltid = extraDag("").filter(e => e.alltid === true);
+    if(alltid.length){
+      const sida = alltid.map(e => { const sl = ärSlut(e.namn, n); return `<div class="ar${sl ? " slut" : ""}">${e.etikett ? `<div class="ae">${esc(e.etikett)}</div>` : ""}<div class="an"><span class="nm">${esc(e.namn)}</span>${e.pris ? `<span class="ap">${esc(e.pris)}</span>` : ""}${sl ? slutMärke() : ""}</div>${e.beskrivning ? `<div class="ab">${esc(e.beskrivning)}</div>` : ""}</div>`; }).join("");
+      html = `<div class="vkgrid"><div class="vkdagar">${html}</div><aside class="vkalltid"><div class="vkrubrik">Alltid på Focus</div><div class="vklista">${sida}</div></aside></div>`;
+      el.className += " medAlltid";
+    }
     el.innerHTML = html;
     return passa();
   }
@@ -667,9 +689,9 @@ function rita(){
   let k1 = passa();
   if(KASSA && k1 < .8){                       // kassa: kompakt skylt (mindre rubrik, ingen fotrad) ger rätterna mer höjd
     const sk = document.querySelector(".skylt");
-    sk.classList.add("kompakt");
+    sk.classList.add("kassakompakt");
     const kk = passa();
-    if(kk <= k1 + .02) sk.classList.remove("kompakt"); else k1 = kk;
+    if(kk <= k1 + .02) sk.classList.remove("kassakompakt"); else k1 = kk;
     passa();
     k1 = Number(el.style.getPropertyValue("--k")) || 1;
   }
