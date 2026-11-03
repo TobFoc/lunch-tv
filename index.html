@@ -576,11 +576,14 @@ function rita(){
     return passa();
   }
 
-  if(!meny) return msg("Menyn är inte tillgänglig just nu");
-  if(meny.vecka && meny.vecka !== isoVecka(n)) return msg("Veckans meny är inte publicerad ännu");
+  // Extra rätter som personalen lagt till i backoffice (gäller ett visst datum, utöver ICA:s meny)
+  const extraDag = ik => ((lunch && lunch.extra) || []).filter(e => e && e.namn && (e.alltid === true || e.datum === ik));
+  const extraIdag = extraDag(iso(n));
+  const gammal = !meny || (meny.vecka && meny.vecka !== isoVecka(n));      // saknad eller gammal ICA-meny: visa bara extra rätter
+  if(gammal && !extraIdag.length) return msg(!meny ? "Menyn är inte tillgänglig just nu" : "Veckans meny är inte publicerad ännu");
 
-  const dagar = meny.dagar || meny.days || {};
-  const veg = meny.vegetariskt ? dela(meny.vegetariskt) : null;
+  const dagar = gammal ? {} : (meny.dagar || meny.days || {});
+  const veg = !gammal && meny.vegetariskt ? dela(meny.vegetariskt) : null;
   const SYN = CONFIG.visaAllergener;
 
   /* ----- Hela veckans lunchmeny ----- */
@@ -590,7 +593,7 @@ function rita(){
     const mån = new Date(n.getFullYear(), n.getMonth(), n.getDate() - ((n.getDay() + 6) % 7));    // veckans måndag
     const datum = i => new Date(mån.getFullYear(), mån.getMonth(), mån.getDate() + i).toLocaleDateString("sv-SE", {day: "numeric", month: "short"});
     let html = VECKODAGAR.map((d, i) => {
-      const rader = (dagar[d] || []).map(r => dela(r).namn);
+      const rader = (dagar[d] || []).map(r => dela(r).namn).concat(extraDag(iso(new Date(mån.getFullYear(), mån.getMonth(), mån.getDate() + i))).map(e => e.namn));
       return `<div class="rad${d === idag ? " idag" : ""}">
         <div class="dagnamn"><span class="dag fit" data-max="28">${d}</span><span class="dagdatum">${datum(i)}</span></div>
         <div class="rl">${rader.map(nm => { const sl = d === idag && ärSlut(nm, n); return `<div class="${sl ? "slut" : ""}"><span class="nm">${esc(nm)}</span>${sl ? slutMärke() : ""}</div>`; }).join("") || "<div>Ingen meny registrerad</div>"}</div>
@@ -609,7 +612,7 @@ function rita(){
   if(nuMin >= slut) return msg("Lunchen är avslutad för idag", "Välkommen tillbaka imorgon!");
   if(nuMin < start) return msg(`Lunchen serveras från ${lunchStart}`);
 
-  const rätter = dagar[dagNamn];
+  const rätter = [...(dagar[dagNamn] || []), ...extraIdag.map(e => ({namn: e.namn, beskrivning: e.beskrivning || "", allergener: e.allergener, etikett: e.etikett || ""}))];
   if(!rätter || !rätter.length) return msg("Ingen meny registrerad för idag");
 
   const rättHtml = (o, ids, etikett) => {
@@ -620,7 +623,7 @@ function rita(){
   el.innerHTML = `<div class="dagrad">
     <div class="dagkol"><span class="dag fit" data-max="44">${dagNamn}</span><div class="datum">${n.toLocaleDateString("sv-SE", {day: "numeric", month: "long"})}</div></div>
     <div class="lista">${
-      rätter.map(r => { const o = dela(r); return rättHtml(o, allergenerFör(dagNamn, o.namn)); }).join("") +
+      rätter.map(r => { const o = dela(r); return rättHtml(o, r && typeof r === "object" && r.allergener !== undefined ? r.allergener : allergenerFör(dagNamn, o.namn), r && r.etikett ? r.etikett : ""); }).join("") +
       (veg ? rättHtml(veg, allergenerFör("vegetariskt"), "Veckans vegetariska · gäller hela veckan") : "")
     }</div></div>`;
   passa();
