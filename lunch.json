@@ -23,17 +23,17 @@
       "alltid": true
     },
     {
-      "namn": "Salladsbaren",
-      "beskrivning": "Plocka på en tallrik från våra barer i restaurangen och butiken",
-      "etikett": "",
-      "allergener": null,
-      "alltid": true,
-      "pris": "99:-"
-    },
-    {
       "namn": "Lunch",
       "beskrivning": "",
       "etikett": "Take away",
+      "allergener": [],
+      "alltid": true
+    },
+    {
+      "namn": "Salladsbar",
+      "beskrivning": "Plocka en tallrik från våra salladsbarer i restaurangen och butiken",
+      "etikett": "",
+      "pris": "99:-",
       "allergener": [],
       "alltid": true
     }
