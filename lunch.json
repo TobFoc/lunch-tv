@@ -10,5 +10,31 @@
     "onsdag",
     "torsdag",
     "fredag"
+  ],
+  "extra": [
+    {
+      "namn": "Köttbullar",
+      "beskrivning": "Med klassiska tillbehör",
+      "etikett": "",
+      "allergener": [
+        "gluten",
+        "ägg"
+      ],
+      "alltid": true
+    },
+    {
+      "namn": "Salladsbaren",
+      "beskrivning": "Plocka på en tallrik från våra barer i restaurangen och butiken",
+      "etikett": "",
+      "allergener": null,
+      "alltid": true
+    },
+    {
+      "namn": "Lunch",
+      "beskrivning": "",
+      "etikett": "Take away",
+      "allergener": [],
+      "alltid": true
+    }
   ]
 }
