@@ -94,6 +94,15 @@
   .vkhead .an { font-size: calc(var(--u) * 4 * var(--k, 1)); line-height: 1.15; overflow: hidden; text-overflow: ellipsis; }
   .vkhead.a3 .an { font-size: calc(var(--u) * 3.2 * var(--k, 1)); }
   .vkhead .ab { display: none; }
+  /* Stående skärm (t.ex. iPad): alltid-på-rutan läggs under den gröna raden, över hela bredden, så att den ryms i bild, och dagarnas rader fyller höjden */
+  @media (orientation: portrait) {
+    #rätter.vecka .rad.veg.medRuta { grid-template-columns: calc(var(--u) * 44) 1fr; }
+    #rätter.vecka .rad.veg.medRuta .vkhead { grid-column: 1 / -1; margin: calc(var(--u) * .8 * var(--k, 1)); }
+    .vkhead .vklista, .vkhead.a3 .vklista { grid-template-columns: 1fr; row-gap: calc(var(--u) * .6 * var(--k, 1)); }
+    .vkhead .ar { white-space: normal; }
+    .vkhead .an, .vkhead.a3 .an { font-size: calc(var(--u) * 4.4 * var(--k, 1)); }
+    #rätter.vecka .rad:not(.veg) { flex: 1 1 auto; }
+  }
   .vkalltid .ap { margin-left: .6em; white-space: nowrap; }
   .vkalltid .ab { font-weight: 500; font-size: calc(var(--u) * 4.2 * var(--k, 1)); line-height: 1.15; margin-top: calc(var(--u) * .3); }
   .rad { display: grid; grid-template-columns: calc(var(--u) * 33) 1fr; align-items: stretch; background: rgba(255,255,255,.3); }
