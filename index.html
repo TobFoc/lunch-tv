@@ -133,6 +133,21 @@
   .kassa .hrad .kod + .hpris, .kassa .hpaket .kod + .hpris { margin-left: calc(var(--u) * 3); }
   .kassa .hrad .hpris, .kassa .hpaket .hpris { min-width: calc(var(--u) * 20); text-align: right; }
   .kassa .hnamn { font-size: calc(var(--u) * 6.4 * var(--k, 1)); }
+  /* Stående surfplatta i kassaläge: streckkoden flyttas under texten så att både kod och pris får plats */
+  @media (orientation: portrait) {
+    .kassa .rätt.k { grid-template-columns: 1fr; row-gap: calc(var(--u) * 1.4); }
+    .kassa .rätt.k .kod { justify-self: start; --bw: 38; }
+    .kassa .frad { grid-template-columns: calc(var(--u) * 9) 1fr calc(var(--u) * 24); row-gap: calc(var(--u) * 1.4); align-items: start; }
+    .kassa .frad .nr, .kassa .frad .fmitt { grid-row: 1; }
+    .kassa .frad .fpris { grid-column: 3; grid-row: 1; }
+    .kassa .frad .kod { grid-column: 2 / 4; grid-row: 2; width: calc(var(--u) * 38); justify-self: start; }
+    .kassa .hrad, .kassa .hpaket { display: grid; grid-template-columns: 1fr auto; column-gap: calc(var(--u) * 2); row-gap: calc(var(--u) * 1.2); align-items: baseline; }
+    .kassa .hrad .hnamn, .kassa .hpaket .hnamn { grid-column: 1; grid-row: 1; }
+    .kassa .hrad .hpris, .kassa .hpaket .hpris { grid-column: 2; grid-row: 1; min-width: 0; margin-left: 0; }
+    .kassa .hrad .hnot { grid-column: 1 / -1; }
+    .kassa .hrad .kod, .kassa .hpaket .kod { grid-column: 1 / -1; justify-self: start; margin-left: 0; width: calc(var(--u) * 38); }
+    .kassa .hrad .kod + .hpris, .kassa .hpaket .kod + .hpris { margin-left: 0; }
+  }
   /* Slutsåld */
   .sl { display: inline-block; background: var(--röd); color: #fff; font-weight: 800; font-size: .6em; letter-spacing: .08em; text-transform: uppercase; padding: .08em .5em; margin-left: .6em; vertical-align: middle; line-height: 1.2; text-decoration: none; white-space: nowrap; }
   .slut .nm { text-decoration: line-through; text-decoration-thickness: .08em; opacity: .5; }
