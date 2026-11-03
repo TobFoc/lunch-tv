@@ -78,6 +78,7 @@
   .vkalltid .ae { font-weight: 700; font-size: calc(var(--u) * 3.4 * var(--k, 1)); letter-spacing: .1em; text-transform: uppercase; color: var(--grön); }
   .vkalltid .an { font-weight: 800; font-size: calc(var(--u) * 7 * var(--k, 1)); line-height: 1.1; }
   .dagvanster { display: flex; flex-direction: column; justify-content: center; gap: calc(var(--u) * 3 * var(--k, 1)); min-width: 0; }
+  .dagpanel.utanbesk .ab { display: none; }
   .dagpanel .vklista { flex: none; justify-content: flex-start; }
   .dagpanel .an { font-size: calc(var(--u) * 5.2 * var(--k, 1)); }
   .dagpanel .ab { font-size: calc(var(--u) * 3.4 * var(--k, 1)); }
@@ -429,11 +430,27 @@ function fitta(){
 function passa(){
   // Krymp texten stegvis om rätterna inte ryms (långa menyer eller reservtypsnitt)
   const r = document.getElementById("rätter");
+  const pn = r.querySelector(".dagpanel");            // rutan "Alltid på Focus" i dagvyn mäts för sig, så att den inte krymper dagens rätter
+  if(pn) pn.style.display = "none";
   let k = 1, i = 0;
   r.style.setProperty("--k", 1);
   fitta();
   while(r.scrollHeight > r.clientHeight + 1 && k > .4 && i++ < 60){ k *= .97; r.style.setProperty("--k", k); fitta(); }
+  if(pn){ pn.style.display = ""; passaPanel(r, pn); }
   return k;
+}
+function passaPanel(r, pn){
+  const kol = r.querySelector(".dagkol"), vl = r.querySelector(".dagvanster");
+  const gap = parseFloat(getComputedStyle(vl).rowGap) || 0;
+  const rymmer = () => pn.offsetHeight <= r.clientHeight - kol.offsetHeight - gap - 2;
+  pn.classList.remove("utanbesk");
+  for(const utan of [false, true]){
+    pn.classList.toggle("utanbesk", utan);
+    let kp = 1, i = 0;
+    pn.style.setProperty("--k", kp);
+    while(!rymmer() && kp > .5 && i++ < 40){ kp *= .96; pn.style.setProperty("--k", kp); }
+    if(rymmer()) return;
+  }
 }
 
 function dagLista(dagar){
