@@ -77,6 +77,11 @@
   .vklista { flex: 1; display: flex; flex-direction: column; justify-content: space-around; padding: calc(var(--u) * 1.4 * var(--k, 1)) calc(var(--u) * 2.2); gap: calc(var(--u) * 1.6 * var(--k, 1)); }
   .vkalltid .ae { font-weight: 700; font-size: calc(var(--u) * 3.4 * var(--k, 1)); letter-spacing: .1em; text-transform: uppercase; color: var(--grön); }
   .vkalltid .an { font-weight: 800; font-size: calc(var(--u) * 7 * var(--k, 1)); line-height: 1.1; }
+  .dagvanster { display: flex; flex-direction: column; justify-content: center; gap: calc(var(--u) * 3 * var(--k, 1)); min-width: 0; }
+  .dagpanel .vklista { flex: none; justify-content: flex-start; }
+  .dagpanel .an { font-size: calc(var(--u) * 5.2 * var(--k, 1)); }
+  .dagpanel .ab { font-size: calc(var(--u) * 3.4 * var(--k, 1)); }
+  .dagpanel .vkrubrik { font-size: calc(var(--u) * 3.8 * var(--k, 1)); }
   .vkalltid .ap { margin-left: .6em; white-space: nowrap; }
   .vkalltid .ab { font-weight: 500; font-size: calc(var(--u) * 4.2 * var(--k, 1)); line-height: 1.15; margin-top: calc(var(--u) * .3); }
   .rad { display: grid; grid-template-columns: calc(var(--u) * 33) 1fr; align-items: stretch; background: rgba(255,255,255,.3); }
@@ -654,7 +659,7 @@ function rita(){
   if(nuMin >= slut) return msg("Lunchen är avslutad för idag", "Välkommen tillbaka imorgon!");
   if(nuMin < start) return msg(`Lunchen serveras från ${lunchStart}`);
 
-  const rätter = [...(dagar[dagNamn] || []), ...extraIdag.map(e => ({namn: e.namn, beskrivning: e.beskrivning || "", allergener: e.allergener, etikett: e.etikett || "", pris: e.pris || ""}))];
+  const rätter = [...(dagar[dagNamn] || []), ...extraIdag.filter(e => KASSA || e.alltid !== true).map(e => ({namn: e.namn, beskrivning: e.beskrivning || "", allergener: e.allergener, etikett: e.etikett || "", pris: e.pris || ""}))];
   if(!rätter || !rätter.length) return msg("Ingen meny registrerad för idag");
 
   const textHtml = (o, ids, etikett, sl) =>
@@ -665,6 +670,9 @@ function rita(){
   };
   const poster = rätter.map(r => { const o = dela(r); return {o, ids: r && typeof r === "object" && r.allergener !== undefined ? r.allergener : allergenerFör(dagNamn, o.namn), et: r && r.etikett ? r.etikett : ""}; });
   if(veg) poster.push({o: veg, ids: allergenerFör("vegetariskt"), et: "Veckans vegetariska · gäller hela veckan"});
+  // Rätter som alltid serveras (alltid på) får en egen ruta under dagen, så att de inte blandas med dagens rätter (i kassavyn ligger de kvar i listan, där streckkoden finns)
+  const alltidRätter = KASSA ? [] : extraIdag.filter(e => e.alltid === true);
+  const alltidHtml = alltidRätter.length ? `<aside class="vkalltid dagpanel"><div class="vkrubrik">Alltid på Focus</div><div class="vklista">${alltidRätter.map(e => { const sl = ärSlut(e.namn, n); return `<div class="ar${sl ? " slut" : ""}">${e.etikett ? `<div class="ae">${esc(e.etikett)}</div>` : ""}<div class="an"><span class="nm">${esc(e.namn)}</span>${e.pris ? `<span class="ap">${esc(e.pris)}</span>` : ""}${sl ? slutMärke() : ""}</div>${e.beskrivning ? `<div class="ab">${esc(e.beskrivning)}</div>` : ""}</div>`; }).join("")}</div></aside>` : "";
   let lista;
   if(!KASSA) lista = poster.map(rättHtml).join("");
   else {
@@ -683,7 +691,7 @@ function rita(){
     }).join("");
   }
   el.innerHTML = `<div class="dagrad">
-    <div class="dagkol"><span class="dag fit" data-max="44">${dagNamn}</span><div class="datum">${n.toLocaleDateString("sv-SE", {day: "numeric", month: "long"})}</div></div>
+    <div class="dagvanster"><div class="dagkol"><span class="dag fit" data-max="44">${dagNamn}</span><div class="datum">${n.toLocaleDateString("sv-SE", {day: "numeric", month: "long"})}</div></div>${alltidHtml}</div>
     <div class="lista">${lista}</div></div>`;
   // Blir texten liten med dagen i en egen kolumn: lägg dagen överst och använd hela bredden
   let k1 = passa();
