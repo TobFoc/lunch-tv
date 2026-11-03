@@ -23,8 +23,8 @@
       "alltid": true
     },
     {
-      "namn": "Lunch",
-      "beskrivning": "",
+      "namn": "Dagens lunch",
+      "beskrivning": "Säg till så packar vi dagens lunch i en matlåda",
       "etikett": "Take away",
       "allergener": [],
       "alltid": true
