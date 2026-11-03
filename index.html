@@ -82,6 +82,17 @@
   .dagpanel .an { font-size: calc(var(--u) * 5.2 * var(--k, 1)); }
   .dagpanel .ab { font-size: calc(var(--u) * 3.4 * var(--k, 1)); }
   .dagpanel .vkrubrik { font-size: calc(var(--u) * 3.8 * var(--k, 1)); }
+  #rätter.vecka .rad.veg.medRuta { grid-template-columns: calc(var(--u) * 44) 1fr calc(var(--u) * 62); }
+  .vkhead { align-self: stretch; display: flex; flex-direction: column; margin: calc(var(--u) * .6 * var(--k, 1)); }
+  .vkhead .vkrubrik { font-size: calc(var(--u) * 2.8 * var(--k, 1)); padding: calc(var(--u) * .5 * var(--k, 1)) calc(var(--u) * 1.6); }
+  .vkhead .vklista { flex: 1; display: grid; grid-template-columns: 1fr 1fr; column-gap: calc(var(--u) * 1.6); row-gap: calc(var(--u) * .4); align-content: center; justify-content: normal; padding: calc(var(--u) * .5) calc(var(--u) * 1.6); }
+  .vkhead.a1 .vklista { grid-template-columns: 1fr; }
+  .vkhead.a3 .vklista { grid-template-columns: 1fr 1fr 1fr; column-gap: calc(var(--u) * 1); }
+  .vkhead .ar { display: flex; align-items: baseline; gap: calc(var(--u) * .8); min-width: 0; white-space: nowrap; }
+  .vkhead .ae { font-size: calc(var(--u) * 2 * var(--k, 1)); }
+  .vkhead .an { font-size: calc(var(--u) * 4 * var(--k, 1)); line-height: 1.15; overflow: hidden; text-overflow: ellipsis; }
+  .vkhead.a3 .an { font-size: calc(var(--u) * 3.2 * var(--k, 1)); }
+  .vkhead .ab { display: none; }
   .vkalltid .ap { margin-left: .6em; white-space: nowrap; }
   .vkalltid .ab { font-weight: 500; font-size: calc(var(--u) * 4.2 * var(--k, 1)); line-height: 1.15; margin-top: calc(var(--u) * .3); }
   .rad { display: grid; grid-template-columns: calc(var(--u) * 33) 1fr; align-items: stretch; background: rgba(255,255,255,.3); }
@@ -643,12 +654,14 @@ function rita(){
         <div class="dagnamn"><span class="dag fit" data-max="28">Veckans<br>vegetariska</span><span class="dagunder">Gäller hela veckan</span></div>
         <div class="rl"><div class="${ärSlut(veg.namn, n) ? "slut" : ""}"><span class="nm">${esc(veg.namn)}</span>${ärSlut(veg.namn, n) ? slutMärke() : ""}<span class="hv">Mån–fre</span></div>${veg.besk ? `<div class="vbesk">${esc(veg.besk)}</div>` : ""}</div>
       </div>`;
-    // Rätter som alltid serveras (alltid på) får en egen ruta till höger, så att de inte trängs bland dagarnas rader
+    // Rätter som alltid serveras (alltid på) får en egen ruta längst ned till höger (tom yta i den gröna raden), så att dagarnas rader behåller sin textstorlek
     const alltid = extraDag("").filter(e => e.alltid === true);
     if(alltid.length){
-      const sida = alltid.map(e => { const sl = ärSlut(e.namn, n); return `<div class="ar${sl ? " slut" : ""}">${e.etikett ? `<div class="ae">${esc(e.etikett)}</div>` : ""}<div class="an"><span class="nm">${esc(e.namn)}</span>${e.pris ? `<span class="ap">${esc(e.pris)}</span>` : ""}${sl ? slutMärke() : ""}</div>${e.beskrivning ? `<div class="ab">${esc(e.beskrivning)}</div>` : ""}</div>`; }).join("");
-      html = `<div class="vkgrid"><div class="vkdagar">${html}</div><aside class="vkalltid"><div class="vkrubrik">Alltid på Focus</div><div class="vklista">${sida}</div></aside></div>`;
-      el.className += " medAlltid";
+      const nA = alltid.length, kl = nA <= 2 ? "a1" : nA <= 4 ? "a2" : "a3";
+      const sida = alltid.map(e => { const sl = ärSlut(e.namn, n); return `<div class="ar${sl ? " slut" : ""}">${e.etikett ? `<div class="ae">${esc(e.etikett)}</div>` : ""}<div class="an"><span class="nm">${esc(e.namn)}</span>${e.pris ? `<span class="ap">${esc(e.pris)}</span>` : ""}${sl ? slutMärke() : ""}</div></div>`; }).join("");
+      const ruta = `<aside class="vkalltid vkhead ${kl}"><div class="vkrubrik">Alltid på Focus</div><div class="vklista">${sida}</div></aside>`;
+      if(veg) html = html.replace(/(<div class="rad veg">[\s\S]*)<\/div>\s*$/, (m, fore) => fore + ruta + "</div>").replace('<div class="rad veg">', '<div class="rad veg medRuta">');
+      else html += `<div class="rad veg medRuta"><div class="dagnamn"><span class="dag fit" data-max="28">Alltid på<br>Focus</span></div><div class="rl"></div>${ruta}</div>`;
     }
     el.innerHTML = html;
     return passa();
