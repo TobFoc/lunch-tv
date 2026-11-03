@@ -97,3 +97,15 @@ Har du redan satt upp backofficet och får en ny version av `worker/worker.js` (
 | "Ändringen sparades inte: …" | Något värde är ogiltigt, t.ex. en tid som inte är HH:MM. Texten säger vad |
 
 Lunchrätter och lunchpriser hämtas fortfarande automatiskt från ICA:s sida och ändras inte i backofficet.
+
+
+## Extra lunchrätter (rätter som inte finns på hemsidan)
+
+Fliken **Lunch** → "Extra lunchrätter": välj datum, skriv rättens namn (och gärna en beskrivning), markera allergener och klicka **Lägg till rätten**. Klicka sedan **Spara**.
+
+- Rätten visas på TV:n tillsammans med ICA:s rätter det datumet, även i veckovyn och i kassavyn (där finns den också i fliken Streckkoder under "Extra lunchrätter").
+- Rätter med gammalt datum städas bort av sig själva.
+- Är ICA:s meny för veckan inte uppdaterad visas bara era extra rätter för dagen.
+- Efter uppdateringen måste `worker.js` klistras in på nytt i Cloudflare (Edit code → Deploy), annars nekas sparningen.
+
+**Alltid på:** kryssa i "Alltid på" så visas rätten varje lunchdag (tills ni tar bort den), till exempel ett take away-alternativ. Fältet "Etikett" ger en liten grön text över rätten, t.ex. "Take away". Utan "Alltid på" väljer ni ett datum, och rätten försvinner av sig själv efteråt.
