@@ -109,3 +109,5 @@ Fliken **Lunch** → "Extra lunchrätter": välj datum, skriv rättens namn (och
 - Efter uppdateringen måste `worker.js` klistras in på nytt i Cloudflare (Edit code → Deploy), annars nekas sparningen.
 
 **Alltid på:** kryssa i "Alltid på" så visas rätten varje lunchdag (tills ni tar bort den), till exempel ett take away-alternativ. Fältet "Etikett" ger en liten grön text över rätten, t.ex. "Take away". Utan "Alltid på" väljer ni ett datum, och rätten försvinner av sig själv efteråt.
+
+**Streckkoder i kassavyn:** rätter som har samma streckkod läggs ihop och delar på en kod. Det är praktiskt om ni använder en gemensam kod för alla lunchrätter (fältet "Gemensam kod för lunchrätter" under Streckkoder). Blir texten för liten på en iPad tar kassavyn bort fotraden och minskar rubriken, och lägger vid behov rätterna i två kolumner med dagen överst.
