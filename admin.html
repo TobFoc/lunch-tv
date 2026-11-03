@@ -378,6 +378,8 @@ function vyEan(){
   if(menu && menu.dagar) Object.values(menu.dagar).forEach(r => (r || []).forEach(x => { const n = dela(x); if(!lunchNamn.some(y => nz(y) === nz(n))) lunchNamn.push(n); }));
   if(menu && menu.vegetariskt){ const n = dela(menu.vegetariskt); if(!lunchNamn.some(y => nz(y) === nz(n))) lunchNamn.push(n); }
   if(lunchNamn.length) grupper.push(["Lunch (veckans rätter)", lunchNamn]);
+  const ex = ((D.lunch && D.lunch.extra) || []).map(x => x.namn).filter((n, i, a) => n && a.indexOf(n) === i);
+  if(ex.length) grupper.push(["Extra lunchrätter", ex]);
   const fr = (D.frukost.rader || []).map(r => r.namn).filter(Boolean); if(fr.length) grupper.push(["Frukost", fr]);
   const br = (D.brunch.rader || []).map(r => r.namn).filter(Boolean); if(br.length) grupper.push(["Brunch", br]);
   const hk = [...(D.hockey.rader || []).map(r => r.namn), D.hockey.paket && D.hockey.paket.namn].filter(Boolean); if(hk.length) grupper.push(["Hockey", hk]);
@@ -460,7 +462,7 @@ const before = (a, b) => a !== b;
 function vySlut(){
   const sl = D.slut, idag = new Date(), dagNamn = ["söndag","måndag","tisdag","onsdag","torsdag","fredag","lördag"][idag.getDay()];
   const grupper = [];
-  const lunch = ((menu && menu.dagar && menu.dagar[dagNamn]) || []).map(dela);
+  const lunch = ((menu && menu.dagar && menu.dagar[dagNamn]) || []).map(dela).concat(extraIdagNamn());
   if(lunch.length) grupper.push(["Lunch idag", lunch]);
   if(menu && menu.vegetariskt) grupper.push(["Veckans vegetariska", [dela(menu.vegetariskt)]]);
   const fr = (D.frukost.rader || []).map(r => r.namn).filter(Boolean);
@@ -524,8 +526,46 @@ function vyLunch(){
     tider,
     h("label", {class: "f"}, "Dagar då lunch serveras"),
     h("div", {class: "dagar"}, ALLA_DAGAR.map(d => h("label", {}, h("input", {type: "checkbox", checked: (l.dagar || []).includes(d), onchange: e => {
-      l.dagar = ALLA_DAGAR.filter(x => x === d ? e.target.checked : (l.dagar || []).includes(x)); uppdStatus(); }}), d))));
+      l.dagar = ALLA_DAGAR.filter(x => x === d ? e.target.checked : (l.dagar || []).includes(x)); uppdStatus(); }}), d))),
+    vyExtra());
 }
+
+/* ---------- extra lunchrätter (rätter som inte finns på hemsidan, gäller ett visst datum) ---------- */
+function vyExtra(){
+  const l = D.lunch, iD = iso(new Date());
+  l.extra = (l.extra || []).filter(e => e.alltid === true || e.datum >= iD);      // gamla rensas bort automatiskt (alltid-rätter ligger kvar)
+  const ny = {alltid: false, datum: iD, namn: "", beskrivning: "", etikett: "", allergener: null};
+  const lista = h("div"), form = h("div");
+  const vd = s => ["söndag","måndag","tisdag","onsdag","torsdag","fredag","lördag"][new Date(s + "T12:00:00").getDay()] + " " + s;
+  const ritaLista = () => {
+    const sd = e => e.alltid ? "" : e.datum;
+    l.extra.sort((a, b) => sd(a) < sd(b) ? -1 : sd(a) > sd(b) ? 1 : 0);
+    lista.replaceChildren(...(l.extra.length ? l.extra.map((e, i) => h("div", {class: "kort rad"},
+      h("div", {style: "flex:1;min-width:150px"}, h("h3", {}, e.namn), h("div", {class: "dim"}, (e.alltid ? "Visas alla lunchdagar" : vd(e.datum)) + (e.etikett ? " · " + e.etikett : "") + (e.beskrivning ? " · " + e.beskrivning : "")),
+        h("div", {class: "dim"}, e.allergener === null || e.allergener === undefined ? "Allergener: ej angivet" : e.allergener.length ? "Allergener: " + e.allergener.join(", ") : "Allergener: inga")),
+      h("button", {type: "button", class: "liten", onclick: () => { l.extra.splice(i, 1); ritaLista(); uppdStatus(); }}, "Ta bort"))) : [h("p", {class: "dim"}, "Inga extra rätter inlagda.")]));
+  };
+  const ritaForm = () => form.replaceChildren(
+    h("div", {class: "kryss"}, h("input", {type: "checkbox", id: "alltid", checked: ny.alltid, onchange: e => { ny.alltid = e.target.checked; ritaForm(); }}), h("label", {for: "alltid"}, "Alltid på (visas varje lunchdag, t.ex. ett take away-alternativ)")),
+    ...(ny.alltid ? [] : [h("label", {class: "f"}, "Datum"), h("input", {type: "date", value: ny.datum, min: iD, oninput: e => ny.datum = e.target.value})]),
+    h("label", {class: "f"}, "Etikett över rätten (valfri)"), h("input", {type: "text", value: ny.etikett, placeholder: "t.ex. Take away", oninput: e => ny.etikett = e.target.value}),
+    h("label", {class: "f"}, "Rättens namn"), h("input", {type: "text", value: ny.namn, placeholder: "t.ex. Dagens soppa", oninput: e => ny.namn = e.target.value}),
+    h("label", {class: "f"}, "Beskrivning (valfri)"), h("input", {type: "text", value: ny.beskrivning, placeholder: "t.ex. Med nybakat bröd", oninput: e => ny.beskrivning = e.target.value}),
+    h("label", {class: "f"}, "Allergener"), allergVal(() => ny.allergener, v => ny.allergener = v),
+    h("button", {type: "button", class: "prim", style: "margin-top:12px", onclick: () => {
+      if((!ny.alltid && !ny.datum) || !ny.namn.trim()){ alert("Fyll i rättens namn" + (ny.alltid ? "." : " och datum.")); return; }
+      const rätt = {namn: ny.namn.trim(), beskrivning: ny.beskrivning.trim(), etikett: ny.etikett.trim(), allergener: ny.allergener};
+      if(ny.alltid) rätt.alltid = true; else rätt.datum = ny.datum;
+      l.extra.push(rätt);
+      ny.namn = ""; ny.beskrivning = ""; ny.etikett = ""; ny.allergener = null; ritaLista(); ritaForm(); uppdStatus();
+    }}, "Lägg till rätten"));
+  ritaLista(); ritaForm();
+  return h("div", {},
+    h("h2", {}, "Extra lunchrätter"),
+    h("div", {class: "info"}, "Här lägger ni till rätter som inte finns på hemsidan. De visas på TV:n bredvid ICA:s rätter det datum ni väljer, och försvinner av sig själva dagen efter. Kryssar ni i Alltid på visas rätten varje lunchdag tills ni tar bort den. Glöm inte att spara längst ned."),
+    lista, h("div", {class: "kort"}, h("h3", {}, "Lägg till rätt"), form));
+}
+function extraIdagNamn(){ const iD = iso(new Date()); return ((D.lunch && D.lunch.extra) || []).filter(e => e.alltid === true || e.datum === iD).map(e => e.namn); }
 
 function vyStangt(){
   const o = D.oppett, idag = new Date(), iD = iso(idag);
