@@ -75,6 +75,16 @@ function validera(fil, d){
   if(fil === "lunch.json"){
     if(d.tid !== null && (!d.tid || !TID.test(d.tid.start || "") || !TID.test(d.tid.slut || ""))) fel.push("lunchtid måste vara HH:MM eller null");
     if(!Array.isArray(d.dagar) || d.dagar.some(x => ![...DAGAR, "lördag", "söndag"].includes(x))) fel.push("dagar är felaktiga");
+    if(d.extra !== undefined){
+      if(!Array.isArray(d.extra) || d.extra.length > 100) fel.push("extra rätter: felaktig lista eller för många");
+      else d.extra.forEach((e, i) => {
+        if(!e || (e.alltid !== true && !DATUM.test(e.datum || ""))) fel.push("extra rätt " + (i + 1) + ": ogiltigt datum");
+        if(e && e.etikett !== undefined && !kort(e.etikett, 40)) fel.push("extra rätt " + (i + 1) + ": för lång etikett");
+        if(!e || !kort(e.namn, 120) || !e.namn.trim()) fel.push("extra rätt " + (i + 1) + ": namn saknas eller är för långt");
+        if(e && e.beskrivning !== undefined && !kort(e.beskrivning, 300)) fel.push("extra rätt " + (i + 1) + ": för lång beskrivning");
+        if(e && e.allergener !== undefined && e.allergener !== null && (!Array.isArray(e.allergener) || e.allergener.length > 20 || e.allergener.some(x => !kort(x, 30)))) fel.push("extra rätt " + (i + 1) + ": felaktiga allergener");
+      });
+    }
   }
   if(fil === "oppettider.json"){
     if(typeof d.rodaDagarStangt !== "boolean") fel.push("rodaDagarStangt måste vara sant/falskt");
