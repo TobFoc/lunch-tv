@@ -32,6 +32,11 @@
       "namn": "Barnfrukost",
       "pris": "49:-",
       "beskrivning": "Gäller för barn under 12 år"
+    },
+    {
+      "namn": "Take-Away Kaffe",
+      "pris": "25:-",
+      "beskrivning": "Ta med dig kaffe"
     }
   ]
 }
