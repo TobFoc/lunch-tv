@@ -27,7 +27,8 @@
       "beskrivning": "Plocka på en tallrik från våra barer i restaurangen och butiken",
       "etikett": "",
       "allergener": null,
-      "alltid": true
+      "alltid": true,
+      "pris": "99:-"
     },
     {
       "namn": "Lunch",
