@@ -534,30 +534,35 @@ function vyLunch(){
 function vyExtra(){
   const l = D.lunch, iD = iso(new Date());
   l.extra = (l.extra || []).filter(e => e.alltid === true || e.datum >= iD);      // gamla rensas bort automatiskt (alltid-rätter ligger kvar)
-  const ny = {alltid: false, datum: iD, namn: "", beskrivning: "", etikett: "", allergener: null};
+  const ny = {alltid: false, datum: iD, namn: "", beskrivning: "", etikett: "", pris: "", allergener: null};
   const lista = h("div"), form = h("div");
   const vd = s => ["söndag","måndag","tisdag","onsdag","torsdag","fredag","lördag"][new Date(s + "T12:00:00").getDay()] + " " + s;
   const ritaLista = () => {
     const sd = e => e.alltid ? "" : e.datum;
     l.extra.sort((a, b) => sd(a) < sd(b) ? -1 : sd(a) > sd(b) ? 1 : 0);
-    lista.replaceChildren(...(l.extra.length ? l.extra.map((e, i) => h("div", {class: "kort rad"},
-      h("div", {style: "flex:1;min-width:150px"}, h("h3", {}, e.namn), h("div", {class: "dim"}, (e.alltid ? "Visas alla lunchdagar" : vd(e.datum)) + (e.etikett ? " · " + e.etikett : "") + (e.beskrivning ? " · " + e.beskrivning : "")),
-        h("div", {class: "dim"}, e.allergener === null || e.allergener === undefined ? "Allergener: ej angivet" : e.allergener.length ? "Allergener: " + e.allergener.join(", ") : "Allergener: inga")),
-      h("button", {type: "button", class: "liten", onclick: () => { l.extra.splice(i, 1); ritaLista(); uppdStatus(); }}, "Ta bort"))) : [h("p", {class: "dim"}, "Inga extra rätter inlagda.")]));
+    lista.replaceChildren(...(l.extra.length ? l.extra.map((e, i) => {
+      const f = (etikett, nyckel, ph, bredd) => h("div", {style: "flex:" + bredd + ";min-width:130px"}, h("label", {class: "f"}, etikett), h("input", {type: "text", value: e[nyckel] || "", placeholder: ph, oninput: ev => { e[nyckel] = ev.target.value; uppdStatus(); }}));
+      return h("div", {class: "kort"},
+        h("div", {class: "dim"}, (e.alltid ? "Visas alla lunchdagar" : vd(e.datum)) + " · Allergener: " + (e.allergener === null || e.allergener === undefined ? "ej angivet" : e.allergener.length ? e.allergener.join(", ") : "inga")),
+        h("div", {class: "rad"}, f("Namn", "namn", "", 3), f("Pris", "pris", "t.ex. 99:-", 1)),
+        h("div", {class: "rad"}, f("Beskrivning", "beskrivning", "", 3), f("Etikett", "etikett", "t.ex. Take away", 1)),
+        h("button", {type: "button", class: "liten fara", onclick: () => { l.extra.splice(i, 1); ritaLista(); uppdStatus(); }}, "Ta bort"));
+    }) : [h("p", {class: "dim"}, "Inga extra rätter inlagda.")]));
   };
   const ritaForm = () => form.replaceChildren(
     h("div", {class: "kryss"}, h("input", {type: "checkbox", id: "alltid", checked: ny.alltid, onchange: e => { ny.alltid = e.target.checked; ritaForm(); }}), h("label", {for: "alltid"}, "Alltid på (visas varje lunchdag, t.ex. ett take away-alternativ)")),
     ...(ny.alltid ? [] : [h("label", {class: "f"}, "Datum"), h("input", {type: "date", value: ny.datum, min: iD, oninput: e => ny.datum = e.target.value})]),
     h("label", {class: "f"}, "Etikett över rätten (valfri)"), h("input", {type: "text", value: ny.etikett, placeholder: "t.ex. Take away", oninput: e => ny.etikett = e.target.value}),
     h("label", {class: "f"}, "Rättens namn"), h("input", {type: "text", value: ny.namn, placeholder: "t.ex. Dagens soppa", oninput: e => ny.namn = e.target.value}),
+    h("label", {class: "f"}, "Pris (valfritt)"), h("input", {type: "text", value: ny.pris, placeholder: "t.ex. 99:-", oninput: e => ny.pris = e.target.value}),
     h("label", {class: "f"}, "Beskrivning (valfri)"), h("input", {type: "text", value: ny.beskrivning, placeholder: "t.ex. Med nybakat bröd", oninput: e => ny.beskrivning = e.target.value}),
     h("label", {class: "f"}, "Allergener"), allergVal(() => ny.allergener, v => ny.allergener = v),
     h("button", {type: "button", class: "prim", style: "margin-top:12px", onclick: () => {
       if((!ny.alltid && !ny.datum) || !ny.namn.trim()){ alert("Fyll i rättens namn" + (ny.alltid ? "." : " och datum.")); return; }
-      const rätt = {namn: ny.namn.trim(), beskrivning: ny.beskrivning.trim(), etikett: ny.etikett.trim(), allergener: ny.allergener};
+      const rätt = {namn: ny.namn.trim(), beskrivning: ny.beskrivning.trim(), etikett: ny.etikett.trim(), pris: ny.pris.trim(), allergener: ny.allergener};
       if(ny.alltid) rätt.alltid = true; else rätt.datum = ny.datum;
       l.extra.push(rätt);
-      ny.namn = ""; ny.beskrivning = ""; ny.etikett = ""; ny.allergener = null; ritaLista(); ritaForm(); uppdStatus();
+      ny.namn = ""; ny.beskrivning = ""; ny.etikett = ""; ny.pris = ""; ny.allergener = null; ritaLista(); ritaForm(); uppdStatus();
     }}, "Lägg till rätten"));
   ritaLista(); ritaForm();
   return h("div", {},
