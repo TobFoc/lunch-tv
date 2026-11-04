@@ -1,8 +1,8 @@
 {
   "_info": "Lunchtider och lunchdagar. tid = null betyder att tiderna hämtas från ICA:s sida. Skriv egna tider, t.ex. {\"start\": \"11:00\", \"slut\": \"14:30\"}, så gäller de i stället. dagar = vilka dagar lunch serveras. Kan ändras i backofficet.",
   "tid": {
-    "start": "10:30",
-    "slut": "14:30"
+    "start": "11:00",
+    "slut": "15:00"
   },
   "dagar": [
     "måndag",
@@ -14,18 +14,17 @@
   "extra": [
     {
       "namn": "Köttbullar",
-      "beskrivning": "Serveras med lingon, pressgurka och persilja ",
+      "beskrivning": "Med klassiska tillbehör",
       "etikett": "",
       "allergener": [
         "gluten",
         "ägg"
       ],
-      "alltid": true,
-      "pris": "129:-"
+      "alltid": true
     },
     {
-      "namn": "Dagens lunch",
-      "beskrivning": "Säg till så packar vi dagens lunch i en matlåda",
+      "namn": "Lunch",
+      "beskrivning": "",
       "etikett": "Take away",
       "allergener": [],
       "alltid": true
