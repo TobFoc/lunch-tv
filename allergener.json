@@ -11,8 +11,19 @@
       "Bohuslänsk fiskpudding": null
     },
     "onsdag": {
-      "Paneng Chicken": null,
-      "Panerad sej": null
+      "Paneng Chicken": [
+        "nötter",
+        "fisk",
+        "skaldjur",
+        "soja"
+      ],
+      "Panerad sej": [
+        "gluten",
+        "laktos",
+        "ägg",
+        "fisk",
+        "skaldjur"
+      ]
     },
     "torsdag": {
       "Viltskavsgryta": null,
