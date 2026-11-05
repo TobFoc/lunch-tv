@@ -112,14 +112,17 @@ Fliken **Lunch** → "Extra lunchrätter": välj datum, skriv rättens namn (och
 
 **Streckkoder i kassavyn:** rätter som har samma streckkod läggs ihop och delar på en kod. Det är praktiskt om ni använder en gemensam kod för alla lunchrätter (fältet "Gemensam kod för lunchrätter" under Streckkoder). Blir texten för liten på en iPad tar kassavyn bort fotraden och minskar rubriken, och lägger vid behov rätterna i två kolumner med dagen överst.
 
-## Rätter, bilder, kassatider och utseende
+## Så är backoffice uppbyggt
 
-- **Fliken Rätter** samlar (priset på ICA:s lunchrätter ändras här och sparas i `lunch.json`; namnen är låsta eftersom de hämtas varje vecka) allt för samma rätt på ett ställe: namn, pris, streckkod (EAN), bild och slutsåld. Lunch, frukost, brunch och hockey ligger i varsin grupp. Tider och dagar ändrar ni fortfarande i flikarna Lunch, Frukost, Brunch och Hockey, och Stängt har en egen flik. Spara-knappen sparar allt som ändrats, i alla flikar, på en gång.
-- **Bilder**: tryck på "Lägg till bild" på en rätt och välj ur galleriet (kaffe som ryker, kaffe med macka, tallrik med bestick, takeaway-kaffe, fisk, kött, soppa med flera). Bilden visas som en mörkgrå outline framför rättens namn. Kopplingen sparas i `bilder.json`.
-- **Egna tider för streckkoderna**: under Lunch, Frukost, Brunch och Hockey finns "Streckkoder i kassavyn". Kryssar ni i den kan kassavyn byta läge på andra tider än texten på skylten (texten visar fortfarande de vanliga tiderna). Sparas som `kassatid` i respektive fil.
-- **Utseende**: fliken Utseende väljer standardutseende (Klassiskt eller Industriellt, `utseende.json`). Valet gäller alla enheter och ställs bara in här. `?tema=industri` i adressen används bara för förhandsgranskning.
-- Nya filer att ladda upp: `bilder.json` och `utseende.json`. Kom ihåg att klistra in nya `worker/worker.js` i Cloudflare (Edit code → Deploy), annars nekas de nya filerna.
+Fem flikar: **Lunch**, **Frukost**, **Brunch**, **Hockey** och **Inställningar**.
 
-## Takeaway (annan streckkod, annan moms)
-
-Lunchrätter och kaffe kan säljas både här och som takeaway med olika streckkod. I fliken Rätter finns på varje lunchrätt (och extra rätt, t.ex. Kaffe) ett andra fält, **Takeaway-streckkod**. Fyller ni i det visar kassavyn två koder under samma rätt, märkta **ÄTA HÄR** och **TA MED**. Saknas takeaway-koden visas en kod som förut. Längst ned i Rätter finns också en **gemensam takeaway-kod** för lunchrätter som saknar egen. I dagvyn får rätter som delar samma kod en gemensam bakgrundsnyans. Sparas i `ean.json` (`takeaway`, `standardTakeaway`), så nya `worker.js` måste klistras in i Cloudflare.
+- **Varje kategori-flik** innehåller alla rätter och drycker i kategorin, oavsett när de serveras. På samma kort ändrar ni namn (ICA:s lunchrätter är låsta), pris, **takeaway-pris**, streckkod (**äta här** och **ta med**, annan moms), bild, allergener och slutsåld. Frukost, Brunch och Hockey kan ni lägga till, ta bort och flytta rader i. Lunch har dessutom *Extra rätter och drycker* (t.ex. Kaffe, alltid på eller ett visst datum).
+- **Inställningar** samlar:
+  - **Tider och dagar** för Lunch, Frukost, Brunch och Hockey: när vyn visas på skylten, och under *Streckkoder i kassavyn* egna tider för när koderna kan användas i kassan (annars samma som skylten). För Hockey även matchdagar, uppladdning och matchstart.
+  - **Stängt** (röda dagar och undantag).
+  - **Utseende**: Klassiskt eller Industriellt för alla skärmar (`?tema=industri` i adressen används bara för förhandsgranskning).
+- **Spara** sparar alla ändrade filer i alla flikar på en gång.
+- **Bilder**: välj ur galleriet på rättens kort. Sparas i `bilder.json`.
+- **Takeaway**: visas som "Ta med 79:-" intill ordinarie pris. Har rätten två streckkoder visar kassan **ÄTA HÄR** och **TA MED**. Rätter som delar streckkod får samma grå bakgrundsnyans i kassans dagvy.
+- **Allergener** på frukost-, brunch- och hockeyrätter visas på skylten bara när ni fyllt i dem.
+- Nya filer att ladda upp: `bilder.json` och `utseende.json`. Klistra in nya `worker/worker.js` i Cloudflare (Edit code → Deploy), annars nekas de nya fälten när ni sparar.
