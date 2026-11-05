@@ -27,6 +27,14 @@
         "ägg"
       ],
       "alltid": true
+    },
+    {
+      "namn": "Salladsbaren",
+      "beskrivning": "Kombinera din egen sallad från våra barer i  butiken och i restaurangen",
+      "etikett": "",
+      "pris": "99:-",
+      "allergener": [],
+      "alltid": true
     }
   ],
   "priser": {}
