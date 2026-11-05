@@ -124,18 +124,26 @@
     body.kassa #rätter.vecka.enrad .rad.veg { grid-template-columns: calc(var(--u) * 30) 1fr; }
   }
   /* Kassa: samma nyans bakom rätter som delar streckkod, och två koder (äta här / ta med) under samma rätt */
-  .rätt.grupp { background: hsla(var(--ton, 205), 65%, 55%, .22); border-left: calc(var(--u) * .9) solid hsl(var(--ton, 205), 60%, 42%); padding: calc(var(--u) * 1.2) calc(var(--u) * 1.6); }
+  .rätt.grupp { --gb: rgba(0,0,0,.10); --gl: #8a8a88; background: var(--gb); border-left: calc(var(--u) * .9) solid var(--gl); padding: calc(var(--u) * 1.2) calc(var(--u) * 1.6); }
+  .rätt.grupp[data-ton="1"] { --gb: rgba(0,0,0,.19); --gl: #5f5f5d; }
+  .rätt.grupp[data-ton="2"] { --gb: rgba(0,0,0,.28); --gl: #3c3c3a; }
+  .rätt.grupp[data-ton="3"] { --gb: rgba(0,0,0,.05); --gl: #b0b0ae; }
   .kodpar { display: flex; flex-wrap: wrap; gap: calc(var(--u) * 1.2); align-items: flex-start; background: rgba(255,255,255,.45); border: calc(var(--u) * .2) solid #111; padding: calc(var(--u) * .8); }
   .kodpar .kk { display: flex; flex-direction: column; gap: calc(var(--u) * .4); }
   .kodpar .kod { --bw: 26; align-self: stretch; width: calc(var(--u) * var(--bw) * var(--k, 1)); }
   .kassa .bred .rätt.k .kodpar .kod { --bw: 26; }
+  .tp { font-size: .55em; font-weight: 700; margin-left: .7em; white-space: nowrap; opacity: .85; }
+  .tp.blk { display: block; margin: .25em 0 0; text-align: right; line-height: 1.1; }
   .kl { align-self: flex-start; background: #111; color: #fff; font-weight: 800; font-size: calc(var(--u) * 2.6 * var(--k, 1)); letter-spacing: .1em; text-transform: uppercase; line-height: 1; padding: calc(var(--u) * .5 * var(--k, 1)) calc(var(--u) * 1.1 * var(--k, 1)); }
   .kk.ta .kl { background: var(--grön); }
   .rätt.k > .kodpar, .gkod > .kodpar { align-self: center; }
   body.kassa #rätter.vecka.enrad .vkhead .ar .kodpar { justify-content: center; }
   body.kassa #rätter.vecka.enrad .vkhead .ar .kodpar .kod { --bw: 40; }
   @media (orientation: portrait) { body.kassa #rätter.vecka.enrad .vkhead .ar .kodpar .kod { --bw: 38; } }
-  body.industri .rätt.grupp { background: hsla(var(--ton, 205), 55%, 50%, .2); }
+  body.industri .rätt.grupp { --gb: rgba(255,255,255,.09); --gl: #9a9a98; }
+  body.industri .rätt.grupp[data-ton="1"] { --gb: rgba(255,255,255,.17); --gl: #c4c4c2; }
+  body.industri .rätt.grupp[data-ton="2"] { --gb: rgba(255,255,255,.25); --gl: #e0e0de; }
+  body.industri .rätt.grupp[data-ton="3"] { --gb: rgba(255,255,255,.04); --gl: #6c6c6a; }
   body.industri .kodpar { background: rgba(255,255,255,.12); border-color: #d79a5e; }
   body.industri .kl { background: #d79a5e; color: #1d0f05; }
   body.industri .kk.ta .kl { background: #6cc36a; }
@@ -538,6 +546,8 @@ function valtTema(){
 function tillämpaTema(){ document.body.classList.toggle("industri", valtTema() === "industri"); }
 const kodRad = (...a) => KASSA ? `<i class="br"></i>` + kod(...a) : "";
 const lunchPris = namn => { const m = lunch && lunch.priser; if(!m || !namn) return ""; const k = nz(namn); for(const n in m) if(nz(n) === k) return String(m[n] || ""); return ""; };
+const lunchTaPris = namn => { const m = lunch && lunch.taPriser; if(!m || !namn) return ""; const k = nz(namn); for(const n in m) if(nz(n) === k) return String(m[n] || ""); return ""; };
+const taHtml = (pris, blk) => pris ? `<span class="tp${blk ? " blk" : ""}">Ta med ${esc(pris)}</span>` : "";
 const slutMärke = () => `<span class="sl">Slutsåld</span>`;
 
 // "Slottsstek serveras med skysås, ..." -> namn "Slottsstek", beskrivning "Med skysås, ..."
@@ -848,8 +858,8 @@ function rita(){
     if(!hockey || !(hockey.rader || []).length) return msg("Hockeymenyn saknas");
     const pk = hockey.paket;
     el.innerHTML = `<div class="hockey">` + hockey.rader.map(r =>
-      `<div class="hrad${ärSlut(r.namn, n) ? " slut" : ""}"><span class="hnamn">${ikonFör(r.namn)}<span class="nm">${esc(r.namn)}</span>${ärSlut(r.namn, n) ? slutMärke() : ""}</span>${r.not ? `<span class="hnot">${esc(r.not)}</span>` : ""}${kod(r.namn, n)}<span class="hpris">${esc(r.pris || "")}</span></div>`).join("") +
-      (pk ? `<div class="hpaket"><span class="hnamn">${esc(pk.namn)}</span>${kod(pk.namn, n)}<span class="hpris">${esc(pk.pris)}</span></div>` : "") + `</div>`;
+      `<div class="hrad${ärSlut(r.namn, n) ? " slut" : ""}"><span class="hnamn">${ikonFör(r.namn)}<span class="nm">${esc(r.namn)}</span>${ärSlut(r.namn, n) ? slutMärke() : ""}</span>${r.not || (Array.isArray(r.allergener) && CONFIG.visaAllergener) ? `<span class="hnot">${esc(r.not || "")}${Array.isArray(r.allergener) ? ` Allergener: ${r.allergener.length ? esc(r.allergener.join(", ")) : "inga"}` : ""}</span>` : ""}${kod(r.namn, n)}<span class="hpris">${esc(r.pris || "")}${taHtml(r.takeawayPris, true)}</span></div>`).join("") +
+      (pk ? `<div class="hpaket"><span class="hnamn">${esc(pk.namn)}</span>${kod(pk.namn, n)}<span class="hpris">${esc(pk.pris)}${taHtml(pk.takeawayPris, true)}</span></div>` : "") + `</div>`;
     return passa();
   }
 
@@ -859,8 +869,8 @@ function rita(){
     el.innerHTML = `<div class="frukost">` + buf.rader.map((r, i) => {
       const sl = ärSlut(r.namn, n);
       return `<div class="frad${sl ? " slut" : ""}"><div class="nr">${i + 1}.</div>` +
-        `<div class="fmitt"><div class="fnamn">${ikonFör(r.namn)}<span class="nm">${esc(r.namn)}</span>${sl ? slutMärke() : ""}</div>${r.beskrivning ? `<div class="fbesk">${esc(r.beskrivning)}</div>` : ""}</div>` +
-        kod(r.namn, n) + `<div class="fpris">${esc(r.pris || "")}</div></div>`;
+        `<div class="fmitt"><div class="fnamn">${ikonFör(r.namn)}<span class="nm">${esc(r.namn)}</span>${sl ? slutMärke() : ""}</div>${r.beskrivning ? `<div class="fbesk">${esc(r.beskrivning)}</div>` : ""}${CONFIG.visaAllergener && Array.isArray(r.allergener) ? allergRad(r.allergener) : ""}</div>` +
+        kod(r.namn, n) + `<div class="fpris">${esc(r.pris || "")}${taHtml(r.takeawayPris, true)}</div></div>`;
     }).join("") + `</div>`;
     return passa();
   }
@@ -887,18 +897,18 @@ function rita(){
       const rader = (dagar[d] || []).map(r => dela(r).namn).concat(extraDag(iso(new Date(mån.getFullYear(), mån.getMonth(), mån.getDate() + i))).filter(e => e.alltid !== true).map(e => e.namn));
       return `<div class="rad${d === idag ? " idag" : ""}">
         <div class="dagnamn"><span class="dag fit" data-max="28">${d}</span><span class="dagdatum">${datum(i)}</span></div>
-        <div class="rl">${rader.map(nm => { const sl = d === idag && ärSlut(nm, n); return `<div class="${sl ? "slut" : ""}">${ikonFör(nm)}<span class="nm">${esc(nm)}</span>${lunchPris(nm) ? `<span class="rpris">${esc(lunchPris(nm))}</span>` : ""}${sl ? slutMärke() : ""}</div>`; }).join("") || "<div>Ingen meny registrerad</div>"}</div>
+        <div class="rl">${rader.map(nm => { const sl = d === idag && ärSlut(nm, n); return `<div class="${sl ? "slut" : ""}">${ikonFör(nm)}<span class="nm">${esc(nm)}</span>${lunchPris(nm) ? `<span class="rpris">${esc(lunchPris(nm))}</span>` : ""}${taHtml(lunchTaPris(nm))}${sl ? slutMärke() : ""}</div>`; }).join("") || "<div>Ingen meny registrerad</div>"}</div>
       </div>`;
     }).join("");
     if(veg) html += `<div class="rad veg">
         <div class="dagnamn"><span class="dag fit" data-max="28">Veckans<br>vegetariska</span><span class="dagunder">Gäller hela veckan</span></div>
-        <div class="rl"><div class="${ärSlut(veg.namn, n) ? "slut" : ""}">${ikonFör(veg.namn)}<span class="nm">${esc(veg.namn)}</span>${lunchPris(veg.namn) ? `<span class="rpris">${esc(lunchPris(veg.namn))}</span>` : ""}${ärSlut(veg.namn, n) ? slutMärke() : ""}<span class="hv">Mån–fre</span></div>${veg.besk ? `<div class="vbesk">${esc(veg.besk)}</div>` : ""}</div>
+        <div class="rl"><div class="${ärSlut(veg.namn, n) ? "slut" : ""}">${ikonFör(veg.namn)}<span class="nm">${esc(veg.namn)}</span>${lunchPris(veg.namn) ? `<span class="rpris">${esc(lunchPris(veg.namn))}</span>` : ""}${taHtml(lunchTaPris(veg.namn))}${ärSlut(veg.namn, n) ? slutMärke() : ""}<span class="hv">Mån–fre</span></div>${veg.besk ? `<div class="vbesk">${esc(veg.besk)}</div>` : ""}</div>
       </div>`;
     // Rätter som alltid serveras (alltid på) får en egen ruta längst ned till höger (tom yta i den gröna raden), så att dagarnas rader behåller sin textstorlek
     const alltid = extraDag("").filter(e => e.alltid === true);
     if(alltid.length){
       const nA = alltid.length, kl = nA <= 2 ? "a1" : nA <= 4 ? "a2" : "a3";
-      const sida = alltid.map(e => { const sl = ärSlut(e.namn, n); return `<div class="ar${sl ? " slut" : ""}">${e.etikett ? `<div class="ae">${esc(e.etikett)}</div>` : ""}<div class="an">${ikonFör(e.namn)}<span class="nm">${esc(e.namn)}</span>${e.pris ? `<span class="ap">${esc(e.pris)}</span>` : ""}${sl ? slutMärke() : ""}</div>${KASSA && /kaffe/i.test(e.namn) ? kodPar(e.namn, n, "lunch") : ""}</div>`; }).join("");
+      const sida = alltid.map(e => { const sl = ärSlut(e.namn, n); return `<div class="ar${sl ? " slut" : ""}">${e.etikett ? `<div class="ae">${esc(e.etikett)}</div>` : ""}<div class="an">${ikonFör(e.namn)}<span class="nm">${esc(e.namn)}</span>${e.pris ? `<span class="ap">${esc(e.pris)}</span>` : ""}${taHtml(e.takeawayPris)}${sl ? slutMärke() : ""}</div>${KASSA && /kaffe/i.test(e.namn) ? kodPar(e.namn, n, "lunch") : ""}</div>`; }).join("");
       const ruta = `<aside class="vkalltid vkhead ${kl}"><div class="vkrubrik">Alltid på Focus</div><div class="vklista">${sida}</div></aside>`;
       if(veg) html = html.replace(/(<div class="rad veg">[\s\S]*)<\/div>\s*$/, (m, fore) => fore + ruta + "</div>").replace('<div class="rad veg">', '<div class="rad veg medRuta">');
       else html += `<div class="rad veg medRuta"><div class="dagnamn"><span class="dag fit" data-max="28">Alltid på<br>Focus</span></div><div class="rl"></div>${ruta}</div>`;
@@ -913,21 +923,22 @@ function rita(){
   if(nuMin >= slut) return msg("Lunchen är avslutad för idag", "Välkommen tillbaka imorgon!");
   if(nuMin < start) return msg(`Lunchen serveras från ${lk.start}`);
 
-  const rätter = [...(dagar[dagNamn] || []), ...extraIdag.filter(e => KASSA || e.alltid !== true).map(e => ({namn: e.namn, beskrivning: e.beskrivning || "", allergener: e.allergener, etikett: e.etikett || "", pris: e.pris || ""}))];
+  const rätter = [...(dagar[dagNamn] || []), ...extraIdag.filter(e => KASSA || e.alltid !== true).map(e => ({namn: e.namn, beskrivning: e.beskrivning || "", allergener: e.allergener, etikett: e.etikett || "", pris: e.pris || "", tapris: e.takeawayPris || ""}))];
   if(!rätter || !rätter.length) return msg("Ingen meny registrerad för idag");
 
   const textHtml = (o, ids, etikett, sl) =>
-    `${etikett ? `<div class="vlabel">${etikett}</div>` : ""}<div class="namn">${ikonFör(o.namn)}<span class="nm">${esc(o.namn)}</span>${o.pris ? `<span class="rpris">${esc(o.pris)}</span>` : ""}${sl ? slutMärke() : ""}</div>${o.besk ? `<div class="besk">${esc(o.besk)}</div>` : ""}${SYN ? allergRad(ids) : ""}`;
+    `${etikett ? `<div class="vlabel">${etikett}</div>` : ""}<div class="namn">${ikonFör(o.namn)}<span class="nm">${esc(o.namn)}</span>${o.pris ? `<span class="rpris">${esc(o.pris)}</span>` : ""}${taHtml(o.tapris)}${sl ? slutMärke() : ""}</div>${o.besk ? `<div class="besk">${esc(o.besk)}</div>` : ""}${SYN ? allergRad(ids) : ""}`;
   const rättHtml = p => {
     const sl = ärSlut(p.o.namn, n), text = textHtml(p.o, p.ids, p.et, sl);
     return KASSA ? `<div class="rätt k${sl ? " slut" : ""}"><div class="rtext">${text}</div>${kodPar(p.o.namn, n, "lunch")}</div>` : `<div class="rätt${sl ? " slut" : ""}">${text}</div>`;
   };
-  const poster = rätter.map(r => { const o = dela(r); if(!o.pris) o.pris = lunchPris(o.namn); return {o, ids: r && typeof r === "object" && r.allergener !== undefined ? r.allergener : allergenerFör(dagNamn, o.namn), et: r && r.etikett ? r.etikett : ""}; });
+  const poster = rätter.map(r => { const o = dela(r); if(!o.pris) o.pris = lunchPris(o.namn); if(!o.tapris) o.tapris = lunchTaPris(o.namn); return {o, ids: r && typeof r === "object" && r.allergener !== undefined ? r.allergener : allergenerFör(dagNamn, o.namn), et: r && r.etikett ? r.etikett : ""}; });
   if(veg && !veg.pris) veg.pris = lunchPris(veg.namn);
+  if(veg && !veg.tapris) veg.tapris = lunchTaPris(veg.namn);
   if(veg) poster.push({o: veg, ids: allergenerFör("vegetariskt"), et: "Veckans vegetariska · gäller hela veckan"});
   // Rätter som alltid serveras (alltid på) får en egen ruta under dagen, så att de inte blandas med dagens rätter (i kassavyn ligger de kvar i listan, där streckkoden finns)
   const alltidRätter = KASSA ? [] : extraIdag.filter(e => e.alltid === true);
-  const alltidHtml = alltidRätter.length ? `<aside class="vkalltid dagpanel"><div class="vkrubrik">Alltid på Focus</div><div class="vklista">${alltidRätter.map(e => { const sl = ärSlut(e.namn, n); return `<div class="ar${sl ? " slut" : ""}">${e.etikett ? `<div class="ae">${esc(e.etikett)}</div>` : ""}<div class="an">${ikonFör(e.namn)}<span class="nm">${esc(e.namn)}</span>${e.pris ? `<span class="ap">${esc(e.pris)}</span>` : ""}${sl ? slutMärke() : ""}</div>${e.beskrivning ? `<div class="ab">${esc(e.beskrivning)}</div>` : ""}</div>`; }).join("")}</div></aside>` : "";
+  const alltidHtml = alltidRätter.length ? `<aside class="vkalltid dagpanel"><div class="vkrubrik">Alltid på Focus</div><div class="vklista">${alltidRätter.map(e => { const sl = ärSlut(e.namn, n); return `<div class="ar${sl ? " slut" : ""}">${e.etikett ? `<div class="ae">${esc(e.etikett)}</div>` : ""}<div class="an">${ikonFör(e.namn)}<span class="nm">${esc(e.namn)}</span>${e.pris ? `<span class="ap">${esc(e.pris)}</span>` : ""}${taHtml(e.takeawayPris)}${sl ? slutMärke() : ""}</div>${e.beskrivning ? `<div class="ab">${esc(e.beskrivning)}</div>` : ""}</div>`; }).join("")}</div></aside>` : "";
   let lista;
   if(!KASSA) lista = poster.map(rättHtml).join("");
   else {
@@ -941,9 +952,9 @@ function rita(){
     let ton = 0;
     lista = grupper.map(g => {
       if(g.p.length === 1) return rättHtml(g.p[0]);
-      g.ton = (ton++ * 67 + 205) % 360;          // samma nyans för rätter som delar streckkod
+      g.ton = ton++ % 4;          // samma gråa nyans för rätter som delar streckkod
       const alla = g.p.every(p => ärSlut(p.o.namn, n));
-      return `<div class="rätt k grupp${alla ? " slut" : ""}" style="--ton: ${g.ton}"><div class="rtext">${g.p.map(p => { const sl = ärSlut(p.o.namn, n); return `<div class="gi${sl ? " slut" : ""}">${textHtml(p.o, p.ids, p.et, sl)}</div>`; }).join("")}</div>` +
+      return `<div class="rätt k grupp${alla ? " slut" : ""}" data-ton="${g.ton}"><div class="rtext">${g.p.map(p => { const sl = ärSlut(p.o.namn, n); return `<div class="gi${sl ? " slut" : ""}">${textHtml(p.o, p.ids, p.et, sl)}</div>`; }).join("")}</div>` +
         `<div class="gkod">` + (alla ? `<div class="kod ingen sl2">Slutsåld</div>` : g.t ? `<div class="kodpar"><div class="kk"><div class="kl">Äta här</div><div class="kod">${eanSvg(g.c)}</div></div><div class="kk ta"><div class="kl">Ta med</div><div class="kod">${eanSvg(g.t)}</div></div></div>` : `<div class="kod">${eanSvg(g.c)}</div>`) + `<div class="gtxt">Samma kod för alla ${g.p.length} rätter</div></div></div>`;
     }).join("");
   }
