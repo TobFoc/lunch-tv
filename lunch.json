@@ -1,9 +1,6 @@
 {
   "_info": "Lunchtider och lunchdagar. tid = null betyder att tiderna hämtas från ICA:s sida. Skriv egna tider, t.ex. {\"start\": \"11:00\", \"slut\": \"14:30\"}, så gäller de i stället. dagar = vilka dagar lunch serveras. Kan ändras i backofficet.",
-  "tid": {
-    "start": "11:00",
-    "slut": "14:30"
-  },
+  "tid": null,
   "dagar": [
     "måndag",
     "tisdag",
@@ -13,29 +10,12 @@
   ],
   "extra": [
     {
-      "namn": "Köttbullar",
-      "beskrivning": "Med klassiska tillbehör",
+      "alltid": true,
+      "namn": "Kaffe",
+      "beskrivning": "Kaffe kan alltid köpas",
       "etikett": "",
-      "allergener": [
-        "gluten",
-        "ägg"
-      ],
-      "alltid": true
-    },
-    {
-      "namn": "Lunch",
-      "beskrivning": "",
-      "etikett": "Take away",
-      "allergener": [],
-      "alltid": true
-    },
-    {
-      "namn": "Salladsbar",
-      "beskrivning": "Plocka en tallrik från våra salladsbarer i restaurangen och butiken",
-      "etikett": "",
-      "pris": "99:-",
-      "allergener": [],
-      "alltid": true
+      "pris": "",
+      "allergener": []
     }
   ]
 }
