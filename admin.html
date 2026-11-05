@@ -148,7 +148,7 @@ const DAGAR = ["måndag","tisdag","onsdag","torsdag","fredag"];
 const ALLA_DAGAR = [...DAGAR, "lördag", "söndag"];
 const FILNAMN = {ean: "ean.json", slut: "slutsald.json", allergener: "allergener.json", lunch: "lunch.json", frukost: "frukost.json", brunch: "brunch.json", hockey: "hockey.json", oppett: "oppettider.json", bilder: "bilder.json", utseende: "utseende.json"};
 
-let pin = "", flik = "ratter", menu = null;
+let pin = "", flik = "lunch", menu = null;
 const D = {allergener: null, frukost: null, hockey: null};   // arbetskopior
 const BAS = {};                                              // sparad version som text, för att se om något ändrats
 const MSG = {};                                              // anmärkningar per flik
@@ -238,6 +238,7 @@ async function läs(){
     if(k === "bilder") D[k] = D[k] ? {...D[k], rätter: D[k].rätter || {}} : {rätter: {}};
     if(k === "utseende") D[k] = D[k] && D[k].tema ? D[k] : {tema: "klassisk"};
     if(k === "lunch") D[k] = D[k] || {tid: null, dagar: [...DAGAR]};
+    if(k === "lunch"){ D[k].priser = D[k].priser || {}; D[k].taPriser = D[k].taPriser || {}; D[k].extra = (D[k].extra || []).filter(x => x.alltid === true || x.datum >= iso(new Date())); }
     if(k === "oppett"){ D[k] = D[k] || {rodaDagarStangt: true, undantag: []}; D[k].undantag = (D[k].undantag || []).filter(e => (e.till || e.datum) >= iso(new Date())); }
     if(k === "hockey") D[k] = D[k] || {rubrik: "Hockeykvällar i Focus Restaurang", underrubrik: "", banner: "Hockeykväll i restaurangen!", tid: {start: "16:30"}, matchstart: "19:00", datum: [], rader: [], paket: {namn: "Paketpris mat + dryck", pris: ""}};
     BAS[k] = k === "allergener" ? ser(D[k]) : ser(D[k]);
@@ -665,121 +666,250 @@ const nyckelI = (obj, n) => Object.keys(obj).find(k => nz(k) === nz(n));
 /* ---------- Kassatider: egna tider för streckkoderna i kassavyn ---------- */
 function kassaTidFält(o, standard){
   const id = "kt" + (++ikonNr), box = h("div", {class: "kort", style: "background:#f7f7f4"});
-  const rita = () => box.replaceChildren(
+  const rita = () => box.replaceChildren(...[
     h("h3", {}, "Streckkoder i kassavyn"),
     h("div", {class: "kryss"}, h("input", {type: "checkbox", id, checked: !!o.kassatid, onchange: e => { if(e.target.checked) o.kassatid = {...standard()}; else delete o.kassatid; rita(); uppdStatus(); }}),
       h("label", {for: id}, "Egna tider för när streckkoderna visas i kassavyn")),
     o.kassatid ? h("div", {class: "rad"},
       h("div", {}, h("label", {class: "f"}, "Streckkoder från"), h("input", {type: "time", value: o.kassatid.start || "", oninput: e => { o.kassatid.start = e.target.value; uppdStatus(); }})),
       h("div", {}, h("label", {class: "f"}, "Streckkoder till"), h("input", {type: "time", value: o.kassatid.slut || "", oninput: e => { o.kassatid.slut = e.target.value; uppdStatus(); }}))) : null,
-    h("p", {class: "dim", style: "margin:4px 0 0"}, o.kassatid ? "Texten på skylten visar fortfarande tiderna ovan. I kassavyn byter skärmen läge efter tiderna här." : "Nu byter kassavyn läge samma tider som texten på skylten."));
+    h("p", {class: "dim", style: "margin:4px 0 0"}, o.kassatid ? "Texten på skylten visar fortfarande tiderna ovan. I kassavyn byter skärmen läge efter tiderna här." : "Nu byter kassavyn läge samma tider som texten på skylten.")].filter(Boolean));
   rita(); return box;
 }
 
-/* ---------- Fliken Rätter: allt för samma rätt på ett ställe ---------- */
-function vyRatter(){
+/* ---------- Rättskort: allt för samma rätt på ett ställe (namn, pris, takeaway-pris, streckkoder, bild, allergener, slutsåld) ---------- */
+function rattVerktyg(){
   const e = D.ean, bi = D.bilder.rätter = D.bilder.rätter || {}, sl = D.slut;
+  const ta = e.takeaway = e.takeaway || {};
   const fält = [];
   const getEan = n => { const k = nyckelI(e.rätter, n); return k === undefined ? "" : e.rätter[k]; };
   const setEan = (n, v) => { const k = nyckelI(e.rätter, n); if(k !== undefined) delete e.rätter[k]; if(v) e.rätter[n] = v; };
   const getBild = n => { const k = nyckelI(bi, n); return k === undefined ? "" : bi[k]; };
   const setBild = (n, v) => { const k = nyckelI(bi, n); if(k !== undefined) delete bi[k]; if(v) bi[n] = v; };
-  const ta = e.takeaway = e.takeaway || {};
   const getTa = n => { const k = nyckelI(ta, n); return k === undefined ? "" : ta[k]; };
   const setTa = (n, v) => { const k = nyckelI(ta, n); if(k !== undefined) delete ta[k]; if(v) ta[n] = v; };
   const ärSl = n => sl.rätter.some(x => nz(x) === nz(n));
   const växlaSl = n => { sl.rätter = ärSl(n) ? sl.rätter.filter(x => nz(x) !== nz(n)) : [...sl.rätter, n]; };
-  const flytta = (a, b) => { if(!a || nz(a) === nz(b)) return; const k = getEan(a), kt = getTa(a), i = getBild(a), s = ärSl(a); setEan(a, ""); setTa(a, ""); setBild(a, ""); if(s) sl.rätter = sl.rätter.filter(x => nz(x) !== nz(a));
+  const flytta = (a, b) => { if(!a || nz(a) === nz(b)) return; const k = getEan(a), kt = getTa(a), i = getBild(a), s = ärSl(a);
+    setEan(a, ""); setTa(a, ""); setBild(a, ""); if(s) sl.rätter = sl.rätter.filter(x => nz(x) !== nz(a));
     if(k && !getEan(b)) setEan(b, k); if(kt && !getTa(b)) setTa(b, kt); if(i && !getBild(b)) setBild(b, i); if(s && !ärSl(b)) sl.rätter.push(b); };
+  const allergText = v => v === null || v === undefined ? "ej angivet" : !v.length ? "inga" : v.length + " valda";
 
-  /* ett kort per rätt: namn, pris, streckkod, bild och slutsåld */
-  function kort(o){       // o = {namn, sättNamn?, pris?: {get,set}, notis?, kod: true|false}
-    const ruta = h("div", {class: "kort rättkort"}), bildDiv = h("div");
+  /* o = {namn, sättNamn?, pris?:{get,set}, taPris?:{get,set}, besk?:{get,set,ph}, allerg?:{get,set}, notis?, extra?:[element], ctrl?:{upp,ner,bort}, standardKod?} */
+  function kort(o){
+    const ruta = h("div", {class: "kort rättkort"});
     let namn = o.namn;
     const rita = () => {
-      const slut = ärSl(namn);
-      const ean = getEan(namn);
-      const pill = h("span", {class: "pill"}), svgDiv = h("div", {class: "streck"});
-      const uppdKod = k => {
-        if(!k){ pill.className = "pill"; pill.textContent = o.standardKod ? "Gemensam kod används" : "Ingen kod"; svgDiv.replaceChildren(); return; }
-        if(eanOk(k)){ pill.className = "pill ok"; pill.textContent = (k.length === 13 ? "EAN-13" : "EAN-8") + " ✓"; svgDiv.innerHTML = eanSvg(k); svgDiv.firstChild.style.width = "100%"; }
-        else { pill.className = "pill sak"; svgDiv.replaceChildren();
-          pill.textContent = (k.length === 13 || k.length === 8) ? "Fel kontrollsiffra" : (k.length === 12 || k.length === 7) ? "Saknar sista siffran (" + eanKontroll(k) + ")" : "13 eller 8 siffror (" + k.length + " nu)"; }
-      };
-      const inp = h("input", {type: "text", inputmode: "numeric", autocomplete: "off", placeholder: "Scanna eller skriv EAN", value: ean, oninput: () => { const k = inp.value.replace(/\D/g, ""); setEan(namn, k); uppdKod(k); uppdStatus(); },
-        onkeydown: ev => { if(ev.key === "Enter"){ ev.preventDefault(); const i = fält.indexOf(inp); if(fält[i + 1]) fält[i + 1].focus(); } }});
-      fält.push(inp); uppdKod(ean);
-      let taRad = null;
-      if(o.takeaway){
-        const taPill = h("span", {class: "pill"}), taSvg = h("div", {class: "streck"});
-        const uppdTa = k => {
-          if(!k){ taPill.className = "pill"; taPill.textContent = e.standardTakeaway ? "Gemensam takeaway-kod används" : "Ingen takeaway-kod (en kod visas)"; taSvg.replaceChildren(); return; }
-          if(eanOk(k)){ taPill.className = "pill ok"; taPill.textContent = "Takeaway " + (k.length === 13 ? "EAN-13" : "EAN-8") + " ✓"; taSvg.innerHTML = eanSvg(k); taSvg.firstChild.style.width = "100%"; }
-          else { taPill.className = "pill sak"; taSvg.replaceChildren(); taPill.textContent = (k.length === 13 || k.length === 8) ? "Fel kontrollsiffra" : "13 eller 8 siffror (" + k.length + " nu)"; }
+      const slut = ärSl(namn), ean = getEan(namn);
+      const kodRad = (get, set, ph, etikett) => {
+        const pill = h("span", {class: "pill"}), svgDiv = h("div", {class: "streck"});
+        const uppd = k => {
+          if(!k){ pill.className = "pill"; pill.textContent = etikett === "ta" ? (e.standardTakeaway && o.standardKod ? "Gemensam takeaway-kod används" : "Ingen takeaway-kod (en kod visas)") : (o.standardKod && e.standardLunch ? "Gemensam kod används" : "Ingen kod"); svgDiv.replaceChildren(); return; }
+          if(eanOk(k)){ pill.className = "pill ok"; pill.textContent = (etikett === "ta" ? "Takeaway " : "") + (k.length === 13 ? "EAN-13" : "EAN-8") + " ✓"; svgDiv.innerHTML = eanSvg(k); svgDiv.firstChild.style.width = "100%"; }
+          else { pill.className = "pill sak"; svgDiv.replaceChildren(); pill.textContent = (k.length === 13 || k.length === 8) ? "Fel kontrollsiffra" : (k.length === 12 || k.length === 7) ? "Saknar sista siffran (" + eanKontroll(k) + ")" : "13 eller 8 siffror (" + k.length + " nu)"; }
         };
-        const taInp = h("input", {type: "text", inputmode: "numeric", autocomplete: "off", placeholder: "Takeaway-streckkod (annan moms)", value: getTa(namn), oninput: () => { const k = taInp.value.replace(/\D/g, ""); setTa(namn, k); uppdTa(k); uppdStatus(); },
-          onkeydown: ev => { if(ev.key === "Enter"){ ev.preventDefault(); const i = fält.indexOf(taInp); if(fält[i + 1]) fält[i + 1].focus(); } }});
-        fält.push(taInp); uppdTa(getTa(namn));
-        taRad = h("div", {class: "rad", style: "margin-top:8px"}, taInp, h("div", {style: "flex:none;min-width:0;width:140px"}, taSvg), taPill);
-      }
+        const inp = h("input", {type: "text", inputmode: "numeric", autocomplete: "off", placeholder: ph, value: get(), oninput: () => { const k = inp.value.replace(/\D/g, ""); set(k); uppd(k); uppdStatus(); },
+          onkeydown: ev => { if(ev.key === "Enter"){ ev.preventDefault(); const i = fält.indexOf(inp); if(fält[i + 1]) fält[i + 1].focus(); } }});
+        fält.push(inp); uppd(get());
+        return h("div", {class: "rad", style: "margin-top:8px"}, inp, h("div", {style: "flex:none;min-width:0;width:140px"}, svgDiv), pill);
+      };
       const namnFält = o.sättNamn
         ? h("input", {type: "text", placeholder: "Namn", value: namn, oninput: ev => { o.sättNamn(ev.target.value); uppdStatus(); },
             onchange: ev => { const ny = ev.target.value.trim(); if(ny && nz(ny) !== nz(namn)){ flytta(namn, ny); namn = ny; } rita(); uppdStatus(); }})
         : h("b", {style: "font-size:18px"}, namn);
-      const visaBild = getBild(namn);
+      const bild = getBild(namn);
+      const sumA = h("summary", {}, "Allergener: " + (o.allerg ? allergText(o.allerg.get()) : ""));
       ruta.replaceChildren(...[
         h("div", {class: "rad"},
-          h("div", {class: "ikonknapp"}, ikonSvg(visaBild, 44)),
+          h("div", {class: "ikonknapp"}, ikonSvg(bild, 44)),
           h("div", {style: "flex:3;min-width:170px"}, namnFält, slut ? h("div", {}, h("span", {class: "pill sak"}, "Slutsåld – syns på TV:n")) : null),
-          o.pris ? h("input", {type: "text", placeholder: "Pris, t.ex. 99:-", value: o.pris.get() || "", style: "max-width:130px", oninput: ev => { o.pris.set(ev.target.value); uppdStatus(); }}) : null,
-          h("button", {class: slut ? "prim" : "fara", style: "min-width:150px", onclick: () => { växlaSl(namn); rita(); uppdStatus(); }}, slut ? "Finns igen" : "Slutsåld")),
+          o.pris ? h("input", {type: "text", placeholder: "Pris här", title: "Pris när man äter här", value: o.pris.get() || "", style: "max-width:105px", oninput: ev => { o.pris.set(ev.target.value); uppdStatus(); }}) : null,
+          o.taPris ? h("input", {type: "text", placeholder: "Ta med", title: "Takeaway-pris", value: o.taPris.get() || "", style: "max-width:105px", oninput: ev => { o.taPris.set(ev.target.value); uppdStatus(); }}) : null,
+          h("button", {class: slut ? "prim" : "fara", style: "min-width:130px", onclick: () => { växlaSl(namn); rita(); uppdStatus(); }}, slut ? "Finns igen" : "Slutsåld")),
         o.notis ? h("div", {class: "dim", style: "margin-top:4px"}, o.notis) : null,
-        o.kod === false ? null : h("div", {class: "rad", style: "margin-top:8px"}, inp, h("div", {style: "flex:none;min-width:0;width:140px"}, svgDiv), pill),
-        taRad,
-        h("details", {class: "bildval", style: "margin-top:8px"}, h("summary", {}, visaBild ? "Bild: " + ((IKONER.find(x => x[0] === visaBild) || [])[1] || visaBild) : "Lägg till bild"),
-          h("div", {class: "ikongrid"}, [["", "Ingen bild"], ...IKONER].map(([id, text]) => h("button", {type: "button", class: "ikonval" + (id === visaBild ? " vald" : ""), title: text, "aria-label": text, "aria-pressed": id === visaBild,
-            onclick: () => { setBild(namn, id); rita(); uppdStatus(); }}, id ? ikonSvg(id, 40) : h("span", {class: "dim"}, "Ingen"), h("span", {class: "ikonnamn"}, text)))))].filter(Boolean));
+        ...(o.extra || []),
+        o.besk ? h("input", {type: "text", placeholder: o.besk.ph || "Beskrivning (valfri)", value: o.besk.get() || "", style: "margin-top:8px", oninput: ev => { o.besk.set(ev.target.value); uppdStatus(); }}) : null,
+        kodRad(() => getEan(namn), k => setEan(namn, k), "Streckkod (EAN) – äta här", "här"),
+        kodRad(() => getTa(namn), k => setTa(namn, k), "Takeaway-streckkod (annan moms)", "ta"),
+        h("details", {class: "bildval", style: "margin-top:8px"}, h("summary", {}, bild ? "Bild: " + ((IKONER.find(x => x[0] === bild) || [])[1] || bild) : "Lägg till bild"),
+          h("div", {class: "ikongrid"}, [["", "Ingen bild"], ...IKONER].map(([id, text]) => h("button", {type: "button", class: "ikonval" + (id === bild ? " vald" : ""), title: text, "aria-label": text, "aria-pressed": id === bild,
+            onclick: () => { setBild(namn, id); rita(); uppdStatus(); }}, id ? ikonSvg(id, 40) : h("span", {class: "dim"}, "Ingen"), h("span", {class: "ikonnamn"}, text))))),
+        o.allerg ? h("details", {class: "bildval", style: "margin-top:4px"}, sumA, allergVal(o.allerg.get, o.allerg.set, () => { sumA.textContent = "Allergener: " + allergText(o.allerg.get()); uppdStatus(); })) : null,
+        o.ctrl ? h("div", {class: "rad", style: "margin-top:10px"},
+          o.ctrl.upp ? h("button", {class: "liten", onclick: o.ctrl.upp}, "↑ Upp") : null,
+          o.ctrl.ner ? h("button", {class: "liten", onclick: o.ctrl.ner}, "↓ Ner") : null,
+          h("button", {class: "liten fara", onclick: () => { if(confirm("Ta bort \"" + (namn || "raden") + "\"?")) o.ctrl.bort(); }}, "Ta bort")) : null
+      ].filter(Boolean));
     };
     rita(); return ruta;
   }
-  const lunchNamn = [];
-  const läggTill = n => { if(n && !lunchNamn.some(y => nz(y) === nz(n))) lunchNamn.push(n); };
-  if(menu && menu.dagar) Object.values(menu.dagar).forEach(r => (r || []).forEach(x => läggTill(dela(x))));
-  if(menu && menu.vegetariskt) läggTill(dela(menu.vegetariskt));
-  const extra = ((D.lunch && D.lunch.extra) || []);
-  const delar = [];
-  delar.push(hämtaKort());
-  delar.push(h("div", {class: "info"}, "Här ligger allt för samma rätt på ett ställe: ", h("b", {}, "namn, pris, streckkod, bild och slutsåld"), ". Lunch, frukost, brunch och hockey ligger i varsin grupp. Tider och dagar ändrar ni i flikarna Lunch, Frukost, Brunch och Hockey, och ", h("b", {}, "Stängt"), " har en egen flik. Tryck Spara längst ned när ni är klara, så sparas allt på en gång."));
+  return {kort, getEan, getTa, e, ta};
+}
+const flyttaRad = (lista, i, d) => { const j = i + d; if(j < 0 || j >= lista.length) return; [lista[i], lista[j]] = [lista[j], lista[i]]; ritaVy(); uppdStatus(); };
+const ctrlFör = (lista, i) => ({upp: i > 0 ? () => flyttaRad(lista, i, -1) : null, ner: i < lista.length - 1 ? () => flyttaRad(lista, i, 1) : null, bort: () => { lista.splice(i, 1); ritaVy(); uppdStatus(); }});
+function prisFält(map, namn){      // pris per rättnamn i en karta (t.ex. lunch.priser)
+  return {get: () => { const k = nyckelI(map, namn); return k === undefined ? "" : map[k]; }, set: v => { const k = nyckelI(map, namn); if(k !== undefined) delete map[k]; if(v.trim()) map[namn] = v; }};
+}
+const textFält = (etikett, get, set, ph) => [h("label", {class: "f"}, etikett), h("input", {type: "text", value: get() || "", placeholder: ph || "", oninput: ev => { set(ev.target.value); uppdStatus(); }})];
+
+/* ---------- Gemensamma koder och sparade koder ---------- */
+function kodDelar(V, synliga){
+  const e = V.e, d = [];
+  d.push(h("h2", {}, "Gemensamma streckkoder för lunch"));
+  d.push(h("p", {class: "dim", style: "margin:0"}, "Används för lunchrätter som saknar egen kod. Rätter som även kan köpas med sig visar två koder i kassan (Äta här och Ta med)."));
+  d.push(h("div", {class: "kort"}, h("label", {class: "f", style: "margin-top:0"}, "Äta här"), h("input", {type: "text", inputmode: "numeric", placeholder: "EAN", value: e.standardLunch || "", oninput: ev => { e.standardLunch = ev.target.value.replace(/\D/g, ""); uppdStatus(); }}),
+    h("label", {class: "f"}, "Ta med (annan moms)"), h("input", {type: "text", inputmode: "numeric", placeholder: "EAN (valfri)", value: e.standardTakeaway || "", oninput: ev => { e.standardTakeaway = ev.target.value.replace(/\D/g, ""); uppdStatus(); }})));
+  const alla = [...synliga];
+  ["frukost", "brunch"].forEach(k => ((D[k] && D[k].rader) || []).forEach(r => alla.push(r.namn)));
+  (D.hockey.rader || []).forEach(r => alla.push(r.namn)); if(D.hockey.paket && D.hockey.paket.namn) alla.push(D.hockey.paket.namn);
+  ((D.lunch && D.lunch.extra) || []).forEach(x => alla.push(x.namn));
+  const övrigaE = Object.keys(e.rätter).filter(k => !alla.some(n => nz(n) === nz(k)));
+  const övrigaT = Object.keys(e.takeaway || {}).filter(k => !alla.some(n => nz(n) === nz(k)) && !övrigaE.includes(k));
+  if(övrigaE.length || övrigaT.length){
+    d.push(h("h2", {}, "Sparade koder för rätter som inte finns just nu"), h("p", {class: "dim", style: "margin:0"}, "Behålls så att koden finns kvar när rätten kommer tillbaka."));
+    [...övrigaE.map(k => [k, e.rätter, "Äta här"]), ...övrigaT.map(k => [k, e.takeaway, "Ta med"])].forEach(([k, obj, txt]) => d.push(h("div", {class: "kort rad"}, h("b", {style: "flex:2"}, k + " · " + txt),
+      h("input", {type: "text", inputmode: "numeric", value: obj[k], oninput: ev => { obj[k] = ev.target.value.replace(/\D/g, ""); uppdStatus(); }}),
+      h("button", {class: "liten fara", onclick: () => { delete obj[k]; ritaVy(); uppdStatus(); }}, "Ta bort"))));
+  }
+  return d;
+}
+
+/* ---------- Lunch ---------- */
+function vyLunchRatter(){
+  const V = rattVerktyg(), l = D.lunch, a = D.allergener, iD = iso(new Date());
+  l.priser = l.priser || {}; l.taPriser = l.taPriser || {};
+  l.extra = (l.extra || []).filter(x => x.alltid === true || x.datum >= iD);
+  const namn = [];
+  const lägg = n => { if(n && !namn.some(y => nz(y) === nz(n))) namn.push(n); };
+  if(menu && menu.dagar) DAGAR.forEach(d => ((menu.dagar[d]) || []).forEach(r => lägg(dela(r))));
+  const veg = menu && menu.vegetariskt ? dela(menu.vegetariskt) : null;
+  const icaAllerg = n => ({
+    get: () => { let v = null; DAGAR.forEach(d => Object.keys(a.dagar[d] || {}).forEach(k => { if(nz(k) === nz(n) && Array.isArray(a.dagar[d][k]) && v === null) v = a.dagar[d][k]; })); return v; },
+    set: v => DAGAR.forEach(d => Object.keys(a.dagar[d] || {}).forEach(k => { if(nz(k) === nz(n)) a.dagar[d][k] = v; }))});
+  const delar = [hämtaKort()];
+  delar.push(h("div", {class: "info"}, "Här ligger alla lunchrätter: namn, pris, takeaway-pris, streckkoder, bild, allergener och slutsåld. Tider och dagar för lunchen ställer ni in under ", h("b", {}, "Inställningar"), ". Tryck Spara när ni är klara, så sparas allt på en gång."));
+  (MSG.allergener || []).forEach(m => delar.push(h("div", {class: "fel"}, m)));
   if(!menu) delar.push(h("div", {class: "fel"}, "Veckans meny kunde inte läsas. ICA:s lunchrätter visas inte här."));
-  delar.push(h("h2", {}, "Lunch"));
-  delar.push(h("p", {class: "dim", style: "margin:0"}, "Namnen på ICA:s rätter hämtas från hemsidan och är låsta. Pris, streckkod, bild och slutsåld ändrar ni själva (tomt pris = bara lunchpriset i rubriken)."));
-  const pr = D.lunch.priser = D.lunch.priser || {};
-  const prisFör = { get: n => { const k = nyckelI(pr, n); return k === undefined ? "" : pr[k]; }, set: (n, v) => { const k = nyckelI(pr, n); if(k !== undefined) delete pr[k]; if(v.trim()) pr[n] = v; } };
-  lunchNamn.forEach(n => delar.push(kort({namn: n, takeaway: true, pris: {get: () => prisFör.get(n), set: v => prisFör.set(n, v)}, standardKod: !!e.standardLunch})));
-  extra.forEach(x => delar.push(kort({namn: x.namn, takeaway: true, sättNamn: v => x.namn = v, pris: {get: () => x.pris, set: v => x.pris = v}, notis: (x.alltid ? "Extra rätt · alltid på" : "Extra rätt · " + x.datum) + " (datum, etikett och allergener ändras under Lunch, där allergenerna kan rättas i efterhand)", standardKod: !!e.standardLunch})));
-  const bf = (rubrik, f) => { const rd = (f && f.rader) || []; if(!rd.length) return; delar.push(h("h2", {}, rubrik)); rd.forEach(r => delar.push(kort({namn: r.namn, sättNamn: v => r.namn = v, pris: {get: () => r.pris, set: v => r.pris = v}}))); };
-  bf("Frukost", D.frukost); bf("Brunch", D.brunch);
-  const hk = D.hockey;
-  if((hk.rader || []).length || (hk.paket && hk.paket.namn)){
-    delar.push(h("h2", {}, "Hockeykväll"));
-    (hk.rader || []).forEach(r => delar.push(kort({namn: r.namn, sättNamn: v => r.namn = v, pris: {get: () => r.pris, set: v => r.pris = v}})));
-    if(hk.paket && hk.paket.namn) delar.push(kort({namn: hk.paket.namn, sättNamn: v => hk.paket.namn = v, pris: {get: () => hk.paket.pris, set: v => hk.paket.pris = v}}));
+  delar.push(h("h2", {}, "Veckans rätter från ICA"));
+  delar.push(h("p", {class: "dim", style: "margin:0"}, "Namnen hämtas från hemsidan och är låsta. Pris, takeaway-pris, streckkoder, bild och allergener ändrar ni själva. Tomt pris betyder bara lunchpriset i rubriken."));
+  namn.forEach(n => delar.push(V.kort({namn: n, standardKod: true, pris: prisFält(l.priser, n), taPris: prisFält(l.taPriser, n), allerg: icaAllerg(n)})));
+  if(veg){
+    delar.push(h("h2", {}, "Veckans vegetariska"));
+    delar.push(V.kort({namn: veg, standardKod: true, pris: prisFält(l.priser, veg), taPris: prisFält(l.taPriser, veg), allerg: {get: () => a.vegetariskt, set: v => a.vegetariskt = v}}));
   }
-  const visade = [...lunchNamn, ...extra.map(x => x.namn), ...["frukost", "brunch"].flatMap(k => ((D[k] && D[k].rader) || []).map(r => r.namn)), ...(hk.rader || []).map(r => r.namn), hk.paket && hk.paket.namn].filter(Boolean);
-  delar.push(h("h2", {}, "Gemensam streckkod för lunch"));
-  delar.push(h("p", {class: "dim", style: "margin:0"}, "Används för lunchrätter som saknar egen kod."));
-  const gem = h("input", {type: "text", inputmode: "numeric", placeholder: "EAN", value: e.standardLunch || "", oninput: ev => { e.standardLunch = ev.target.value.replace(/\D/g, ""); uppdStatus(); }});
-  delar.push(h("div", {class: "kort"}, gem));
-  delar.push(h("h2", {}, "Gemensam takeaway-streckkod för lunch"));
-  delar.push(h("p", {class: "dim", style: "margin:0"}, "Används för lunchrätter som kan köpas med sig men saknar egen takeaway-kod. Rätter med takeaway-kod visar två koder i kassan: Äta här och Ta med."));
-  delar.push(h("div", {class: "kort"}, h("input", {type: "text", inputmode: "numeric", placeholder: "EAN (valfri)", value: e.standardTakeaway || "", oninput: ev => { e.standardTakeaway = ev.target.value.replace(/\D/g, ""); uppdStatus(); }})));
-  const övriga = Object.keys(e.rätter).filter(k => !visade.some(n => nz(n) === nz(k)));
-  if(övriga.length){
-    delar.push(h("h2", {}, "Sparade koder för rätter som inte finns just nu"), h("p", {class: "dim", style: "margin:0"}, "Behålls så att koden finns kvar när rätten kommer tillbaka."));
-    övriga.forEach(k => delar.push(h("div", {class: "kort rad"}, h("b", {style: "flex:2"}, k), h("input", {type: "text", inputmode: "numeric", value: e.rätter[k], oninput: ev => { e.rätter[k] = ev.target.value.replace(/\D/g, ""); uppdStatus(); }}),
-      h("button", {class: "liten fara", onclick: () => { delete e.rätter[k]; ritaVy(); uppdStatus(); }}, "Ta bort"))));
-  }
+  const vd = s => ["söndag","måndag","tisdag","onsdag","torsdag","fredag","lördag"][new Date(s + "T12:00:00").getDay()] + " " + s;
+  delar.push(h("h2", {}, "Extra rätter och drycker"));
+  delar.push(h("p", {class: "dim", style: "margin:0"}, "Rätter som inte finns på hemsidan, t.ex. kaffe. De gäller ett visst datum och försvinner dagen efter, eller visas varje lunchdag om Alltid på är ikryssat."));
+  const sorterade = [...l.extra].sort((x, y) => (x.alltid ? "" : x.datum) < (y.alltid ? "" : y.datum) ? -1 : 1);
+  sorterade.forEach(x => delar.push(V.kort({namn: x.namn, standardKod: true, sättNamn: v => x.namn = v,
+    pris: {get: () => x.pris, set: v => x.pris = v}, taPris: {get: () => x.takeawayPris, set: v => { if(v) x.takeawayPris = v; else delete x.takeawayPris; }},
+    besk: {get: () => x.beskrivning, set: v => x.beskrivning = v}, notis: x.alltid ? "Visas alla lunchdagar" : vd(x.datum),
+    extra: [h("div", {style: "margin-top:8px"}, h("label", {class: "f", style: "margin-top:0"}, "Etikett över rätten (valfri)"), h("input", {type: "text", value: x.etikett || "", placeholder: "t.ex. Take away", oninput: ev => { x.etikett = ev.target.value; uppdStatus(); }}))],
+    allerg: {get: () => x.allergener === undefined ? null : x.allergener, set: v => x.allergener = v},
+    ctrl: {bort: () => { l.extra.splice(l.extra.indexOf(x), 1); ritaVy(); uppdStatus(); }}})));
+  /* lägg till ny extra rätt */
+  const ny = {alltid: false, datum: iD, namn: "", pris: "", beskrivning: "", etikett: ""};
+  const form = h("div"), ritaForm = () => form.replaceChildren(
+    h("div", {class: "kryss"}, h("input", {type: "checkbox", id: "alltid", checked: ny.alltid, onchange: ev => { ny.alltid = ev.target.checked; ritaForm(); }}), h("label", {for: "alltid"}, "Alltid på (visas varje lunchdag, t.ex. kaffe)")),
+    ...(ny.alltid ? [] : [h("label", {class: "f"}, "Datum"), h("input", {type: "date", value: ny.datum, min: iD, oninput: ev => ny.datum = ev.target.value})]),
+    h("label", {class: "f"}, "Namn"), h("input", {type: "text", value: ny.namn, placeholder: "t.ex. Dagens soppa", oninput: ev => ny.namn = ev.target.value}),
+    h("button", {type: "button", class: "prim", style: "margin-top:12px", onclick: () => {
+      if(!ny.namn.trim() || (!ny.alltid && !ny.datum)){ alert("Fyll i namn" + (ny.alltid ? "." : " och datum.")); return; }
+      const r = {namn: ny.namn.trim(), beskrivning: "", etikett: "", pris: "", allergener: null}; if(ny.alltid) r.alltid = true; else r.datum = ny.datum;
+      l.extra.push(r); ritaVy(); uppdStatus();
+    }}, "Lägg till rätten"), h("p", {class: "dim"}, "Pris, takeaway-pris, streckkoder och bild fyller ni i på rättens kort efter att ni lagt till den."));
+  ritaForm();
+  delar.push(h("div", {class: "kort"}, h("h3", {}, "Lägg till rätt"), form));
+  delar.push(...kodDelar(V, [...namn, veg].filter(Boolean)));
   return h("div", {}, delar);
+}
+
+/* ---------- Frukost och brunch ---------- */
+function vyKategoriBuffe(key){
+  const V = rattVerktyg(), f = D[key], rader = f.rader = f.rader || [], ORD = key === "brunch" ? "Brunch" : "Frukost";
+  const delar = [h("div", {class: "info"}, "Alla " + ORD.toLowerCase() + "rätter och drycker, oavsett när de serveras. Vilka tider och dagar " + ORD.toLowerCase() + " visas och säljs ställer ni in under ", h("b", {}, "Inställningar"), ".")];
+  delar.push(...textFält("Rubrik", () => f.rubrik, v => f.rubrik = v));
+  delar.push(h("h2", {}, "Rätter och drycker"));
+  rader.forEach((r, i) => delar.push(V.kort({namn: r.namn, sättNamn: v => r.namn = v, pris: {get: () => r.pris, set: v => r.pris = v},
+    taPris: {get: () => r.takeawayPris, set: v => { if(v) r.takeawayPris = v; else delete r.takeawayPris; }},
+    besk: {get: () => r.beskrivning, set: v => r.beskrivning = v}, allerg: {get: () => r.allergener === undefined ? null : r.allergener, set: v => { if(v === null) delete r.allergener; else r.allergener = v; }}, ctrl: ctrlFör(rader, i)})));
+  delar.push(h("button", {onclick: () => { rader.push({namn: "", pris: ""}); ritaVy(); uppdStatus(); window.scrollTo(0, document.body.scrollHeight); }}, "+ Lägg till rad"));
+  delar.push(...kodDelar(V, []));
+  return h("div", {}, delar);
+}
+
+/* ---------- Hockey ---------- */
+function vyKategoriHockey(){
+  const V = rattVerktyg(), k = D.hockey, rader = k.rader = k.rader || [];
+  k.paket = k.paket || {namn: "", pris: ""};
+  const delar = [h("div", {class: "info"}, "Alla hockeyrätter och drycker. Matchdagar, uppladdningstid och matchstart, och när koderna kan användas i kassan, ställer ni in under ", h("b", {}, "Inställningar"), ".")];
+  delar.push(h("h2", {}, "Texter"));
+  delar.push(...textFält("Rubrik", () => k.rubrik, v => k.rubrik = v));
+  delar.push(...textFält("Text under rubriken", () => k.underrubrik, v => k.underrubrik = v));
+  delar.push(...textFält("Bannertext (på lunch- och frukostskylten)", () => k.banner, v => k.banner = v));
+  delar.push(h("h2", {}, "Rätter och drycker"));
+  const allerg = r => ({get: () => r.allergener === undefined ? null : r.allergener, set: v => { if(v === null) delete r.allergener; else r.allergener = v; }});
+  const taP = r => ({get: () => r.takeawayPris, set: v => { if(v) r.takeawayPris = v; else delete r.takeawayPris; }});
+  rader.forEach((r, i) => delar.push(V.kort({namn: r.namn, sättNamn: v => r.namn = v, pris: {get: () => r.pris, set: v => r.pris = v}, taPris: taP(r),
+    besk: {get: () => r.not, set: v => { if(v) r.not = v; else delete r.not; }, ph: "Notering, t.ex. fullständiga rättigheter"}, allerg: allerg(r), ctrl: ctrlFör(rader, i)})));
+  delar.push(h("button", {onclick: () => { rader.push({namn: "", pris: ""}); ritaVy(); uppdStatus(); window.scrollTo(0, document.body.scrollHeight); }}, "+ Lägg till rad"));
+  delar.push(h("h2", {}, "Paketpris"));
+  delar.push(V.kort({namn: k.paket.namn, sättNamn: v => k.paket.namn = v, pris: {get: () => k.paket.pris, set: v => k.paket.pris = v}, taPris: taP(k.paket)}));
+  delar.push(...kodDelar(V, []));
+  return h("div", {}, delar);
+}
+
+/* ---------- Inställningar: tider, stängt och utseende ---------- */
+function tidsRad(titel, get, set, ev){
+  return h("div", {class: "rad"}, h("div", {}, h("label", {class: "f"}, titel[0]), h("input", {type: "time", value: get().start || "", oninput: e => { set({...get(), start: e.target.value}); uppdStatus(); }})),
+    h("div", {}, h("label", {class: "f"}, titel[1]), h("input", {type: "time", value: get().slut || "", oninput: e => { set({...get(), slut: e.target.value}); uppdStatus(); }})));
+}
+function dagVal(f, rubrik){
+  return [h("label", {class: "f"}, rubrik), h("div", {class: "dagar"}, ALLA_DAGAR.map(d => h("label", {}, h("input", {type: "checkbox", checked: (f.dagar || []).includes(d), onchange: e => {
+    f.dagar = ALLA_DAGAR.filter(x => x === d ? e.target.checked : (f.dagar || []).includes(x)); uppdStatus(); }}), d)))];
+}
+function installLunch(){
+  const l = D.lunch, ica = menu && menu.lunchtid, tider = h("div");
+  const ritaTider = () => tider.replaceChildren(l.tid ? tidsRad(["Lunch visas från", "Lunch visas till"], () => l.tid, v => l.tid = v) : h("p", {class: "dim"}, "Just nu används ICA:s tider" + (ica ? ": " + ica.start + "–" + ica.slut + "." : ".")));
+  ritaTider();
+  return h("div", {class: "kort"}, h("h3", {}, "Lunch"),
+    h("div", {class: "kryss"}, h("input", {type: "checkbox", id: "egna", checked: !!l.tid, onchange: e => { l.tid = e.target.checked ? {start: (ica && ica.start) || "11:00", slut: (ica && ica.slut) || "14:30"} : null; ritaTider(); uppdStatus(); }}), h("label", {for: "egna"}, "Egna lunchtider (annars används ICA:s" + (ica ? ": " + ica.start + "–" + ica.slut : "") + ")")),
+    tider, ...dagVal(l, "Dagar då lunch serveras"),
+    kassaTidFält(l, () => l.tid || (ica ? {start: ica.start, slut: ica.slut} : {start: "11:00", slut: "14:30"})));
+}
+function installBuffe(key){
+  const f = D[key], ORD = key === "brunch" ? "Brunch" : "Frukost";
+  return h("div", {class: "kort"}, h("h3", {}, ORD),
+    tidsRad([ORD + " visas från", ORD + " visas till"], () => f.tid, v => f.tid = v), ...dagVal(f, "Dagar då " + ORD.toLowerCase() + " serveras"),
+    kassaTidFält(f, () => ({start: f.tid.start, slut: f.tid.slut})));
+}
+function installHockey(){
+  const k = D.hockey, idag = iso(new Date()); k.datum = k.datum || [];
+  const datumDiv = h("div");
+  const ritaDatum = () => {
+    k.datum = [...new Set(k.datum)].sort();
+    const veckodag = s => ["sön","mån","tis","ons","tors","fre","lör"][new Date(s + "T12:00:00").getDay()];
+    datumDiv.replaceChildren(...k.datum.map(s => h("span", {class: "datum" + (s < idag ? " gammal" : s === idag ? " idag" : "")}, veckodag(s) + " " + s,
+      h("button", {class: "liten", "aria-label": "Ta bort " + s, onclick: () => { k.datum = k.datum.filter(x => x !== s); ritaDatum(); uppdStatus(); }}, "✕"))));
+    if(!k.datum.length) datumDiv.append(h("span", {class: "dim"}, "Inga datum. Hockeyskylten visas inte."));
+  };
+  ritaDatum();
+  const nyttDatum = h("input", {type: "date", style: "max-width:220px"});
+  return h("div", {class: "kort"}, h("h3", {}, "Hockeykväll"),
+    h("p", {class: "dim"}, "Hockeyskylten visas från uppladdningens start till matchstart på matchdagarna. Hela dagen fram till matchstart visas dessutom en liten banner på de andra skyltarna."),
+    h("label", {class: "f"}, "Matchdagar (hemma)"), datumDiv,
+    h("div", {class: "rad", style: "margin-top:8px"}, nyttDatum, h("button", {onclick: () => { if(!nyttDatum.value) return; k.datum.push(nyttDatum.value); nyttDatum.value = ""; ritaDatum(); uppdStatus(); }}, "+ Lägg till datum")),
+    h("div", {class: "rad"},
+      h("div", {}, h("label", {class: "f"}, "Uppladdning från (skylten visas)"), h("input", {type: "time", value: (k.tid || {}).start || "", oninput: e => { k.tid = {...k.tid, start: e.target.value}; uppdStatus(); }})),
+      h("div", {}, h("label", {class: "f"}, "Matchstart"), h("input", {type: "time", value: k.matchstart || "", oninput: e => { k.matchstart = e.target.value; uppdStatus(); }}))),
+    kassaTidFält(k, () => ({start: (k.tid || {}).start || "16:30", slut: k.matchstart || "19:00"})));
+}
+function vyInstallningar(){
+  return h("div", {},
+    h("div", {class: "info"}, "Här ställer ni in ", h("b", {}, "när varje vy visas på skylten"), ", ", h("b", {}, "när streckkoderna kan användas i kassan"), " (egna kassatider), när restaurangen är ", h("b", {}, "stängd"), " och vilket ", h("b", {}, "utseende"), " skärmarna ska ha."),
+    h("h2", {}, "Tider och dagar"), installLunch(), installBuffe("frukost"), installBuffe("brunch"), installHockey(),
+    h("h2", {}, "Stängt"), vyStangt(),
+    h("h2", {}, "Utseende"), vyUtseende());
 }
 
 /* ---------- Utseende ---------- */
@@ -796,8 +926,8 @@ function vyUtseende(){
 }
 
 /* ---------- ramverk ---------- */
-const FLIKAR = [["ratter", "Rätter"], ["lunch", "Lunch"], ["frukost", "Frukost"], ["brunch", "Brunch"], ["hockey", "Hockey"], ["oppett", "Stängt"], ["allergener", "Allergener"], ["utseende", "Utseende"]];
-const FLIK_DATA = {ratter: ["ean", "bilder", "slut", "lunch", "frukost", "brunch", "hockey"]};
+const FLIKAR = [["lunch", "Lunch"], ["frukost", "Frukost"], ["brunch", "Brunch"], ["hockey", "Hockey"], ["installningar", "Inställningar"]];
+const FLIK_DATA = {lunch: ["lunch", "allergener", "ean", "bilder", "slut"], frukost: ["frukost", "ean", "bilder", "slut"], brunch: ["brunch", "ean", "bilder", "slut"], hockey: ["hockey", "ean", "bilder", "slut"], installningar: ["lunch", "frukost", "brunch", "hockey", "oppett", "utseende"]};
 const flikSmutsig = id => (FLIK_DATA[id] || [id]).some(k => D[k] && BAS[k] !== ser(D[k]));
 function ritaFlikar(){
   $("tabs").replaceChildren(...FLIKAR.map(([id, t]) => h("button", {class: id === flik ? "on" : "", onclick: () => {
@@ -806,7 +936,7 @@ function ritaFlikar(){
 }
 function ritaVy(){
   hämtaKort.aktiva = [];
-  $("vy").replaceChildren(flik === "ratter" ? vyRatter() : flik === "utseende" ? vyUtseende() : flik === "allergener" ? vyAllergener() : flik === "lunch" ? vyLunch() : flik === "frukost" || flik === "brunch" ? vyBuffe(flik) : flik === "oppett" ? vyStangt() : vyHockey());
+  $("vy").replaceChildren(flik === "lunch" ? vyLunchRatter() : flik === "frukost" || flik === "brunch" ? vyKategoriBuffe(flik) : flik === "hockey" ? vyKategoriHockey() : vyInstallningar());
   uppdStatus();
 }
 function uppdStatus(){
