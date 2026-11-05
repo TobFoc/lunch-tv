@@ -280,7 +280,7 @@ async function läs(){
     if(k === "egna") D[k] = D[k] && Array.isArray(D[k].lista) ? D[k] : {lista: []};
     if(k === "utseende") D[k] = D[k] && D[k].tema ? D[k] : {tema: "klassisk"};
     if(k === "lunch") D[k] = D[k] || {tid: null, dagar: [...DAGAR]};
-    if(k === "lunch"){ D[k].priser = D[k].priser || {}; D[k].taPriser = D[k].taPriser || {}; D[k].extra = (D[k].extra || []).filter(x => x.alltid === true || x.datum >= iso(new Date())); }
+    if(k === "lunch"){ D[k].priser = D[k].priser || {}; D[k].taPriser = D[k].taPriser || {}; D[k].visning = D[k].visning || {}; D[k].extra = (D[k].extra || []).filter(x => x.alltid === true || x.datum >= iso(new Date())); }
     if(k === "oppett"){ D[k] = D[k] || {rodaDagarStangt: true, undantag: []}; D[k].undantag = (D[k].undantag || []).filter(e => (e.till || e.datum) >= iso(new Date())); }
     if(k === "hockey") D[k] = D[k] || {rubrik: "Hockeykvällar i Focus Restaurang", underrubrik: "", banner: "Hockeykväll i restaurangen!", tid: {start: "16:30"}, matchstart: "19:00", datum: [], rader: [], paket: {namn: "Paketpris mat + dryck", pris: ""}};
     BAS[k] = k === "allergener" ? ser(D[k]) : ser(D[k]);
@@ -503,12 +503,57 @@ let kontroll = null;                          // resultat av "Kontrollera hämtn
 const kör = r => (r.status !== "completed" ? "pågår" : r.conclusion === "success" ? "lyckades" : "misslyckades") + (r.event === "schedule" ? " (automatisk)" : r.event === "workflow_dispatch" ? " (knappen)" : "");
 async function kontrolleraHämtning(){
   kontroll = {laddar: true}; ritaHämta();
-  try { kontroll = {runs: (await api("/api/hamtastatus")).runs || []}; }
+  try {
+    const runs = (await api("/api/hamtastatus")).runs || [];
+    kontroll = {runs};
+    if(runs.some(r => r.status === "completed" && r.conclusion !== "success")){
+      try { kontroll.logg = await api("/api/hamtalogg"); } catch(e){ kontroll.loggFel = e.message; }
+    }
+  }
   catch(e){ kontroll = {fel: /403|404|401/.test(e.message) && e.status !== 401 ? "Sparfunktionen (Cloudflare Worker) får inte läsa hämtningarna på GitHub: " + e.message + ". Kontrollera att GitHub-nyckeln har behörigheten Actions: Read and write (se BACKOFFICE.md)." : e.message}; }
   ritaHämta();
 }
+/* Reservväg: klistra in text från ICA:s lunchsida. Samma tolkning som hamta_meny.py. */
+function tolkaMeny(text){
+  const rader = text.split(/\n/).map(r => r.replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim()).filter(Boolean);
+  const m0 = {vecka: null, lunchtid: null, priser: [], vegetariskt: null, dagar: Object.fromEntries(DAGAR.map(d => [d, []]))};
+  let aktuell = null;
+  for(const rad of rader){
+    const låg = rad.toLowerCase().replace(/:+$/, "");
+    let m = /^vecka (\d{1,2})$/.exec(låg);
+    if(m && m0.vecka === null){ m0.vecka = +m[1]; continue; }
+    m = /lunchen serveras från klockan (\d{1,2})[.:](\d{2}) till (\d{1,2})[.:](\d{2})/.exec(låg);
+    if(m){ m0.lunchtid = {start: String(+m[1]).padStart(2, "0") + ":" + m[2], slut: String(+m[3]).padStart(2, "0") + ":" + m[4]}; continue; }
+    if(/^(dagens lunch|salladsbaren)\s+\d+\s*:-/.test(låg)){ m0.priser.push(rad); continue; }
+    if(låg.startsWith("veckans vegetariska")){ m0.vegetariskt = rad.includes(":") ? rad.split(":").slice(1).join(":").trim() : rad; continue; }
+    if(DAGAR.includes(låg)){ aktuell = låg; continue; }
+    if(låg === "lördag" || låg === "söndag"){ aktuell = null; continue; }
+    if(aktuell && !låg.startsWith("brunch") && !låg.startsWith("serveras")) m0.dagar[aktuell].push(rad);
+  }
+  return m0;
+}
+function manuellMeny(){
+  const ruta = h("textarea", {rows: "6", placeholder: "Klistra in hela texten från ICA:s lunchsida här…", style: "width:100%;box-sizing:border-box;font-size:14px"});
+  const svar = h("div");
+  const läsIn = async () => {
+    if(någonSmutsig()) return svar.replaceChildren(h("div", {class: "fel"}, "Spara eller ångra dina ändringar först (se flikar med •)."));
+    const m = tolkaMeny(ruta.value);
+    if(!Object.values(m.dagar).some(x => x.length) || m.vecka === null) return svar.replaceChildren(h("div", {class: "fel"}, "Hittade ingen meny i texten" + (m.vecka === null ? " (raden 'Vecka NN' saknas)" : "") + ". Gå till ICA:s lunchsida, tryck Ctrl+A, Ctrl+C och klistra in allt här."));
+    if(!m.lunchtid) m.lunchtid = menu && menu.lunchtid || null;
+    if(!m.priser.length && menu && menu.priser) m.priser = menu.priser;
+    try {
+      await api("/api/save", {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify({fil: "menu.json", data: m})});
+      menu = m; D.allergener = byggAllergener(D.allergener); ruta.value = "";
+      hämtaMsg = {text: "Menyn för vecka " + m.vecka + " är sparad (" + Object.values(m.dagar).reduce((a, x) => a + x.length, 0) + " rätter). Fyll i allergener och tryck Spara. TV:n visar den inom någon minut."};
+      ritaVy(); uppdStatus();
+    } catch(e){ svar.replaceChildren(h("div", {class: "fel"}, e.message + (/Okänd fil/.test(e.message) ? " – klistra in nya worker.js i Cloudflare." : ""))); }
+  };
+  return h("details", {style: "margin-top:12px"}, h("summary", {style: "cursor:pointer;font-weight:600"}, "Fungerar inte hämtningen? Klistra in menyn manuellt"),
+    h("p", {class: "dim", style: "margin:6px 0"}, "Öppna ICA:s lunchsida i webbläsaren, tryck Ctrl+A och Ctrl+C (på iPad: Markera allt, Kopiera) och klistra in här. Alltid säkert, även när ICA blockerar den automatiska hämtningen."),
+    ruta, h("div", {style: "margin-top:8px"}, h("button", {type: "button", class: "prim", onclick: läsIn}, "Läs in menyn")), svar);
+}
 function hämtaKort(){
-  const kort = h("div", {class: "kort"});
+  const kort = h("div", {class: "kort"}), manuell = manuellMeny();
   const nu = isoVecka(new Date()), helg = [0, 6].includes(new Date().getDay());
   const gammal = menu && menu.vecka != null && menu.vecka !== nu && !(helg && menu.vecka === nu + 1);
   const rita = () => kort.replaceChildren(...[
@@ -518,6 +563,7 @@ function hämtaKort(){
     hämtaMsg ? h("div", {class: hämtaMsg.fel ? "fel" : "info"}, hämtaMsg.text) : null,
     h("button", {class: "prim", disabled: hämtar, onclick: hämtaNu}, hämtar ? "Hämtar… (tar 1–2 minuter)" : "Hämta veckans meny från ICA"),
     h("p", {class: "dim", style: "margin:8px 0 0"}, "Menyn hämtas annars automatiskt varje vardagsmorgon. Använd knappen när ICA lagt upp en ny meny och ni vill ha den direkt."),
+    manuell,
     h("div", {style: "margin-top:12px;padding-top:10px;border-top:1px solid #ddd"},
       h("button", {type: "button", class: "liten", disabled: !!(kontroll && kontroll.laddar), onclick: kontrolleraHämtning}, kontroll && kontroll.laddar ? "Kontrollerar…" : "Kontrollera hämtningen"),
       h("span", {class: "dim", style: "margin-left:10px"}, "Visar om de senaste hämtningarna från ICA lyckades."),
@@ -525,6 +571,9 @@ function hämtaKort(){
       kontroll && kontroll.runs ? h("div", {style: "margin-top:8px"},
         kontroll.runs.length ? kontroll.runs.map(r => h("div", {class: "dim", style: "padding:3px 0"}, h("b", {style: "color:" + (r.status !== "completed" ? "#555" : r.conclusion === "success" ? "#1d7a33" : "#b00020")}, kör(r)), " · " + new Date(r.skapad || r.created_at).toLocaleString("sv-SE", {dateStyle: "short", timeStyle: "short"})))
           : h("div", {class: "dim"}, "Inga hämtningar har körts än. Tryck på Hämta veckans meny och kontrollera igen."),
+        kontroll.logg && (kontroll.logg.rader || []).length ? h("div", {style: "margin-top:6px"}, h("b", {}, "Så här stod det i GitHubs logg för senaste misslyckade körning:"), h("pre", {style: "white-space:pre-wrap;background:#f3f3f1;border:1px solid #ddd;border-radius:8px;padding:8px;font-size:13px;margin:4px 0"}, kontroll.logg.rader.join("\n"))) : null,
+        kontroll.logg && kontroll.logg.steg && kontroll.logg.steg.length ? h("div", {class: "dim"}, "Steget som föll: " + kontroll.logg.steg.join(", ")) : null,
+        kontroll.loggFel ? h("div", {class: "dim"}, "Kunde inte läsa loggen (" + kontroll.loggFel + "). Öppna GitHub → Actions → senaste körningen.") : null,
         kontroll.runs.length && kontroll.runs[0].status === "completed" && kontroll.runs[0].conclusion !== "success" ? h("div", {class: "fel", style: "margin-top:6px"}, "Senaste hämtningen misslyckades. Oftast beror det på att ICA:s sida inte svarade eller blockerade anropet. Den gamla menyn ligger kvar. Prova igen om en stund. Fortsätter det, öppna GitHub → Actions → senaste körningen för felmeddelandet.")
           : kontroll.runs.length && kontroll.runs[0].conclusion === "success" ? h("div", {class: "info", style: "margin-top:6px"}, "Senaste hämtningen gick bra.") : null) : null)].filter(Boolean));
   rita(); kort._rita = rita; hämtaKort.aktiva.push(kort);
@@ -787,7 +836,7 @@ function rattVerktyg(){
       ruta.replaceChildren(...[
         h("div", {class: "rad"},
           h("div", {class: "ikonknapp"}, ikonSvg(bild, 44)),
-          h("div", {style: "flex:3;min-width:170px"}, namnFält, slut ? h("div", {}, h("span", {class: "pill sak"}, "Slutsåld – syns på TV:n")) : null),
+          h("div", {style: "flex:3;min-width:170px"}, namnFält, o.visning ? h("input", {type: "text", maxlength: "120", placeholder: "Visas på TV:n som… (tomt = ICA:s namn)", title: "Eget visningsnamn. Priser, koder och allergener hör fortfarande ihop med ICA:s namn.", value: o.visning.get() || "", style: "margin-top:6px", oninput: ev => { o.visning.set(ev.target.value); uppdStatus(); }}) : null, slut ? h("div", {}, h("span", {class: "pill sak"}, "Slutsåld – syns på TV:n")) : null),
           o.pris ? h("input", {type: "text", placeholder: "Pris här", title: "Pris när man äter här", value: o.pris.get() || "", style: "max-width:105px", oninput: ev => { o.pris.set(ev.target.value); uppdStatus(); }}) : null,
           o.taPris ? h("input", {type: "text", placeholder: "Ta med", title: "Takeaway-pris", value: o.taPris.get() || "", style: "max-width:105px", oninput: ev => { o.taPris.set(ev.target.value); uppdStatus(); }}) : null,
           h("button", {class: slut ? "prim" : "fara", style: "min-width:130px", onclick: () => { växlaSl(namn); rita(); uppdStatus(); }}, slut ? "Finns igen" : "Slutsåld")),
@@ -842,7 +891,7 @@ function kodDelar(V, synliga){
 /* ---------- Lunch ---------- */
 function vyLunchRatter(){
   const V = rattVerktyg(), l = D.lunch, a = D.allergener, iD = iso(new Date());
-  l.priser = l.priser || {}; l.taPriser = l.taPriser || {};
+  l.priser = l.priser || {}; l.taPriser = l.taPriser || {}; l.visning = l.visning || {};
   l.extra = (l.extra || []).filter(x => x.alltid === true || x.datum >= iD);
   const namn = [];
   const lägg = n => { if(n && !namn.some(y => nz(y) === nz(n))) namn.push(n); };
@@ -856,11 +905,11 @@ function vyLunchRatter(){
   (MSG.allergener || []).forEach(m => delar.push(h("div", {class: "fel"}, m)));
   if(!menu) delar.push(h("div", {class: "fel"}, "Veckans meny kunde inte läsas. ICA:s lunchrätter visas inte här."));
   delar.push(h("h2", {}, "Veckans rätter från ICA"));
-  delar.push(h("p", {class: "dim", style: "margin:0"}, "Namnen hämtas från hemsidan och är låsta. Pris, takeaway-pris, streckkoder, bild och allergener ändrar ni själva. Tomt pris betyder bara lunchpriset i rubriken."));
-  namn.forEach(n => delar.push(V.kort({namn: n, standardKod: true, pris: prisFält(l.priser, n), taPris: prisFält(l.taPriser, n), allerg: icaAllerg(n)})));
+  delar.push(h("p", {class: "dim", style: "margin:0"}, "Namnen hämtas från hemsidan och är låsta, men ni kan välja ett eget namn som visas på TV:n (fältet under namnet). Pris, takeaway-pris, streckkoder, bild och allergener ändrar ni själva. Tomt pris betyder bara lunchpriset i rubriken."));
+  namn.forEach(n => delar.push(V.kort({namn: n, standardKod: true, visning: prisFält(l.visning, n), pris: prisFält(l.priser, n), taPris: prisFält(l.taPriser, n), allerg: icaAllerg(n)})));
   if(veg){
     delar.push(h("h2", {}, "Veckans vegetariska"));
-    delar.push(V.kort({namn: veg, standardKod: true, pris: prisFält(l.priser, veg), taPris: prisFält(l.taPriser, veg), allerg: {get: () => a.vegetariskt, set: v => a.vegetariskt = v}}));
+    delar.push(V.kort({namn: veg, standardKod: true, visning: prisFält(l.visning, veg), pris: prisFält(l.priser, veg), taPris: prisFält(l.taPriser, veg), allerg: {get: () => a.vegetariskt, set: v => a.vegetariskt = v}}));
   }
   const vd = s => ["söndag","måndag","tisdag","onsdag","torsdag","fredag","lördag"][new Date(s + "T12:00:00").getDay()] + " " + s;
   delar.push(h("h2", {}, "Extra rätter och drycker"));
@@ -1149,15 +1198,15 @@ function skrivUt(kat){
     const l = D.lunch, a = D.allergener, pr = (menu && menu.priser) || [];
     const hitta = n => { const m = pr.find(x => x.toLowerCase().startsWith(n)); return m ? m.replace(/^\D+?\s+(?=\d)/, "").replace(/\s+/g, "") : ""; };
     const nyckel = (map, n) => { const k = Object.keys(map || {}).find(x => nz(x) === nz(n)); return k === undefined ? "" : map[k]; };
-    const lPris = n => nyckel(l.priser, n) || hitta("dagens lunch"), lTa = n => nyckel(l.taPriser, n);
+    const lPris = n => nyckel(l.priser, n) || hitta("dagens lunch"), lTa = n => nyckel(l.taPriser, n), vis = n => nyckel(l.visning, n) || n;
     rubrik = "Dagens lunch"; pris = hitta("dagens lunch");
     const lt = l.tid && l.tid.start ? l.tid : (menu && menu.lunchtid);
     under = "Vecka " + ((menu && menu.vecka) || "") + " · Bröd, salladsbuffé & kaffe ingår";
     const delaB = r => { if(r && typeof r === "object") return {n: r.namn || "", b: r.beskrivning || ""}; const t = String(r).trim(), n = dela(t); return {n, b: stor(t.slice(n.length).trim().replace(/^[–-]\s+/, ""))}; };
     const allergFör = (d, n) => { const o = (a && a.dagar && a.dagar[d]) || {}, k = Object.keys(o).find(x => nz(x) === nz(n)); return k === undefined ? null : o[k]; };
     if(menu && menu.dagar) DAGAR.forEach(d => { const rs = menu.dagar[d] || []; if(!rs.length) return;
-      kod.push(h("h2", {}, stor(d))); rs.forEach(r => { const o = delaB(r); kod.push(rad(o.n, lPris(o.n), lTa(o.n), o.b, allergFör(d, o.n))); }); });
-    if(menu && menu.vegetariskt){ const o = delaB(menu.vegetariskt); kod.push(h("h2", {class: "veg"}, "Veckans vegetariska · gäller hela veckan")); kod.push(rad(o.n, lPris(o.n), lTa(o.n), o.b, a ? a.vegetariskt : null)); }
+      kod.push(h("h2", {}, stor(d))); rs.forEach(r => { const o = delaB(r); kod.push(rad(vis(o.n), lPris(o.n), lTa(o.n), o.b, allergFör(d, o.n))); }); });
+    if(menu && menu.vegetariskt){ const o = delaB(menu.vegetariskt); kod.push(h("h2", {class: "veg"}, "Veckans vegetariska · gäller hela veckan")); kod.push(rad(vis(o.n), lPris(o.n), lTa(o.n), o.b, a ? a.vegetariskt : null)); }
     const ex = (l.extra || []).filter(x => x.alltid === true || x.datum >= iso(new Date()));
     if(ex.length){ kod.push(h("h2", {}, "Alltid på Focus")); ex.forEach(x => kod.push(rad(x.namn, x.pris || "", x.takeawayPris || "", x.beskrivning || "", x.allergener))); }
     fot.push("Lunch serveras " + (lt ? tid(lt) : "") + (dagTxt(l.dagar) ? " " + dagTxt(l.dagar) : ""));
