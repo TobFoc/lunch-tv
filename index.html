@@ -238,6 +238,14 @@
   .hrad .rbild { color: #ffd54a; opacity: .85; }
   .rl .rbild { width: .95em; height: .95em; }
 
+  /* Kassa, veckovy: streckkoden ligger under varje rätt (skalar med textens storlek) */
+  .kassa .rl > div { flex-wrap: wrap; min-width: 0; row-gap: calc(var(--u) * .5 * var(--k, 1)); }
+  .kassa .rl > div .br { flex-basis: 100%; height: 0; }
+  .kassa .rl > div .kod { --bw: 22; width: calc(var(--u) * var(--bw) * var(--k, 1)); min-height: 0; align-self: flex-start; padding: calc(var(--u) * .4 * var(--k, 1)) calc(var(--u) * .8 * var(--k, 1)); }
+  .kassa .rl > div .kod.ingen { font-size: calc(var(--u) * 2 * var(--k, 1)); }
+  .kassa .vkhead .ar .kod.ingen { font-size: calc(var(--u) * 1.6 * var(--k, 1)); }
+  .kassa .vkhead .ar .kod { --bw: 16; margin-left: auto; align-self: center; width: calc(var(--u) * 16 * var(--k, 1)); }
+  .kassa #rätter.vecka .rad:not(.veg) .rl { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   /* =====================================================================
      INDUSTRIELLT UTSEENDE (body.industri): mörk bakgrund, rostfritt stål, koppar,
      och gul glöd. Ändrar bara färger och dekor, inte layout eller textstorlek.
@@ -485,6 +493,7 @@ function valtTema(){
   return t === "industri" ? "industri" : "klassisk";
 }
 function tillämpaTema(){ document.body.classList.toggle("industri", valtTema() === "industri"); }
+const kodRad = (...a) => KASSA ? `<i class="br"></i>` + kod(...a) : "";
 const lunchPris = namn => { const m = lunch && lunch.priser; if(!m || !namn) return ""; const k = nz(namn); for(const n in m) if(nz(n) === k) return String(m[n] || ""); return ""; };
 const slutMärke = () => `<span class="sl">Slutsåld</span>`;
 
@@ -647,9 +656,9 @@ function eanFör(namn, reserv){
   const c = k !== undefined ? String(ean.rätter[k]) : (reserv === "lunch" && ean.standardLunch ? String(ean.standardLunch) : "");
   return eanOk(c) ? c : null;
 }
-function kod(namn, n, reserv){
+function kod(namn, n, reserv, visaSlut = true){
   if(!KASSA) return "";
-  if(ärSlut(namn, n)) return `<div class="kod ingen sl2">Slutsåld</div>`;
+  if(visaSlut && ärSlut(namn, n)) return `<div class="kod ingen sl2">Slutsåld</div>`;
   const c = eanFör(namn, reserv);
   return c ? `<div class="kod">${eanSvg(c)}</div>` : `<div class="kod ingen">Ingen streckkod</div>`;
 }
@@ -818,23 +827,24 @@ function rita(){
       const rader = (dagar[d] || []).map(r => dela(r).namn).concat(extraDag(iso(new Date(mån.getFullYear(), mån.getMonth(), mån.getDate() + i))).filter(e => e.alltid !== true).map(e => e.namn));
       return `<div class="rad${d === idag ? " idag" : ""}">
         <div class="dagnamn"><span class="dag fit" data-max="28">${d}</span><span class="dagdatum">${datum(i)}</span></div>
-        <div class="rl">${rader.map(nm => { const sl = d === idag && ärSlut(nm, n); return `<div class="${sl ? "slut" : ""}">${ikonFör(nm)}<span class="nm">${esc(nm)}</span>${lunchPris(nm) ? `<span class="rpris">${esc(lunchPris(nm))}</span>` : ""}${sl ? slutMärke() : ""}</div>`; }).join("") || "<div>Ingen meny registrerad</div>"}</div>
+        <div class="rl">${rader.map(nm => { const sl = d === idag && ärSlut(nm, n); return `<div class="${sl ? "slut" : ""}">${ikonFör(nm)}<span class="nm">${esc(nm)}</span>${lunchPris(nm) ? `<span class="rpris">${esc(lunchPris(nm))}</span>` : ""}${sl ? slutMärke() : ""}${kodRad(nm, n, "lunch", d === idag)}</div>`; }).join("") || "<div>Ingen meny registrerad</div>"}</div>
       </div>`;
     }).join("");
     if(veg) html += `<div class="rad veg">
         <div class="dagnamn"><span class="dag fit" data-max="28">Veckans<br>vegetariska</span><span class="dagunder">Gäller hela veckan</span></div>
-        <div class="rl"><div class="${ärSlut(veg.namn, n) ? "slut" : ""}">${ikonFör(veg.namn)}<span class="nm">${esc(veg.namn)}</span>${lunchPris(veg.namn) ? `<span class="rpris">${esc(lunchPris(veg.namn))}</span>` : ""}${ärSlut(veg.namn, n) ? slutMärke() : ""}<span class="hv">Mån–fre</span></div>${veg.besk ? `<div class="vbesk">${esc(veg.besk)}</div>` : ""}</div>
+        <div class="rl"><div class="${ärSlut(veg.namn, n) ? "slut" : ""}">${ikonFör(veg.namn)}<span class="nm">${esc(veg.namn)}</span>${lunchPris(veg.namn) ? `<span class="rpris">${esc(lunchPris(veg.namn))}</span>` : ""}${ärSlut(veg.namn, n) ? slutMärke() : ""}<span class="hv">Mån–fre</span>${kodRad(veg.namn, n, "lunch")}</div>${veg.besk ? `<div class="vbesk">${esc(veg.besk)}</div>` : ""}</div>
       </div>`;
     // Rätter som alltid serveras (alltid på) får en egen ruta längst ned till höger (tom yta i den gröna raden), så att dagarnas rader behåller sin textstorlek
     const alltid = extraDag("").filter(e => e.alltid === true);
     if(alltid.length){
       const nA = alltid.length, kl = nA <= 2 ? "a1" : nA <= 4 ? "a2" : "a3";
-      const sida = alltid.map(e => { const sl = ärSlut(e.namn, n); return `<div class="ar${sl ? " slut" : ""}">${e.etikett ? `<div class="ae">${esc(e.etikett)}</div>` : ""}<div class="an">${ikonFör(e.namn)}<span class="nm">${esc(e.namn)}</span>${e.pris ? `<span class="ap">${esc(e.pris)}</span>` : ""}${sl ? slutMärke() : ""}</div></div>`; }).join("");
+      const sida = alltid.map(e => { const sl = ärSlut(e.namn, n); return `<div class="ar${sl ? " slut" : ""}">${e.etikett ? `<div class="ae">${esc(e.etikett)}</div>` : ""}<div class="an">${ikonFör(e.namn)}<span class="nm">${esc(e.namn)}</span>${e.pris ? `<span class="ap">${esc(e.pris)}</span>` : ""}${sl ? slutMärke() : ""}</div>${kod(e.namn, n, "lunch")}</div>`; }).join("");
       const ruta = `<aside class="vkalltid vkhead ${kl}"><div class="vkrubrik">Alltid på Focus</div><div class="vklista">${sida}</div></aside>`;
       if(veg) html = html.replace(/(<div class="rad veg">[\s\S]*)<\/div>\s*$/, (m, fore) => fore + ruta + "</div>").replace('<div class="rad veg">', '<div class="rad veg medRuta">');
       else html += `<div class="rad veg medRuta"><div class="dagnamn"><span class="dag fit" data-max="28">Alltid på<br>Focus</span></div><div class="rl"></div>${ruta}</div>`;
     }
     el.innerHTML = html;
+    if(KASSA) document.querySelector(".skylt").classList.add("kassakompakt");      // kassa: mindre rubrik och ingen fotrad, så att koderna ryms
     return passa();
   }
 
