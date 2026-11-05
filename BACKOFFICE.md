@@ -119,3 +119,7 @@ Fliken **Lunch** → "Extra lunchrätter": välj datum, skriv rättens namn (och
 - **Egna tider för streckkoderna**: under Lunch, Frukost, Brunch och Hockey finns "Streckkoder i kassavyn". Kryssar ni i den kan kassavyn byta läge på andra tider än texten på skylten (texten visar fortfarande de vanliga tiderna). Sparas som `kassatid` i respektive fil.
 - **Utseende**: fliken Utseende väljer standardutseende (Klassiskt eller Industriellt, `utseende.json`). Valet gäller alla enheter och ställs bara in här. `?tema=industri` i adressen används bara för förhandsgranskning.
 - Nya filer att ladda upp: `bilder.json` och `utseende.json`. Kom ihåg att klistra in nya `worker/worker.js` i Cloudflare (Edit code → Deploy), annars nekas de nya filerna.
+
+## Takeaway (annan streckkod, annan moms)
+
+Lunchrätter och kaffe kan säljas både här och som takeaway med olika streckkod. I fliken Rätter finns på varje lunchrätt (och extra rätt, t.ex. Kaffe) ett andra fält, **Takeaway-streckkod**. Fyller ni i det visar kassavyn två koder under samma rätt, märkta **ÄTA HÄR** och **TA MED**. Saknas takeaway-koden visas en kod som förut. Längst ned i Rätter finns också en **gemensam takeaway-kod** för lunchrätter som saknar egen. I dagvyn får rätter som delar samma kod en gemensam bakgrundsnyans. Sparas i `ean.json` (`takeaway`, `standardTakeaway`), så nya `worker.js` måste klistras in i Cloudflare.
