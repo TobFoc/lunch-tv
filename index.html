@@ -148,6 +148,8 @@
   .dagkol .datum { font-weight: 700; font-size: calc(var(--u) * 6.2); margin-top: calc(var(--u) * .8); text-transform: uppercase; letter-spacing: .02em; }
   .lista { display: flex; flex-direction: column; gap: calc(var(--u) * 2.4 * var(--k, 1)); border-left: calc(var(--u) * .3) solid var(--svart); padding-left: calc(var(--u) * 3.4); }
   .rätt .namn { font-weight: 700; font-size: calc(var(--u) * 5.2 * var(--k, 1)); line-height: 1.04; }
+  .skylt.kassadag h1 { font-size: calc(var(--u) * 9.5); }
+  .skylt.kassadag.kassakompakt h1 { font-size: calc(var(--u) * 8); }
   .skylt.kassakompakt h1 { font-size: calc(var(--u) * 8); }
   .skylt.kassakompakt .pris { font-size: calc(var(--u) * 8); }
   .skylt.kassakompakt .under { font-size: calc(var(--u) * 3.4); }
@@ -759,7 +761,7 @@ function rita(){
   el.className = läge === "dag" ? "dagsläge" : läge === "frukost" || läge === "brunch" ? "frukostläge" : läge === "hockey" ? "hockeyläge" : "";
   document.querySelector(".skylt").classList.toggle("kompakt", läge === "vecka");
   document.querySelector(".skylt").classList.toggle("hockey", läge === "hockey");
-  document.querySelector(".skylt").classList.remove("kassakompakt");
+  document.querySelector(".skylt").classList.remove("kassakompakt", "kassadag");
 
   // Rubrik, pris och fotrad
   const pm = ((meny && meny.priser) || []).map(p => /^(.*?)\s+(\d+\s*:-)/.exec(p)).filter(Boolean);
@@ -888,6 +890,19 @@ function rita(){
       return `<div class="rätt k grupp${alla ? " slut" : ""}"><div class="rtext">${g.p.map(p => { const sl = ärSlut(p.o.namn, n); return `<div class="gi${sl ? " slut" : ""}">${textHtml(p.o, p.ids, p.et, sl)}</div>`; }).join("")}</div>` +
         `<div class="gkod">` + (alla ? `<div class="kod ingen sl2">Slutsåld</div>` : `<div class="kod">${eanSvg(g.c)}</div>`) + `<div class="gtxt">En kod för alla ${g.p.length} rätter</div></div></div>`;
     }).join("");
+  }
+  if(KASSA){      // kassa: dagen står i rubriken (där det annars står "Dagens lunch"), så att rätterna får hela bredden
+    document.querySelector(".skylt").classList.add("kassadag");
+    document.getElementById("rubrik").textContent = `${dagNamn} ${n.toLocaleDateString("sv-SE", {day: "numeric", month: "long"})}`;
+    el.innerHTML = `<div class="dagrad bred"><div class="lista">${lista}</div></div>`;
+    let kk = passa();
+    if(kk < .8){
+      const sk = document.querySelector(".skylt");
+      sk.classList.add("kassakompakt");
+      const k3 = passa();
+      if(k3 <= kk + .02){ sk.classList.remove("kassakompakt"); passa(); }
+    }
+    return;
   }
   el.innerHTML = `<div class="dagrad">
     <div class="dagvanster"><div class="dagkol"><span class="dag fit" data-max="44">${dagNamn}</span><div class="datum">${n.toLocaleDateString("sv-SE", {day: "numeric", month: "long"})}</div></div>${alltidHtml}</div>
