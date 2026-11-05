@@ -103,6 +103,13 @@
     .vkhead .an, .vkhead.a3 .an { font-size: calc(var(--u) * 4.4 * var(--k, 1)); }
     #rätter.vecka .rad:not(.veg) { flex: 1 1 auto; }
   }
+  /* Kassavyn, veckomenyn: "Alltid på Focus" ligger under den gröna raden över hela bredden, med streckkod (bara på kaffe) */
+  body.kassa #rätter.vecka .rad.veg.medRuta { grid-template-columns: calc(var(--u) * 44) 1fr; }
+  body.kassa #rätter.vecka .rad.veg.medRuta .vkhead { grid-column: 1 / -1; margin: calc(var(--u) * .8 * var(--k, 1)); }
+  body.kassa .vkhead .vklista { grid-template-columns: 1fr; row-gap: calc(var(--u) * .6 * var(--k, 1)); }
+  body.kassa .vkhead .ar { white-space: normal; flex-wrap: wrap; align-items: center; }
+  body.kassa .vkhead .an { font-size: calc(var(--u) * 4.4 * var(--k, 1)); overflow: visible; }
+  body.kassa .vkhead .ar .kod { --bw: 26; margin-left: auto; }
   .vkalltid .ap { margin-left: .6em; white-space: nowrap; }
   .vkalltid .ab { font-weight: 500; font-size: calc(var(--u) * 4.2 * var(--k, 1)); line-height: 1.15; margin-top: calc(var(--u) * .3); }
   .rad { display: grid; grid-template-columns: calc(var(--u) * 33) 1fr; align-items: stretch; background: rgba(255,255,255,.3); }
@@ -239,10 +246,7 @@
   .rl .rbild { width: .95em; height: .95em; }
 
   /* Kassa, veckovy: streckkoden ligger under varje rätt (skalar med textens storlek) */
-  .kassa .rl > div { flex-wrap: wrap; min-width: 0; row-gap: calc(var(--u) * .5 * var(--k, 1)); }
-  .kassa .rl > div .br { flex-basis: 100%; height: 0; }
-  .kassa .rl > div .kod { --bw: 22; width: calc(var(--u) * var(--bw) * var(--k, 1)); min-height: 0; align-self: flex-start; padding: calc(var(--u) * .4 * var(--k, 1)) calc(var(--u) * .8 * var(--k, 1)); }
-  .kassa .rl > div .kod.ingen { font-size: calc(var(--u) * 2 * var(--k, 1)); }
+  .kassa .rl > div { min-width: 0; }
   .kassa .vkhead .ar .kod.ingen { font-size: calc(var(--u) * 1.6 * var(--k, 1)); }
   .kassa .vkhead .ar .kod { --bw: 16; margin-left: auto; align-self: center; width: calc(var(--u) * 16 * var(--k, 1)); }
   .kassa #rätter.vecka .rad:not(.veg) .rl { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
@@ -827,18 +831,18 @@ function rita(){
       const rader = (dagar[d] || []).map(r => dela(r).namn).concat(extraDag(iso(new Date(mån.getFullYear(), mån.getMonth(), mån.getDate() + i))).filter(e => e.alltid !== true).map(e => e.namn));
       return `<div class="rad${d === idag ? " idag" : ""}">
         <div class="dagnamn"><span class="dag fit" data-max="28">${d}</span><span class="dagdatum">${datum(i)}</span></div>
-        <div class="rl">${rader.map(nm => { const sl = d === idag && ärSlut(nm, n); return `<div class="${sl ? "slut" : ""}">${ikonFör(nm)}<span class="nm">${esc(nm)}</span>${lunchPris(nm) ? `<span class="rpris">${esc(lunchPris(nm))}</span>` : ""}${sl ? slutMärke() : ""}${kodRad(nm, n, "lunch", d === idag)}</div>`; }).join("") || "<div>Ingen meny registrerad</div>"}</div>
+        <div class="rl">${rader.map(nm => { const sl = d === idag && ärSlut(nm, n); return `<div class="${sl ? "slut" : ""}">${ikonFör(nm)}<span class="nm">${esc(nm)}</span>${lunchPris(nm) ? `<span class="rpris">${esc(lunchPris(nm))}</span>` : ""}${sl ? slutMärke() : ""}</div>`; }).join("") || "<div>Ingen meny registrerad</div>"}</div>
       </div>`;
     }).join("");
     if(veg) html += `<div class="rad veg">
         <div class="dagnamn"><span class="dag fit" data-max="28">Veckans<br>vegetariska</span><span class="dagunder">Gäller hela veckan</span></div>
-        <div class="rl"><div class="${ärSlut(veg.namn, n) ? "slut" : ""}">${ikonFör(veg.namn)}<span class="nm">${esc(veg.namn)}</span>${lunchPris(veg.namn) ? `<span class="rpris">${esc(lunchPris(veg.namn))}</span>` : ""}${ärSlut(veg.namn, n) ? slutMärke() : ""}<span class="hv">Mån–fre</span>${kodRad(veg.namn, n, "lunch")}</div>${veg.besk ? `<div class="vbesk">${esc(veg.besk)}</div>` : ""}</div>
+        <div class="rl"><div class="${ärSlut(veg.namn, n) ? "slut" : ""}">${ikonFör(veg.namn)}<span class="nm">${esc(veg.namn)}</span>${lunchPris(veg.namn) ? `<span class="rpris">${esc(lunchPris(veg.namn))}</span>` : ""}${ärSlut(veg.namn, n) ? slutMärke() : ""}<span class="hv">Mån–fre</span></div>${veg.besk ? `<div class="vbesk">${esc(veg.besk)}</div>` : ""}</div>
       </div>`;
     // Rätter som alltid serveras (alltid på) får en egen ruta längst ned till höger (tom yta i den gröna raden), så att dagarnas rader behåller sin textstorlek
     const alltid = extraDag("").filter(e => e.alltid === true);
     if(alltid.length){
       const nA = alltid.length, kl = nA <= 2 ? "a1" : nA <= 4 ? "a2" : "a3";
-      const sida = alltid.map(e => { const sl = ärSlut(e.namn, n); return `<div class="ar${sl ? " slut" : ""}">${e.etikett ? `<div class="ae">${esc(e.etikett)}</div>` : ""}<div class="an">${ikonFör(e.namn)}<span class="nm">${esc(e.namn)}</span>${e.pris ? `<span class="ap">${esc(e.pris)}</span>` : ""}${sl ? slutMärke() : ""}</div>${kod(e.namn, n, "lunch")}</div>`; }).join("");
+      const sida = alltid.map(e => { const sl = ärSlut(e.namn, n); return `<div class="ar${sl ? " slut" : ""}">${e.etikett ? `<div class="ae">${esc(e.etikett)}</div>` : ""}<div class="an">${ikonFör(e.namn)}<span class="nm">${esc(e.namn)}</span>${e.pris ? `<span class="ap">${esc(e.pris)}</span>` : ""}${sl ? slutMärke() : ""}</div>${KASSA && /kaffe/i.test(e.namn) ? kod(e.namn, n, "lunch") : ""}</div>`; }).join("");
       const ruta = `<aside class="vkalltid vkhead ${kl}"><div class="vkrubrik">Alltid på Focus</div><div class="vklista">${sida}</div></aside>`;
       if(veg) html = html.replace(/(<div class="rad veg">[\s\S]*)<\/div>\s*$/, (m, fore) => fore + ruta + "</div>").replace('<div class="rad veg">', '<div class="rad veg medRuta">');
       else html += `<div class="rad veg medRuta"><div class="dagnamn"><span class="dag fit" data-max="28">Alltid på<br>Focus</span></div><div class="rl"></div>${ruta}</div>`;
