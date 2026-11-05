@@ -1,0 +1,16 @@
+{
+  "_info": "Vilken bild (ikon) som hör till vilken rätt. Ändras i backofficet under fliken Rätter.",
+  "rätter": {
+    "Pannbiff": "kott",
+    "Fisk och skaldjursgryta": "fisk",
+    "Stekt fläsk": "tallrik",
+    "Bohuslänsk fiskpudding": "fisk",
+    "Panerad sej": "fisk",
+    "Paneng Chicken": "kyckling",
+    "Dagens fångst": "fisk",
+    "Svamppasta": "pasta",
+    "Kaffe": "kaffe",
+    "Kaffe och macka": "kaffemacka",
+    "Takeaway kaffe": "takeaway"
+  }
+}
