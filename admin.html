@@ -561,7 +561,7 @@ function hämtaKort(){
     h("p", {class: "dim", style: "margin:2px 0 8px"}, menu ? "Menyn i systemet gäller vecka " + menu.vecka + ". Det är nu vecka " + nu + "." : "Ingen meny finns i systemet."),
     gammal ? h("div", {class: "fel"}, "Menyn i systemet är inte för den här veckan (vecka " + menu.vecka + ", nu är det vecka " + nu + "). Tryck på Hämta veckans meny. Fungerar det inte, tryck på Kontrollera hämtningen längre ned.") : null,
     hämtaMsg ? h("div", {class: hämtaMsg.fel ? "fel" : "info"}, hämtaMsg.text) : null,
-    h("button", {class: "prim", disabled: hämtar, onclick: hämtaNu}, hämtar ? "Hämtar… (tar 1–2 minuter)" : "Hämta veckans meny från ICA"),
+    h("button", {class: "prim", disabled: hämtar, onclick: hämtaNu}, hämtar ? "Hämtar…" : "Hämta veckans meny från ICA"),
     h("p", {class: "dim", style: "margin:8px 0 0"}, "Menyn hämtas annars automatiskt varje vardagsmorgon. Använd knappen när ICA lagt upp en ny meny och ni vill ha den direkt."),
     manuell,
     h("div", {style: "margin-top:12px;padding-top:10px;border-top:1px solid #ddd"},
@@ -585,24 +585,19 @@ async function hämtaNu(){
   if(någonSmutsig()){ hämtaMsg = {fel: true, text: "Spara eller ångra dina ändringar först (se flikar med •), annars kan de försvinna när menyn byts."}; return ritaHämta(); }
   hämtar = true; hämtaMsg = null; ritaHämta();
   try {
-    const innan = (await api("/api/hamtastatus")).runs;
-    const förstaId = innan.length ? innan[0].id : 0;
-    await api("/api/hamta", {method: "POST"});
-    let run = null;
-    for(let i = 0; i < 60 && !(run && run.status === "completed"); i++){                    // väntar högst ca 5 minuter
-      await new Promise(r => setTimeout(r, 5000));
-      const nya = (await api("/api/hamtastatus")).runs.filter(r => r.id > förstaId && r.event === "workflow_dispatch");
-      run = nya.length ? nya[nya.length - 1] : null;
-    }
-    if(!run || run.status !== "completed") throw new Error("Hämtningen tog för lång tid. Kontrollera fliken Actions på GitHub, eller försök igen om en stund.");
-    if(run.conclusion !== "success") throw new Error("Kunde inte hämta menyn från ICA:s sida. Den gamla menyn ligger kvar. Försök igen senare.");
     const före = menu && menu.vecka;
+    let r;
+    try { r = await api("/api/hamtaica", {method: "POST"}); }
+    catch(e){
+      if(e.status === 404) throw new Error("Sparfunktionen är gammal. Klistra in nya worker.js i Cloudflare (Edit code → Deploy).");
+      throw new Error(/HTTP 403/.test(e.message) ? "ICA blockerar den automatiska hämtningen (HTTP 403). Använd \"Klistra in menyn manuellt\" nedan, det tar en halv minut." : e.message + " Använd annars \"Klistra in menyn manuellt\" nedan.");
+    }
     await läsMeny();
     const j = await api("/api/get?fil=allergener.json");                                  // en ny vecka ger en ny tom allergenmall
     D.allergener = byggAllergener(j.data ? kopia(j.data) : null); BAS.allergener = ser(D.allergener);
-    hämtaMsg = menu && !before(före, menu.vecka) && menu.vecka !== isoVecka(new Date())
-      ? {fel: true, text: "Hämtningen gick bra men ICA har ännu inte lagt upp en ny meny. Menyn gäller fortfarande vecka " + menu.vecka + ". Försök igen senare."}
-      : {text: "Klart! Menyn gäller vecka " + (menu ? menu.vecka : "?") + (menu && before(före, menu.vecka) ? " (ny vecka, fyll i allergenerna)." : ".") + " TV:n visar den inom någon minut."};
+    hämtaMsg = !r.ändrad
+      ? {text: "Hämtningen gick bra men ICA:s meny är oförändrad (vecka " + r.vecka + ")."}
+      : {text: "Klart! Menyn gäller vecka " + r.vecka + (before(före, r.vecka) ? " (ny vecka, fyll i allergenerna)." : ".") + " TV:n visar den inom någon minut."};
   } catch(e){
     hämtaMsg = {fel: true, text: e.message};
   }
