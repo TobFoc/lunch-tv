@@ -234,7 +234,7 @@ async function läs(){
     if(k === "slut"){ const i = iso(new Date()); D[k] = D[k] && D[k].datum === i ? D[k] : {...(D[k] && D[k]._info ? {_info: D[k]._info} : {}), datum: i, rätter: []}; }
     if(k === "frukost") D[k] = D[k] || {rubrik: "Frukost", tid: {start: "07:00", slut: "10:00"}, dagar: [...DAGAR], visaAllergener: true, rader: []};
     if(k === "brunch") D[k] = D[k] || {rubrik: "Brunch", tid: {start: "07:00", slut: "15:00"}, dagar: ["lördag"], rader: [{namn: "Brunchbuffé", pris: "99:-", beskrivning: "Inkl gröt, ägg, bacon & våfflor"}]};
-    if(k === "ean") D[k] = D[k] ? {...D[k], rätter: D[k].rätter || {}} : {standardLunch: "", rätter: {}};
+    if(k === "ean") D[k] = D[k] ? {...D[k], rätter: D[k].rätter || {}, takeaway: D[k].takeaway || {}} : {standardLunch: "", rätter: {}, takeaway: {}};
     if(k === "bilder") D[k] = D[k] ? {...D[k], rätter: D[k].rätter || {}} : {rätter: {}};
     if(k === "utseende") D[k] = D[k] && D[k].tema ? D[k] : {tema: "klassisk"};
     if(k === "lunch") D[k] = D[k] || {tid: null, dagar: [...DAGAR]};
@@ -684,10 +684,13 @@ function vyRatter(){
   const setEan = (n, v) => { const k = nyckelI(e.rätter, n); if(k !== undefined) delete e.rätter[k]; if(v) e.rätter[n] = v; };
   const getBild = n => { const k = nyckelI(bi, n); return k === undefined ? "" : bi[k]; };
   const setBild = (n, v) => { const k = nyckelI(bi, n); if(k !== undefined) delete bi[k]; if(v) bi[n] = v; };
+  const ta = e.takeaway = e.takeaway || {};
+  const getTa = n => { const k = nyckelI(ta, n); return k === undefined ? "" : ta[k]; };
+  const setTa = (n, v) => { const k = nyckelI(ta, n); if(k !== undefined) delete ta[k]; if(v) ta[n] = v; };
   const ärSl = n => sl.rätter.some(x => nz(x) === nz(n));
   const växlaSl = n => { sl.rätter = ärSl(n) ? sl.rätter.filter(x => nz(x) !== nz(n)) : [...sl.rätter, n]; };
-  const flytta = (a, b) => { if(!a || nz(a) === nz(b)) return; const k = getEan(a), i = getBild(a), s = ärSl(a); setEan(a, ""); setBild(a, ""); if(s) sl.rätter = sl.rätter.filter(x => nz(x) !== nz(a));
-    if(k && !getEan(b)) setEan(b, k); if(i && !getBild(b)) setBild(b, i); if(s && !ärSl(b)) sl.rätter.push(b); };
+  const flytta = (a, b) => { if(!a || nz(a) === nz(b)) return; const k = getEan(a), kt = getTa(a), i = getBild(a), s = ärSl(a); setEan(a, ""); setTa(a, ""); setBild(a, ""); if(s) sl.rätter = sl.rätter.filter(x => nz(x) !== nz(a));
+    if(k && !getEan(b)) setEan(b, k); if(kt && !getTa(b)) setTa(b, kt); if(i && !getBild(b)) setBild(b, i); if(s && !ärSl(b)) sl.rätter.push(b); };
 
   /* ett kort per rätt: namn, pris, streckkod, bild och slutsåld */
   function kort(o){       // o = {namn, sättNamn?, pris?: {get,set}, notis?, kod: true|false}
@@ -706,6 +709,19 @@ function vyRatter(){
       const inp = h("input", {type: "text", inputmode: "numeric", autocomplete: "off", placeholder: "Scanna eller skriv EAN", value: ean, oninput: () => { const k = inp.value.replace(/\D/g, ""); setEan(namn, k); uppdKod(k); uppdStatus(); },
         onkeydown: ev => { if(ev.key === "Enter"){ ev.preventDefault(); const i = fält.indexOf(inp); if(fält[i + 1]) fält[i + 1].focus(); } }});
       fält.push(inp); uppdKod(ean);
+      let taRad = null;
+      if(o.takeaway){
+        const taPill = h("span", {class: "pill"}), taSvg = h("div", {class: "streck"});
+        const uppdTa = k => {
+          if(!k){ taPill.className = "pill"; taPill.textContent = e.standardTakeaway ? "Gemensam takeaway-kod används" : "Ingen takeaway-kod (en kod visas)"; taSvg.replaceChildren(); return; }
+          if(eanOk(k)){ taPill.className = "pill ok"; taPill.textContent = "Takeaway " + (k.length === 13 ? "EAN-13" : "EAN-8") + " ✓"; taSvg.innerHTML = eanSvg(k); taSvg.firstChild.style.width = "100%"; }
+          else { taPill.className = "pill sak"; taSvg.replaceChildren(); taPill.textContent = (k.length === 13 || k.length === 8) ? "Fel kontrollsiffra" : "13 eller 8 siffror (" + k.length + " nu)"; }
+        };
+        const taInp = h("input", {type: "text", inputmode: "numeric", autocomplete: "off", placeholder: "Takeaway-streckkod (annan moms)", value: getTa(namn), oninput: () => { const k = taInp.value.replace(/\D/g, ""); setTa(namn, k); uppdTa(k); uppdStatus(); },
+          onkeydown: ev => { if(ev.key === "Enter"){ ev.preventDefault(); const i = fält.indexOf(taInp); if(fält[i + 1]) fält[i + 1].focus(); } }});
+        fält.push(taInp); uppdTa(getTa(namn));
+        taRad = h("div", {class: "rad", style: "margin-top:8px"}, taInp, h("div", {style: "flex:none;min-width:0;width:140px"}, taSvg), taPill);
+      }
       const namnFält = o.sättNamn
         ? h("input", {type: "text", placeholder: "Namn", value: namn, oninput: ev => { o.sättNamn(ev.target.value); uppdStatus(); },
             onchange: ev => { const ny = ev.target.value.trim(); if(ny && nz(ny) !== nz(namn)){ flytta(namn, ny); namn = ny; } rita(); uppdStatus(); }})
@@ -719,6 +735,7 @@ function vyRatter(){
           h("button", {class: slut ? "prim" : "fara", style: "min-width:150px", onclick: () => { växlaSl(namn); rita(); uppdStatus(); }}, slut ? "Finns igen" : "Slutsåld")),
         o.notis ? h("div", {class: "dim", style: "margin-top:4px"}, o.notis) : null,
         o.kod === false ? null : h("div", {class: "rad", style: "margin-top:8px"}, inp, h("div", {style: "flex:none;min-width:0;width:140px"}, svgDiv), pill),
+        taRad,
         h("details", {class: "bildval", style: "margin-top:8px"}, h("summary", {}, visaBild ? "Bild: " + ((IKONER.find(x => x[0] === visaBild) || [])[1] || visaBild) : "Lägg till bild"),
           h("div", {class: "ikongrid"}, [["", "Ingen bild"], ...IKONER].map(([id, text]) => h("button", {type: "button", class: "ikonval" + (id === visaBild ? " vald" : ""), title: text, "aria-label": text, "aria-pressed": id === visaBild,
             onclick: () => { setBild(namn, id); rita(); uppdStatus(); }}, id ? ikonSvg(id, 40) : h("span", {class: "dim"}, "Ingen"), h("span", {class: "ikonnamn"}, text)))))].filter(Boolean));
@@ -738,8 +755,8 @@ function vyRatter(){
   delar.push(h("p", {class: "dim", style: "margin:0"}, "Namnen på ICA:s rätter hämtas från hemsidan och är låsta. Pris, streckkod, bild och slutsåld ändrar ni själva (tomt pris = bara lunchpriset i rubriken)."));
   const pr = D.lunch.priser = D.lunch.priser || {};
   const prisFör = { get: n => { const k = nyckelI(pr, n); return k === undefined ? "" : pr[k]; }, set: (n, v) => { const k = nyckelI(pr, n); if(k !== undefined) delete pr[k]; if(v.trim()) pr[n] = v; } };
-  lunchNamn.forEach(n => delar.push(kort({namn: n, pris: {get: () => prisFör.get(n), set: v => prisFör.set(n, v)}, standardKod: !!e.standardLunch})));
-  extra.forEach(x => delar.push(kort({namn: x.namn, sättNamn: v => x.namn = v, pris: {get: () => x.pris, set: v => x.pris = v}, notis: (x.alltid ? "Extra rätt · alltid på" : "Extra rätt · " + x.datum) + " (datum, etikett och allergener ändras under Lunch, där allergenerna kan rättas i efterhand)", standardKod: !!e.standardLunch})));
+  lunchNamn.forEach(n => delar.push(kort({namn: n, takeaway: true, pris: {get: () => prisFör.get(n), set: v => prisFör.set(n, v)}, standardKod: !!e.standardLunch})));
+  extra.forEach(x => delar.push(kort({namn: x.namn, takeaway: true, sättNamn: v => x.namn = v, pris: {get: () => x.pris, set: v => x.pris = v}, notis: (x.alltid ? "Extra rätt · alltid på" : "Extra rätt · " + x.datum) + " (datum, etikett och allergener ändras under Lunch, där allergenerna kan rättas i efterhand)", standardKod: !!e.standardLunch})));
   const bf = (rubrik, f) => { const rd = (f && f.rader) || []; if(!rd.length) return; delar.push(h("h2", {}, rubrik)); rd.forEach(r => delar.push(kort({namn: r.namn, sättNamn: v => r.namn = v, pris: {get: () => r.pris, set: v => r.pris = v}}))); };
   bf("Frukost", D.frukost); bf("Brunch", D.brunch);
   const hk = D.hockey;
@@ -753,6 +770,9 @@ function vyRatter(){
   delar.push(h("p", {class: "dim", style: "margin:0"}, "Används för lunchrätter som saknar egen kod."));
   const gem = h("input", {type: "text", inputmode: "numeric", placeholder: "EAN", value: e.standardLunch || "", oninput: ev => { e.standardLunch = ev.target.value.replace(/\D/g, ""); uppdStatus(); }});
   delar.push(h("div", {class: "kort"}, gem));
+  delar.push(h("h2", {}, "Gemensam takeaway-streckkod för lunch"));
+  delar.push(h("p", {class: "dim", style: "margin:0"}, "Används för lunchrätter som kan köpas med sig men saknar egen takeaway-kod. Rätter med takeaway-kod visar två koder i kassan: Äta här och Ta med."));
+  delar.push(h("div", {class: "kort"}, h("input", {type: "text", inputmode: "numeric", placeholder: "EAN (valfri)", value: e.standardTakeaway || "", oninput: ev => { e.standardTakeaway = ev.target.value.replace(/\D/g, ""); uppdStatus(); }})));
   const övriga = Object.keys(e.rätter).filter(k => !visade.some(n => nz(n) === nz(k)));
   if(övriga.length){
     delar.push(h("h2", {}, "Sparade koder för rätter som inte finns just nu"), h("p", {class: "dim", style: "margin:0"}, "Behålls så att koden finns kvar när rätten kommer tillbaka."));
@@ -799,9 +819,10 @@ async function spara(){
   const knapp = $("spara"), ändrade = Object.keys(D).filter(k => D[k] && BAS[k] !== ser(D[k]));
   if(!ändrade.length) return;
   if(ändrade.includes("ean")){
-    const dåliga = [["Gemensam kod", D.ean.standardLunch], ...Object.entries(D.ean.rätter)].filter(([, c]) => c && !eanOk(c));
+    const dåliga = [["Gemensam kod", D.ean.standardLunch], ["Gemensam takeaway-kod", D.ean.standardTakeaway], ...Object.entries(D.ean.rätter), ...Object.entries(D.ean.takeaway || {}).map(([n, c]) => ["Takeaway " + n, c])].filter(([, c]) => c && !eanOk(c));
     if(dåliga.length) return toast("Rätta först: " + dåliga.slice(0, 3).map(x => x[0]).join(", ") + " har en ogiltig kod.", true);
     D.ean.rätter = Object.fromEntries(Object.entries(D.ean.rätter).filter(([, c]) => c));
+    D.ean.takeaway = Object.fromEntries(Object.entries(D.ean.takeaway || {}).filter(([, c]) => c));
   }
   if(ändrade.includes("bilder")) D.bilder.rätter = Object.fromEntries(Object.entries(D.bilder.rätter).filter(([, c]) => c));
   knapp.disabled = true; knapp.textContent = "Sparar…";
