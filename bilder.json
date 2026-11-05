@@ -17,12 +17,14 @@
     "Frukostbuffé": "kaffemacka",
     "Kaffe & fralla": "kaffemacka",
     "Barnfrukost": "kaffemacka",
-    "Brunchbuffé": "kaffemacka",
     "Hamburgare": "burgare",
     "Vin": "vin",
     "Paketpris mat + dryck": "burgare",
     "Öl": "ol",
     "Räkmacka": "kaffemacka",
-    "Take-Away Kaffe": "matlada"
+    "Köttbullar": "tallrik",
+    "Salladsbaren": "sallad",
+    "Brunchbuffé": "vaffla",
+    "Take-Away Kaffe": "takeaway"
   }
 }
