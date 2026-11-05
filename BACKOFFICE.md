@@ -111,3 +111,11 @@ Fliken **Lunch** → "Extra lunchrätter": välj datum, skriv rättens namn (och
 **Alltid på:** kryssa i "Alltid på" så visas rätten varje lunchdag (tills ni tar bort den), till exempel ett take away-alternativ. Fältet "Etikett" ger en liten grön text över rätten, t.ex. "Take away". Utan "Alltid på" väljer ni ett datum, och rätten försvinner av sig själv efteråt.
 
 **Streckkoder i kassavyn:** rätter som har samma streckkod läggs ihop och delar på en kod. Det är praktiskt om ni använder en gemensam kod för alla lunchrätter (fältet "Gemensam kod för lunchrätter" under Streckkoder). Blir texten för liten på en iPad tar kassavyn bort fotraden och minskar rubriken, och lägger vid behov rätterna i två kolumner med dagen överst.
+
+## Rätter, bilder, kassatider och utseende
+
+- **Fliken Rätter** samlar (priset på ICA:s lunchrätter ändras här och sparas i `lunch.json`; namnen är låsta eftersom de hämtas varje vecka) allt för samma rätt på ett ställe: namn, pris, streckkod (EAN), bild och slutsåld. Lunch, frukost, brunch och hockey ligger i varsin grupp. Tider och dagar ändrar ni fortfarande i flikarna Lunch, Frukost, Brunch och Hockey, och Stängt har en egen flik. Spara-knappen sparar allt som ändrats, i alla flikar, på en gång.
+- **Bilder**: tryck på "Lägg till bild" på en rätt och välj ur galleriet (kaffe som ryker, kaffe med macka, tallrik med bestick, takeaway-kaffe, fisk, kött, soppa med flera). Bilden visas som en mörkgrå outline framför rättens namn. Kopplingen sparas i `bilder.json`.
+- **Egna tider för streckkoderna**: under Lunch, Frukost, Brunch och Hockey finns "Streckkoder i kassavyn". Kryssar ni i den kan kassavyn byta läge på andra tider än texten på skylten (texten visar fortfarande de vanliga tiderna). Sparas som `kassatid` i respektive fil.
+- **Utseende**: fliken Utseende väljer standardutseende (Klassiskt eller Industriellt, `utseende.json`). Valet gäller alla enheter och ställs bara in här. `?tema=industri` i adressen används bara för förhandsgranskning.
+- Nya filer att ladda upp: `bilder.json` och `utseende.json`. Kom ihåg att klistra in nya `worker/worker.js` i Cloudflare (Edit code → Deploy), annars nekas de nya filerna.
