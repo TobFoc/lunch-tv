@@ -6,11 +6,23 @@
     "Stekt fläsk": "tallrik",
     "Bohuslänsk fiskpudding": "fisk",
     "Panerad sej": "fisk",
-    "Paneng Chicken": "kyckling",
     "Dagens fångst": "fisk",
     "Svamppasta": "pasta",
     "Kaffe": "kaffe",
     "Kaffe och macka": "kaffemacka",
-    "Takeaway kaffe": "takeaway"
+    "Takeaway kaffe": "takeaway",
+    "Paneng Chicken": "tallrik",
+    "Viltskavsgryta": "tallrik",
+    "Rosastekt flankstek": "kott",
+    "Frukostbuffé": "kaffemacka",
+    "Kaffe & fralla": "kaffemacka",
+    "Barnfrukost": "kaffemacka",
+    "Brunchbuffé": "kaffemacka",
+    "Hamburgare": "burgare",
+    "Vin": "vin",
+    "Paketpris mat + dryck": "burgare",
+    "Öl": "ol",
+    "Räkmacka": "kaffemacka",
+    "Take-Away Kaffe": "matlada"
   }
 }
