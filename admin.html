@@ -55,6 +55,15 @@
   .datum.gammal { opacity: .45; }
   .datum.idag { border-color: var(--röd); font-weight: 700; }
   .dim { color: #55554f; font-size: 15px; }
+  .ikonvis { display: inline-block; line-height: 0; color: #4b4f55; flex: none; }
+  .ikonknapp { flex: none; min-width: 0 !important; width: 56px; height: 56px; border: 1px dashed var(--linje); border-radius: 10px; display: flex; align-items: center; justify-content: center; background: #fafaf8; }
+  .rättkort details summary { cursor: pointer; font-weight: 600; min-height: 40px; display: flex; align-items: center; }
+  .ikongrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; margin: 8px 0 4px; }
+  .ikonval { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 84px; padding: 6px 4px; }
+  .ikonval.vald { border: 3px solid var(--grön); background: #eef7ee; }
+  .ikonnamn { font-size: 12px; line-height: 1.1; text-align: center; }
+  .streck { background: #fff; border: 1px solid var(--linje); line-height: 0; min-height: 44px; }
+  .utseende { cursor: pointer; } .utseende.vald { border: 3px solid var(--grön); }
   #login { max-width: 420px; margin: 12vh auto; padding: 0 16px; }
 </style>
 </head>
@@ -75,6 +84,29 @@
     <symbol id="a-jordnotter" viewBox="0 0 24 24"><g transform="rotate(32 12 12)"><circle cx="12" cy="6.6" r="4.3" fill="#fff"/><circle cx="12" cy="17.4" r="4.9" fill="#fff"/><rect x="9.4" y="8.5" width="5.2" height="6" fill="#fff"/><path d="M8.6 5.5c.9.5 1.5.5 2.4 0M13 7.6c.9.5 1.5.5 2.4 0M9 16.2c.9.5 1.5.5 2.4 0M13 18.4c.9.5 1.5.5 2.4 0" stroke="#111" stroke-width=".9" fill="none" stroke-linecap="round"/></g></symbol>
     <symbol id="a-lupin" viewBox="0 0 24 24"><path d="M12 23V5" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/><g fill="#fff"><circle cx="12" cy="3.6" r="1.7"/><circle cx="9.9" cy="7.2" r="1.9"/><circle cx="14.1" cy="7.2" r="1.9"/><circle cx="8.9" cy="11.4" r="2"/><circle cx="15.1" cy="11.4" r="2"/><circle cx="8" cy="15.8" r="2.1"/><circle cx="16" cy="15.8" r="2.1"/></g></symbol>
     <symbol id="a-sulfit" viewBox="0 0 24 24"><text x="10.6" y="15.6" text-anchor="middle" font-family="Arial, sans-serif" font-size="10.5" font-weight="700" fill="#fff">SO</text><text x="19.4" y="18" text-anchor="middle" font-family="Arial, sans-serif" font-size="6.5" font-weight="700" fill="#fff">2</text></symbol>
+    <symbol id="i-kaffe" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M25 6c-3.500 4 3.500 6 0 11M33 4c-3.500 4 3.500 7 0 13M41 6c-3.500 4 3.500 6 0 11"/><path d="M12 26h34v14a13 13 0 0 1-13 13h-8a13 13 0 0 1-13-13z"/><path d="M46 30h3a6 6 0 0 1 0 12h-4"/><path d="M8 58h42"/></g></symbol>
+    <symbol id="i-kaffemacka" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6c-3 3 3 5 0 9M21 5c-3 3 3 6 0 10"/><path d="M6 22h24v12a10 10 0 0 1-10 10h-4a10 10 0 0 1-10-10z"/><path d="M30 26h2a5 5 0 0 1 0 10h-3"/><path d="M36 50l11-22 11 22z"/><path d="M40 43h14M43 36h8"/><path d="M4 56h56"/></g></symbol>
+    <symbol id="i-tallrik" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="32" cy="34" r="15"/><circle cx="32" cy="34" r="9"/><path d="M8 10v12M12 10v12M16 10v12M8 22c0 5 8 5 8 0M12 27v26"/><path d="M55 10c-5 3-6 13-2 21h2zM55 31v22"/></g></symbol>
+    <symbol id="i-takeaway" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M25 10v-4h14v4"/><path d="M16 10h32v8H16z"/><path d="M19 18l4 38h18l4-38"/><path d="M21 30h22l-1 14H22z"/><path d="M52 24c3 3 3 9 0 12"/></g></symbol>
+    <symbol id="i-fisk" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 32c9-14 26-15 38-5l11-9v28l-11-9c-12 10-29 9-38-5z"/><path d="M17 29h.01" stroke-width="4.500"/><path d="M29 22c4 6 4 14 0 20"/></g></symbol>
+    <symbol id="i-kott" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 36c-2-13 8-23 23-23s25 10 23 23c-2 12-14 18-25 16-12-2-19-8-21-16z"/><path d="M22 26l12 18M30 22l14 20M38 22l8 12"/></g></symbol>
+    <symbol id="i-kyckling" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="40" cy="24" r="16"/><path d="M29 35L15 49"/><circle cx="12" cy="50" r="3.5"/><circle cx="18" cy="55" r="3.5"/><path d="M33 17c2-3 6-4 9-3"/></g></symbol>
+    <symbol id="i-soppa" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 30h48c0 14-10 24-24 24S8 44 8 30z"/><path d="M22 8c-3 4 3 6 0 11M32 6c-3 4 3 7 0 13M42 8c-3 4 3 6 0 11"/><path d="M20 58h24"/></g></symbol>
+    <symbol id="i-sallad" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 34h48c0 13-10 22-24 22S8 47 8 34z"/><path d="M18 34c-3-9 3-17 11-17 1 9-3 15-11 17z"/><path d="M33 34c0-9 6-17 15-15 0 9-6 15-15 15z"/><circle cx="31" cy="25" r="3.500"/></g></symbol>
+    <symbol id="i-pasta" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 36h48c0 12-10 20-24 20S8 48 8 36z"/><path d="M14 36c0-9 9-9 9 0M23 36c0-9 9-9 9 0M32 36c0-9 9-9 9 0"/><path d="M48 6v14M43 6v11M53 6v11M43 17c0 5 10 5 10 0M48 22v14"/></g></symbol>
+    <symbol id="i-burgare" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 28c0-10 10-17 23-17s23 7 23 17z"/><path d="M24 19h.01M32 16h.01M40 19h.01" stroke-width="4"/><path d="M8 33c4 3 6-3 10 0s6-3 10 0 6-3 10 0 6-3 10 0 6-3 8 0"/><path d="M9 38h46v6H9z"/><path d="M9 48h46c0 6-4 8-9 8H18c-5 0-9-2-9-8z"/></g></symbol>
+    <symbol id="i-matlada" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16h48v10H8z"/><path d="M11 26v26a2 2 0 0 0 2 2h38a2 2 0 0 0 2-2V26"/><path d="M26 36h12"/><path d="M24 16v-5h16v5"/></g></symbol>
+    <symbol id="i-ol" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 22h28v31a2 2 0 0 1-2 2H15a2 2 0 0 1-2-2z"/><path d="M41 28h6a5 5 0 0 1 5 5v9a5 5 0 0 1-5 5h-6"/><path d="M13 22c-3-7 4-11 8-9 2-5 9-5 11 0 5-2 11 1 9 9"/><path d="M22 32v14M32 32v14"/></g></symbol>
+    <symbol id="i-vin" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6h24c0 15-2 26-12 28C22 32 20 21 20 6z"/><path d="M32 34v19"/><path d="M22 57h20"/><path d="M21 17h22"/></g></symbol>
+    <symbol id="i-vaffla" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="10" width="48" height="44" rx="6"/><path d="M24 10v44M40 10v44M8 25h48M8 39h48"/></g></symbol>
+    <symbol id="i-agg" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M32 6c-10 0-18 16-18 29a18 18 0 0 0 36 0C50 22 42 6 32 6z"/><path d="M23 33c0-5 2-9 5-12"/></g></symbol>
+    <symbol id="i-frukostbrod" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 42c3-14 13-23 27-23s24 9 27 23c-4 4-8 2-11-2-3 4-9 4-16 0-7 4-13 4-16 0-3 4-7 6-11 2z"/><path d="M23 23l-4 15M32 21v17M41 23l4 15"/></g></symbol>
+    <symbol id="i-kaka" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 50V30l46-10v30z"/><path d="M8 30l46-10"/><path d="M8 38c4 4 7 0 11 3s7-1 11 2 7-1 12 2 8-2 12 0"/><circle cx="44" cy="12" r="4"/><path d="M44 8V4"/></g></symbol>
+    <symbol id="i-gryta" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 28h44v18a9 9 0 0 1-9 9H19a9 9 0 0 1-9-9z"/><path d="M10 33H5M54 33h5"/><path d="M28 28v-5h8v5"/><path d="M22 14c-3 3 3 5 0 9M42 14c-3 3 3 5 0 9"/></g></symbol>
+    <symbol id="i-vegetariskt" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 52C8 27 24 10 55 9c2 29-12 45-39 45"/><path d="M10 52l26-26M24 40h12M31 33v-10"/></g></symbol>
+    <symbol id="i-paket" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="38" r="15"/><circle cx="24" cy="38" r="9"/><path d="M44 10h14l-2 24c0 3-2 4-5 4s-5-1-5-4z"/><path d="M51 38v14M45 55h12"/></g></symbol>
+    <symbol id="i-glass" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 30h20l-6 28h-8z"/><path d="M20 30c-3-6 0-12 6-12 1-5 6-8 11-5 5-1 9 3 8 9 2 3 1 8-3 8"/></g></symbol>
+    <symbol id="i-kallkaffe" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 16h28l-4 40H22z"/><path d="M16 16h32"/><path d="M36 16l8-10h6"/><path d="M20 30h24"/></g></symbol>
   </defs>
 </svg>
 
@@ -114,9 +146,9 @@ const ALLERGENER = [
 const ALIAS = {"mjölk":"laktos","mjolk":"laktos","notter":"nötter","trädnötter":"nötter","agg":"ägg","blotdjur":"blötdjur","mollusker":"blötdjur","kräftdjur":"skaldjur","jordnotter":"jordnötter","sesamfrön":"sesam","spannmål":"gluten","svaveldioxid":"sulfit"};
 const DAGAR = ["måndag","tisdag","onsdag","torsdag","fredag"];
 const ALLA_DAGAR = [...DAGAR, "lördag", "söndag"];
-const FILNAMN = {ean: "ean.json", slut: "slutsald.json", allergener: "allergener.json", lunch: "lunch.json", frukost: "frukost.json", brunch: "brunch.json", hockey: "hockey.json", oppett: "oppettider.json"};
+const FILNAMN = {ean: "ean.json", slut: "slutsald.json", allergener: "allergener.json", lunch: "lunch.json", frukost: "frukost.json", brunch: "brunch.json", hockey: "hockey.json", oppett: "oppettider.json", bilder: "bilder.json", utseende: "utseende.json"};
 
-let pin = "", flik = "slut", menu = null;
+let pin = "", flik = "ratter", menu = null;
 const D = {allergener: null, frukost: null, hockey: null};   // arbetskopior
 const BAS = {};                                              // sparad version som text, för att se om något ändrats
 const MSG = {};                                              // anmärkningar per flik
@@ -135,7 +167,7 @@ function h(tag, attrs, ...kids){
 }
 const $ = id => document.getElementById(id);
 const ser = o => JSON.stringify(o);
-const smutsig = () => D[flik] && BAS[flik] !== ser(D[flik]);
+const smutsig = () => Object.keys(D).some(k => D[k] && BAS[k] !== ser(D[k]));
 function toast(t, fel){ const e = h("div", {class: "toast" + (fel ? " fel" : "")}, t); document.body.append(e); setTimeout(() => e.remove(), fel ? 7000 : 3500); }
 const kopia = o => JSON.parse(JSON.stringify(o));
 
@@ -203,6 +235,8 @@ async function läs(){
     if(k === "frukost") D[k] = D[k] || {rubrik: "Frukost", tid: {start: "07:00", slut: "10:00"}, dagar: [...DAGAR], visaAllergener: true, rader: []};
     if(k === "brunch") D[k] = D[k] || {rubrik: "Brunch", tid: {start: "07:00", slut: "15:00"}, dagar: ["lördag"], rader: [{namn: "Brunchbuffé", pris: "99:-", beskrivning: "Inkl gröt, ägg, bacon & våfflor"}]};
     if(k === "ean") D[k] = D[k] ? {...D[k], rätter: D[k].rätter || {}} : {standardLunch: "", rätter: {}};
+    if(k === "bilder") D[k] = D[k] ? {...D[k], rätter: D[k].rätter || {}} : {rätter: {}};
+    if(k === "utseende") D[k] = D[k] && D[k].tema ? D[k] : {tema: "klassisk"};
     if(k === "lunch") D[k] = D[k] || {tid: null, dagar: [...DAGAR]};
     if(k === "oppett"){ D[k] = D[k] || {rodaDagarStangt: true, undantag: []}; D[k].undantag = (D[k].undantag || []).filter(e => (e.till || e.datum) >= iso(new Date())); }
     if(k === "hockey") D[k] = D[k] || {rubrik: "Hockeykvällar i Focus Restaurang", underrubrik: "", banner: "Hockeykväll i restaurangen!", tid: {start: "16:30"}, matchstart: "19:00", datum: [], rader: [], paket: {namn: "Paketpris mat + dryck", pris: ""}};
@@ -285,6 +319,7 @@ function vyBuffe(key){
     h("label", {class: "f"}, "Dagar då " + ORD.toLowerCase() + " serveras"),
     h("div", {class: "dagar"}, ALLA_DAGAR.map(d => h("label", {}, h("input", {type: "checkbox", checked: (f.dagar || []).includes(d), onchange: e => {
       f.dagar = ALLA_DAGAR.filter(x => x === d ? e.target.checked : (f.dagar || []).includes(x)); uppdStatus(); }}), d))),
+    kassaTidFält(f, () => ({start: f.tid.start, slut: f.tid.slut})),
     h("h2", {}, "Rader"), lista,
     h("button", {onclick: () => { rader.push({namn: "", pris: "", beskrivning: ""}); ritaRaderOchScrolla(); }}, "+ Lägg till rad"));
   function ritaRaderOchScrolla(){ ritaRader(); uppdStatus(); lista.lastElementChild && lista.lastElementChild.scrollIntoView({block: "center"}); }
@@ -324,6 +359,7 @@ function vyHockey(){
     h("div", {class: "rad"},
       h("div", {}, h("label", {class: "f"}, "Uppladdning från"), h("input", {type: "time", value: (k.tid || {}).start || "", oninput: e => { k.tid = {...k.tid, start: e.target.value}; uppdStatus(); }})),
       h("div", {}, h("label", {class: "f"}, "Matchstart"), h("input", {type: "time", value: k.matchstart || "", oninput: e => { k.matchstart = e.target.value; uppdStatus(); }}))),
+    kassaTidFält(k, () => ({start: (k.tid || {}).start || "16:30", slut: k.matchstart || "19:00"})),
     h("h2", {}, "Texter"),
     ...txt("Rubrik", () => k.rubrik || "", v => k.rubrik = v),
     ...txt("Text under rubriken", () => k.underrubrik || "", v => k.underrubrik = v),
@@ -421,12 +457,12 @@ let hämtar = false, hämtaMsg = null;
 const någonSmutsig = () => Object.keys(D).some(k => D[k] && BAS[k] !== ser(D[k]));
 function hämtaKort(){
   const kort = h("div", {class: "kort"});
-  const rita = () => kort.replaceChildren(
+  const rita = () => kort.replaceChildren(...[
     h("h3", {}, "Veckans meny från ICA"),
     h("p", {class: "dim", style: "margin:2px 0 8px"}, menu ? "Menyn i systemet gäller vecka " + menu.vecka + "." : "Ingen meny finns i systemet."),
     hämtaMsg ? h("div", {class: hämtaMsg.fel ? "fel" : "info"}, hämtaMsg.text) : null,
     h("button", {class: "prim", disabled: hämtar, onclick: hämtaNu}, hämtar ? "Hämtar… (tar 1–2 minuter)" : "Hämta veckans meny från ICA"),
-    h("p", {class: "dim", style: "margin:8px 0 0"}, "Menyn hämtas annars automatiskt varje vardagsmorgon. Använd knappen när ICA lagt upp en ny meny och ni vill ha den direkt."));
+    h("p", {class: "dim", style: "margin:8px 0 0"}, "Menyn hämtas annars automatiskt varje vardagsmorgon. Använd knappen när ICA lagt upp en ny meny och ni vill ha den direkt.")].filter(Boolean));
   rita(); kort._rita = rita; hämtaKort.aktiva.push(kort);
   return kort;
 }
@@ -527,6 +563,7 @@ function vyLunch(){
     h("label", {class: "f"}, "Dagar då lunch serveras"),
     h("div", {class: "dagar"}, ALLA_DAGAR.map(d => h("label", {}, h("input", {type: "checkbox", checked: (l.dagar || []).includes(d), onchange: e => {
       l.dagar = ALLA_DAGAR.filter(x => x === d ? e.target.checked : (l.dagar || []).includes(x)); uppdStatus(); }}), d))),
+    kassaTidFält(l, () => l.tid || (ica ? {start: ica.start, slut: ica.slut} : {start: "11:00", slut: "14:30"})),
     vyExtra());
 }
 
@@ -614,17 +651,141 @@ function vyStangt(){
         o.undantag.push(e); från.value = till.value = orsak.value = ""; rita(); uppdStatus(); }}, "+ Stäng dessa dagar"))));
 }
 
+/* ---------- Bilder (outline-ikoner) ---------- */
+const IKONER = [["kaffe", "Kaffe som ryker"], ["kaffemacka", "Kaffe och macka"], ["tallrik", "Tallrik med bestick"], ["takeaway", "Takeaway-kaffe"], ["fisk", "Fisk"], ["kott", "Kött / stek"], ["kyckling", "Kyckling"], ["soppa", "Soppa"], ["sallad", "Sallad"], ["pasta", "Pasta"], ["burgare", "Hamburgare"], ["matlada", "Matlåda / takeaway"], ["ol", "Öl"], ["vin", "Vin"], ["vaffla", "Våffla"], ["agg", "Ägg"], ["frukostbrod", "Frukostbröd"], ["kaka", "Kaka / bakverk"], ["gryta", "Gryta"], ["vegetariskt", "Vegetariskt"], ["paket", "Mat och dryck"], ["glass", "Glass / dessert"], ["kallkaffe", "Iskaffe / dryck"]];
+let ikonNr = 0;
+function ikonSvg(id, px){
+  const s = h("span", {class: "ikonvis", style: "width:" + px + "px;height:" + px + "px"});
+  if(id) s.innerHTML = '<svg viewBox="0 0 64 64" width="' + px + '" height="' + px + '" aria-hidden="true"><use href="#i-' + id + '"/></svg>';
+  return s;
+}
+const nyckelI = (obj, n) => Object.keys(obj).find(k => nz(k) === nz(n));
+
+/* ---------- Kassatider: egna tider för streckkoderna i kassavyn ---------- */
+function kassaTidFält(o, standard){
+  const id = "kt" + (++ikonNr), box = h("div", {class: "kort", style: "background:#f7f7f4"});
+  const rita = () => box.replaceChildren(
+    h("h3", {}, "Streckkoder i kassavyn"),
+    h("div", {class: "kryss"}, h("input", {type: "checkbox", id, checked: !!o.kassatid, onchange: e => { if(e.target.checked) o.kassatid = {...standard()}; else delete o.kassatid; rita(); uppdStatus(); }}),
+      h("label", {for: id}, "Egna tider för när streckkoderna visas i kassavyn")),
+    o.kassatid ? h("div", {class: "rad"},
+      h("div", {}, h("label", {class: "f"}, "Streckkoder från"), h("input", {type: "time", value: o.kassatid.start || "", oninput: e => { o.kassatid.start = e.target.value; uppdStatus(); }})),
+      h("div", {}, h("label", {class: "f"}, "Streckkoder till"), h("input", {type: "time", value: o.kassatid.slut || "", oninput: e => { o.kassatid.slut = e.target.value; uppdStatus(); }}))) : null,
+    h("p", {class: "dim", style: "margin:4px 0 0"}, o.kassatid ? "Texten på skylten visar fortfarande tiderna ovan. I kassavyn byter skärmen läge efter tiderna här." : "Nu byter kassavyn läge samma tider som texten på skylten."));
+  rita(); return box;
+}
+
+/* ---------- Fliken Rätter: allt för samma rätt på ett ställe ---------- */
+function vyRatter(){
+  const e = D.ean, bi = D.bilder.rätter = D.bilder.rätter || {}, sl = D.slut;
+  const fält = [];
+  const getEan = n => { const k = nyckelI(e.rätter, n); return k === undefined ? "" : e.rätter[k]; };
+  const setEan = (n, v) => { const k = nyckelI(e.rätter, n); if(k !== undefined) delete e.rätter[k]; if(v) e.rätter[n] = v; };
+  const getBild = n => { const k = nyckelI(bi, n); return k === undefined ? "" : bi[k]; };
+  const setBild = (n, v) => { const k = nyckelI(bi, n); if(k !== undefined) delete bi[k]; if(v) bi[n] = v; };
+  const ärSl = n => sl.rätter.some(x => nz(x) === nz(n));
+  const växlaSl = n => { sl.rätter = ärSl(n) ? sl.rätter.filter(x => nz(x) !== nz(n)) : [...sl.rätter, n]; };
+  const flytta = (a, b) => { if(!a || nz(a) === nz(b)) return; const k = getEan(a), i = getBild(a), s = ärSl(a); setEan(a, ""); setBild(a, ""); if(s) sl.rätter = sl.rätter.filter(x => nz(x) !== nz(a));
+    if(k && !getEan(b)) setEan(b, k); if(i && !getBild(b)) setBild(b, i); if(s && !ärSl(b)) sl.rätter.push(b); };
+
+  /* ett kort per rätt: namn, pris, streckkod, bild och slutsåld */
+  function kort(o){       // o = {namn, sättNamn?, pris?: {get,set}, notis?, kod: true|false}
+    const ruta = h("div", {class: "kort rättkort"}), bildDiv = h("div");
+    let namn = o.namn;
+    const rita = () => {
+      const slut = ärSl(namn);
+      const ean = getEan(namn);
+      const pill = h("span", {class: "pill"}), svgDiv = h("div", {class: "streck"});
+      const uppdKod = k => {
+        if(!k){ pill.className = "pill"; pill.textContent = o.standardKod ? "Gemensam kod används" : "Ingen kod"; svgDiv.replaceChildren(); return; }
+        if(eanOk(k)){ pill.className = "pill ok"; pill.textContent = (k.length === 13 ? "EAN-13" : "EAN-8") + " ✓"; svgDiv.innerHTML = eanSvg(k); svgDiv.firstChild.style.width = "100%"; }
+        else { pill.className = "pill sak"; svgDiv.replaceChildren();
+          pill.textContent = (k.length === 13 || k.length === 8) ? "Fel kontrollsiffra" : (k.length === 12 || k.length === 7) ? "Saknar sista siffran (" + eanKontroll(k) + ")" : "13 eller 8 siffror (" + k.length + " nu)"; }
+      };
+      const inp = h("input", {type: "text", inputmode: "numeric", autocomplete: "off", placeholder: "Scanna eller skriv EAN", value: ean, oninput: () => { const k = inp.value.replace(/\D/g, ""); setEan(namn, k); uppdKod(k); uppdStatus(); },
+        onkeydown: ev => { if(ev.key === "Enter"){ ev.preventDefault(); const i = fält.indexOf(inp); if(fält[i + 1]) fält[i + 1].focus(); } }});
+      fält.push(inp); uppdKod(ean);
+      const namnFält = o.sättNamn
+        ? h("input", {type: "text", placeholder: "Namn", value: namn, oninput: ev => { o.sättNamn(ev.target.value); uppdStatus(); },
+            onchange: ev => { const ny = ev.target.value.trim(); if(ny && nz(ny) !== nz(namn)){ flytta(namn, ny); namn = ny; } rita(); uppdStatus(); }})
+        : h("b", {style: "font-size:18px"}, namn);
+      const visaBild = getBild(namn);
+      ruta.replaceChildren(...[
+        h("div", {class: "rad"},
+          h("div", {class: "ikonknapp"}, ikonSvg(visaBild, 44)),
+          h("div", {style: "flex:3;min-width:170px"}, namnFält, slut ? h("div", {}, h("span", {class: "pill sak"}, "Slutsåld – syns på TV:n")) : null),
+          o.pris ? h("input", {type: "text", placeholder: "Pris, t.ex. 99:-", value: o.pris.get() || "", style: "max-width:130px", oninput: ev => { o.pris.set(ev.target.value); uppdStatus(); }}) : null,
+          h("button", {class: slut ? "prim" : "fara", style: "min-width:150px", onclick: () => { växlaSl(namn); rita(); uppdStatus(); }}, slut ? "Finns igen" : "Slutsåld")),
+        o.notis ? h("div", {class: "dim", style: "margin-top:4px"}, o.notis) : null,
+        o.kod === false ? null : h("div", {class: "rad", style: "margin-top:8px"}, inp, h("div", {style: "flex:none;min-width:0;width:140px"}, svgDiv), pill),
+        h("details", {class: "bildval", style: "margin-top:8px"}, h("summary", {}, visaBild ? "Bild: " + ((IKONER.find(x => x[0] === visaBild) || [])[1] || visaBild) : "Lägg till bild"),
+          h("div", {class: "ikongrid"}, [["", "Ingen bild"], ...IKONER].map(([id, text]) => h("button", {type: "button", class: "ikonval" + (id === visaBild ? " vald" : ""), title: text, "aria-label": text, "aria-pressed": id === visaBild,
+            onclick: () => { setBild(namn, id); rita(); uppdStatus(); }}, id ? ikonSvg(id, 40) : h("span", {class: "dim"}, "Ingen"), h("span", {class: "ikonnamn"}, text)))))].filter(Boolean));
+    };
+    rita(); return ruta;
+  }
+  const lunchNamn = [];
+  const läggTill = n => { if(n && !lunchNamn.some(y => nz(y) === nz(n))) lunchNamn.push(n); };
+  if(menu && menu.dagar) Object.values(menu.dagar).forEach(r => (r || []).forEach(x => läggTill(dela(x))));
+  if(menu && menu.vegetariskt) läggTill(dela(menu.vegetariskt));
+  const extra = ((D.lunch && D.lunch.extra) || []);
+  const delar = [];
+  delar.push(hämtaKort());
+  delar.push(h("div", {class: "info"}, "Här ligger allt för samma rätt på ett ställe: ", h("b", {}, "namn, pris, streckkod, bild och slutsåld"), ". Lunch, frukost, brunch och hockey ligger i varsin grupp. Tider och dagar ändrar ni i flikarna Lunch, Frukost, Brunch och Hockey, och ", h("b", {}, "Stängt"), " har en egen flik. Tryck Spara längst ned när ni är klara, så sparas allt på en gång."));
+  if(!menu) delar.push(h("div", {class: "fel"}, "Veckans meny kunde inte läsas. ICA:s lunchrätter visas inte här."));
+  delar.push(h("h2", {}, "Lunch"));
+  delar.push(h("p", {class: "dim", style: "margin:0"}, "Namnen på ICA:s rätter hämtas från hemsidan och är låsta. Pris, streckkod, bild och slutsåld ändrar ni själva (tomt pris = bara lunchpriset i rubriken)."));
+  const pr = D.lunch.priser = D.lunch.priser || {};
+  const prisFör = { get: n => { const k = nyckelI(pr, n); return k === undefined ? "" : pr[k]; }, set: (n, v) => { const k = nyckelI(pr, n); if(k !== undefined) delete pr[k]; if(v.trim()) pr[n] = v; } };
+  lunchNamn.forEach(n => delar.push(kort({namn: n, pris: {get: () => prisFör.get(n), set: v => prisFör.set(n, v)}, standardKod: !!e.standardLunch})));
+  extra.forEach(x => delar.push(kort({namn: x.namn, sättNamn: v => x.namn = v, pris: {get: () => x.pris, set: v => x.pris = v}, notis: (x.alltid ? "Extra rätt · alltid på" : "Extra rätt · " + x.datum) + " (datum, etikett och allergener ändras under Lunch)", standardKod: !!e.standardLunch})));
+  const bf = (rubrik, f) => { const rd = (f && f.rader) || []; if(!rd.length) return; delar.push(h("h2", {}, rubrik)); rd.forEach(r => delar.push(kort({namn: r.namn, sättNamn: v => r.namn = v, pris: {get: () => r.pris, set: v => r.pris = v}}))); };
+  bf("Frukost", D.frukost); bf("Brunch", D.brunch);
+  const hk = D.hockey;
+  if((hk.rader || []).length || (hk.paket && hk.paket.namn)){
+    delar.push(h("h2", {}, "Hockeykväll"));
+    (hk.rader || []).forEach(r => delar.push(kort({namn: r.namn, sättNamn: v => r.namn = v, pris: {get: () => r.pris, set: v => r.pris = v}})));
+    if(hk.paket && hk.paket.namn) delar.push(kort({namn: hk.paket.namn, sättNamn: v => hk.paket.namn = v, pris: {get: () => hk.paket.pris, set: v => hk.paket.pris = v}}));
+  }
+  const visade = [...lunchNamn, ...extra.map(x => x.namn), ...["frukost", "brunch"].flatMap(k => ((D[k] && D[k].rader) || []).map(r => r.namn)), ...(hk.rader || []).map(r => r.namn), hk.paket && hk.paket.namn].filter(Boolean);
+  delar.push(h("h2", {}, "Gemensam streckkod för lunch"));
+  delar.push(h("p", {class: "dim", style: "margin:0"}, "Används för lunchrätter som saknar egen kod."));
+  const gem = h("input", {type: "text", inputmode: "numeric", placeholder: "EAN", value: e.standardLunch || "", oninput: ev => { e.standardLunch = ev.target.value.replace(/\D/g, ""); uppdStatus(); }});
+  delar.push(h("div", {class: "kort"}, gem));
+  const övriga = Object.keys(e.rätter).filter(k => !visade.some(n => nz(n) === nz(k)));
+  if(övriga.length){
+    delar.push(h("h2", {}, "Sparade koder för rätter som inte finns just nu"), h("p", {class: "dim", style: "margin:0"}, "Behålls så att koden finns kvar när rätten kommer tillbaka."));
+    övriga.forEach(k => delar.push(h("div", {class: "kort rad"}, h("b", {style: "flex:2"}, k), h("input", {type: "text", inputmode: "numeric", value: e.rätter[k], oninput: ev => { e.rätter[k] = ev.target.value.replace(/\D/g, ""); uppdStatus(); }}),
+      h("button", {class: "liten fara", onclick: () => { delete e.rätter[k]; ritaVy(); uppdStatus(); }}, "Ta bort"))));
+  }
+  return h("div", {}, delar);
+}
+
+/* ---------- Utseende ---------- */
+function vyUtseende(){
+  const u = D.utseende;
+  const val = (id, titel, text) => h("label", {class: "kort utseende" + (u.tema === id ? " vald" : "")},
+    h("div", {class: "rad"}, h("input", {type: "radio", name: "tema", checked: u.tema === id, style: "flex:none;width:24px;height:24px;min-width:0", onchange: () => { u.tema = id; ritaVy(); uppdStatus(); }}),
+      h("div", {style: "flex:1"}, h("h3", {}, titel), h("div", {class: "dim"}, text)),
+      h("a", {href: "index.html?tema=" + id, target: "_blank", rel: "noopener", class: "liten", style: "flex:none;display:inline-block;padding:8px 14px;border:1px solid var(--svart);border-radius:8px;color:var(--svart);text-decoration:none;background:#fff", onclick: ev => ev.stopPropagation()}, "Förhandsgranska")));
+  return h("div", {},
+    h("div", {class: "info"}, "Välj vilket utseende TV:n och kassan ska ha som standard. Allt innehåll är samma, bara färger och dekor skiljer. Valet gäller alla enheter: TV:n, kassan och iPaden. Det går inte att växla på enskilda enheter."),
+    val("klassisk", "Klassiskt", "Vit kakelvägg, betongskylt, svart text. Så som skylten ser ut i dag."),
+    val("industri", "Industriellt", "Mörk bakgrund, rostfritt stål, koppar och varm gul glöd."));
+}
+
 /* ---------- ramverk ---------- */
-const FLIKAR = [["slut", "Slutsålt"], ["ean", "Streckkoder"], ["allergener", "Allergener"], ["lunch", "Lunch"], ["frukost", "Frukost"], ["brunch", "Brunch"], ["hockey", "Hockey"], ["oppett", "Stängt"]];
+const FLIKAR = [["ratter", "Rätter"], ["lunch", "Lunch"], ["frukost", "Frukost"], ["brunch", "Brunch"], ["hockey", "Hockey"], ["oppett", "Stängt"], ["allergener", "Allergener"], ["utseende", "Utseende"]];
+const FLIK_DATA = {ratter: ["ean", "bilder", "slut", "lunch", "frukost", "brunch", "hockey"]};
+const flikSmutsig = id => (FLIK_DATA[id] || [id]).some(k => D[k] && BAS[k] !== ser(D[k]));
 function ritaFlikar(){
   $("tabs").replaceChildren(...FLIKAR.map(([id, t]) => h("button", {class: id === flik ? "on" : "", onclick: () => {
     if(id === flik) return;
-    if(smutsig() && !confirm("Du har ändringar som inte är sparade. Byta flik ändå? (Ändringarna ligger kvar tills du laddar om sidan.)")) return;
-    flik = id; ritaFlikar(); ritaVy(); }}, t + (BAS[id] !== ser(D[id]) ? " •" : ""))));
+    flik = id; ritaFlikar(); ritaVy(); }}, t + (flikSmutsig(id) ? " •" : ""))));
 }
 function ritaVy(){
   hämtaKort.aktiva = [];
-  $("vy").replaceChildren(flik === "slut" ? vySlut() : flik === "ean" ? vyEan() : flik === "allergener" ? vyAllergener() : flik === "lunch" ? vyLunch() : flik === "frukost" || flik === "brunch" ? vyBuffe(flik) : flik === "oppett" ? vyStangt() : vyHockey());
+  $("vy").replaceChildren(flik === "ratter" ? vyRatter() : flik === "utseende" ? vyUtseende() : flik === "allergener" ? vyAllergener() : flik === "lunch" ? vyLunch() : flik === "frukost" || flik === "brunch" ? vyBuffe(flik) : flik === "oppett" ? vyStangt() : vyHockey());
   uppdStatus();
 }
 function uppdStatus(){
@@ -634,21 +795,28 @@ function uppdStatus(){
   ritaFlikar();
 }
 async function spara(){
-  const k = flik, knapp = $("spara");
-  if(k === "ean"){
+  const knapp = $("spara"), ändrade = Object.keys(D).filter(k => D[k] && BAS[k] !== ser(D[k]));
+  if(!ändrade.length) return;
+  if(ändrade.includes("ean")){
     const dåliga = [["Gemensam kod", D.ean.standardLunch], ...Object.entries(D.ean.rätter)].filter(([, c]) => c && !eanOk(c));
     if(dåliga.length) return toast("Rätta först: " + dåliga.slice(0, 3).map(x => x[0]).join(", ") + " har en ogiltig kod.", true);
     D.ean.rätter = Object.fromEntries(Object.entries(D.ean.rätter).filter(([, c]) => c));
-  } knapp.disabled = true; knapp.textContent = "Sparar…";
-  try {
-    await api("/api/save", {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify({fil: FILNAMN[k], data: D[k]})});
-    BAS[k] = ser(D[k]);
-    toast("Sparat! Ändringen syns på TV:n inom ca 2 minuter.");
-  } catch(e){
-    toast(e.message, true);
-    if(e.status === 401) visaLogin("Koden stämmer inte längre. Logga in igen.");
   }
-  knapp.textContent = "Spara"; uppdStatus();
+  if(ändrade.includes("bilder")) D.bilder.rätter = Object.fromEntries(Object.entries(D.bilder.rätter).filter(([, c]) => c));
+  knapp.disabled = true; knapp.textContent = "Sparar…";
+  let sparade = 0;
+  for(const k of Object.keys(D).filter(k => D[k] && BAS[k] !== ser(D[k]))){
+    try {
+      await api("/api/save", {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify({fil: FILNAMN[k], data: D[k]})});
+      BAS[k] = ser(D[k]); sparade++;
+    } catch(e){
+      toast((sparade ? "Sparade " + sparade + " av " + ändrade.length + ". " : "") + FILNAMN[k] + ": " + e.message, true);
+      if(e.status === 401) visaLogin("Koden stämmer inte längre. Logga in igen.");
+      knapp.textContent = "Spara"; uppdStatus(); return;
+    }
+  }
+  toast("Sparat! Ändringen syns på TV:n inom ca 2 minuter.");
+  knapp.textContent = "Spara"; ritaVy();
 }
 window.addEventListener("beforeunload", e => { if(Object.keys(D).some(k => D[k] && BAS[k] !== ser(D[k]))){ e.preventDefault(); e.returnValue = ""; } });
 
