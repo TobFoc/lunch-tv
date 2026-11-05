@@ -38,6 +38,7 @@
   .chip { display: inline-flex; align-items: center; gap: 8px; min-height: 46px; padding: 4px 14px 4px 6px; border: 2px solid var(--linje); border-radius: 99px; background: #fff; font-weight: 600; }
   .chip .ic { width: 34px; height: 34px; border-radius: 50%; background: #9a9a95; display: inline-flex; align-items: center; justify-content: center; }
   .chip .ic svg { width: 68%; height: 68%; }
+  .chip .ic .ini { color: #fff; font-weight: 800; font-size: 17px; line-height: 1; }
   .chip.on { border-color: var(--svart); background: #fff; }
   .chip.on .ic { background: var(--svart); }
   .rad { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
@@ -63,7 +64,42 @@
   .ikonval.vald { border: 3px solid var(--grön); background: #eef7ee; }
   .ikonnamn { font-size: 12px; line-height: 1.1; text-align: center; }
   .streck { background: #fff; border: 1px solid var(--linje); line-height: 0; min-height: 44px; }
-  .utseende { cursor: pointer; } .utseende.vald { border: 3px solid var(--grön); }
+
+  /* ---- Utskrift (A4) ---- */
+  #utskrift { display: none; }
+  .utskriftsrad { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0 0 14px; }
+  @media print {
+    @page { size: A4 portrait; margin: 10mm; }
+    body > *:not(#utskrift) { display: none !important; }
+    html, body { background: #fff !important; }
+    #utskrift { display: block !important; color: #000; font-family: "Inter", Arial, sans-serif; font-size: 10pt; line-height: 1.2; }
+    #utskrift h1 { font-size: 24pt; margin: 0; text-transform: uppercase; letter-spacing: .02em; line-height: 1.05; }
+    #utskrift .uh { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 3pt solid #000; padding-bottom: 6pt; margin-bottom: 8pt; gap: 12pt; }
+    #utskrift .uh .up { font-size: 24pt; font-weight: 800; white-space: nowrap; }
+    #utskrift .us { font-size: 11pt; margin: 0 0 6pt; }
+    #utskrift h2 { font-size: 11pt; text-transform: uppercase; letter-spacing: .08em; margin: 6pt 0 1pt; padding: 1.5pt 6pt; background: #000; color: #fff; break-after: avoid; }
+    #utskrift h2.veg { background: #2e6b34; }
+    #utskrift .ur { display: flex; justify-content: space-between; gap: 12pt; padding: 2pt 0; border-bottom: .5pt solid #999; break-inside: avoid; }
+    #utskrift .un { font-weight: 700; font-size: 11pt; }
+    #utskrift .ub { font-size: 9.5pt; }
+    #utskrift .ua { font-size: 8pt; color: #333; }
+    #utskrift .ut { flex: none; text-align: right; white-space: nowrap; font-weight: 800; font-size: 12pt; }
+    #utskrift .ut small { display: block; font-weight: 600; font-size: 9pt; }
+    #utskrift .uf { margin-top: 10pt; padding-top: 5pt; border-top: 1pt solid #000; font-size: 9.5pt; }
+  }
+  .temagrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin: 12px 0; }
+  .temaval { background: #fff; border: 2px solid #ccc; border-radius: 12px; overflow: hidden; cursor: pointer; display: flex; flex-direction: column; }
+  .temaval.vald { border-color: var(--grön); box-shadow: 0 0 0 3px rgba(30,120,50,.25); }
+  .temaval:focus-visible { outline: 3px solid #06f; }
+  .temaprov { padding: 16px; display: flex; flex-direction: column; gap: 6px; font-size: 16px; }
+  .temaprov .tpt { font-weight: 800; font-size: 18px; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; }
+  .temaprov .tpr { display: flex; justify-content: space-between; gap: 10px; border-top: 1px solid currentColor; padding-top: 6px; }
+  .temainfo { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; }
+  .temarubrik { display: flex; align-items: center; gap: 10px; }
+  .temarubrik h3 { margin: 0; flex: 1; }
+  .temaring { width: 26px; height: 26px; border-radius: 50%; border: 2px solid #888; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; color: #fff; flex: none; }
+  .temaval.vald .temaring { background: var(--grön); border-color: var(--grön); }
+  .temalank { align-self: flex-start; padding: 8px 14px; border: 1px solid var(--svart); border-radius: 8px; color: var(--svart); text-decoration: none; background: #fff; margin-top: 4px; }
   #login { max-width: 420px; margin: 12vh auto; padding: 0 16px; }
 </style>
 </head>
@@ -146,7 +182,7 @@ const ALLERGENER = [
 const ALIAS = {"mjölk":"laktos","mjolk":"laktos","notter":"nötter","trädnötter":"nötter","agg":"ägg","blotdjur":"blötdjur","mollusker":"blötdjur","kräftdjur":"skaldjur","jordnotter":"jordnötter","sesamfrön":"sesam","spannmål":"gluten","svaveldioxid":"sulfit"};
 const DAGAR = ["måndag","tisdag","onsdag","torsdag","fredag"];
 const ALLA_DAGAR = [...DAGAR, "lördag", "söndag"];
-const FILNAMN = {ean: "ean.json", slut: "slutsald.json", allergener: "allergener.json", lunch: "lunch.json", frukost: "frukost.json", brunch: "brunch.json", hockey: "hockey.json", oppett: "oppettider.json", bilder: "bilder.json", utseende: "utseende.json"};
+const FILNAMN = {ean: "ean.json", slut: "slutsald.json", allergener: "allergener.json", lunch: "lunch.json", frukost: "frukost.json", brunch: "brunch.json", hockey: "hockey.json", oppett: "oppettider.json", bilder: "bilder.json", utseende: "utseende.json", egna: "egnaallergener.json"};
 
 let pin = "", flik = "lunch", menu = null;
 const D = {allergener: null, frukost: null, hockey: null};   // arbetskopior
@@ -191,6 +227,9 @@ async function api(väg, init){
   return j;
 }
 
+/* De 14 standardallergenerna + egna (egnaallergener.json). Egna har id "egen-…" och ingen symbol (visas som bokstav). */
+const allaAllerg = () => [...ALLERGENER, ...((D.egna && D.egna.lista) || []).map(e => [e.id, e.namn, null])];
+
 /* ---------- allergenväljare (tre lägen: ej angivet / inga / valda) ---------- */
 function allergVal(get, set, onChange){
   const wrap = h("div");
@@ -200,12 +239,13 @@ function allergVal(get, set, onChange){
     const pill = v === null || v === undefined ? h("span", {class: "pill sak"}, "Ej angivet – TV:n visar 'fråga personalen'")
       : !v.length ? h("span", {class: "pill ok"}, "Inga allergener")
       : h("span", {class: "pill ok"}, v.length + " valda");
-    const chips = h("div", {class: "chips"}, ALLERGENER.map(([id, text, sym]) => {
+    const alla = allaAllerg();
+    const chips = h("div", {class: "chips"}, alla.map(([id, text, sym]) => {
       const på = valda.includes(id);
       return h("button", {type: "button", class: "chip" + (på ? " on" : ""), "aria-pressed": på, onclick: () => {
         const nya = på ? valda.filter(x => x !== id) : [...valda, id];
-        set(nya.length ? ALLERGENER.map(a => a[0]).filter(x => nya.includes(x)) : null); rita(); onChange && onChange();
-      }}, h("span", {class: "ic"}, svg(sym)), text);
+        set(nya.length ? alla.map(a => a[0]).filter(x => nya.includes(x)) : null); rita(); onChange && onChange();
+      }}, h("span", {class: "ic"}, svg(sym, text)), text);
     }));
     const knappar = h("div", {class: "rad"},
       h("button", {type: "button", class: "liten", onclick: () => { set([]); rita(); onChange && onChange(); }}, "Inga allergener"),
@@ -214,7 +254,8 @@ function allergVal(get, set, onChange){
   };
   rita(); return wrap;
 }
-function svg(sym){
+function svg(sym, namn){
+  if(!sym){ const t = h("span", {class: "ini"}, (Array.from(String(namn || "?").trim())[0] || "?").toUpperCase()); return t; }
   const s = document.createElementNS("http://www.w3.org/2000/svg", "svg"); s.setAttribute("viewBox", "0 0 24 24");
   const u = document.createElementNS("http://www.w3.org/2000/svg", "use"); u.setAttribute("href", "#a-" + sym); s.append(u); return s;
 }
@@ -236,6 +277,7 @@ async function läs(){
     if(k === "brunch") D[k] = D[k] || {rubrik: "Brunch", tid: {start: "07:00", slut: "15:00"}, dagar: ["lördag"], rader: [{namn: "Brunchbuffé", pris: "99:-", beskrivning: "Inkl gröt, ägg, bacon & våfflor"}]};
     if(k === "ean") D[k] = D[k] ? {...D[k], rätter: D[k].rätter || {}, takeaway: D[k].takeaway || {}} : {standardLunch: "", rätter: {}, takeaway: {}};
     if(k === "bilder") D[k] = D[k] ? {...D[k], rätter: D[k].rätter || {}} : {rätter: {}};
+    if(k === "egna") D[k] = D[k] && Array.isArray(D[k].lista) ? D[k] : {lista: []};
     if(k === "utseende") D[k] = D[k] && D[k].tema ? D[k] : {tema: "klassisk"};
     if(k === "lunch") D[k] = D[k] || {tid: null, dagar: [...DAGAR]};
     if(k === "lunch"){ D[k].priser = D[k].priser || {}; D[k].taPriser = D[k].taPriser || {}; D[k].extra = (D[k].extra || []).filter(x => x.alltid === true || x.datum >= iso(new Date())); }
@@ -456,14 +498,35 @@ function vyEan(){
 /* ---------- hämta veckans meny från ICA ---------- */
 let hämtar = false, hämtaMsg = null;
 const någonSmutsig = () => Object.keys(D).some(k => D[k] && BAS[k] !== ser(D[k]));
+const isoVecka = d => { const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); t.setUTCDate(t.getUTCDate() + 4 - (t.getUTCDay() || 7)); return Math.ceil(((t - Date.UTC(t.getUTCFullYear(), 0, 1)) / 864e5 + 1) / 7); };
+let kontroll = null;                          // resultat av "Kontrollera hämtningen": {laddar, fel, runs}
+const kör = r => (r.status !== "completed" ? "pågår" : r.conclusion === "success" ? "lyckades" : "misslyckades") + (r.event === "schedule" ? " (automatisk)" : r.event === "workflow_dispatch" ? " (knappen)" : "");
+async function kontrolleraHämtning(){
+  kontroll = {laddar: true}; ritaHämta();
+  try { kontroll = {runs: (await api("/api/hamtastatus")).runs || []}; }
+  catch(e){ kontroll = {fel: /403|404|401/.test(e.message) && e.status !== 401 ? "Sparfunktionen (Cloudflare Worker) får inte läsa hämtningarna på GitHub: " + e.message + ". Kontrollera att GitHub-nyckeln har behörigheten Actions: Read and write (se BACKOFFICE.md)." : e.message}; }
+  ritaHämta();
+}
 function hämtaKort(){
   const kort = h("div", {class: "kort"});
+  const nu = isoVecka(new Date()), helg = [0, 6].includes(new Date().getDay());
+  const gammal = menu && menu.vecka != null && menu.vecka !== nu && !(helg && menu.vecka === nu + 1);
   const rita = () => kort.replaceChildren(...[
     h("h3", {}, "Veckans meny från ICA"),
-    h("p", {class: "dim", style: "margin:2px 0 8px"}, menu ? "Menyn i systemet gäller vecka " + menu.vecka + "." : "Ingen meny finns i systemet."),
+    h("p", {class: "dim", style: "margin:2px 0 8px"}, menu ? "Menyn i systemet gäller vecka " + menu.vecka + ". Det är nu vecka " + nu + "." : "Ingen meny finns i systemet."),
+    gammal ? h("div", {class: "fel"}, "Menyn i systemet är inte för den här veckan (vecka " + menu.vecka + ", nu är det vecka " + nu + "). Tryck på Hämta veckans meny. Fungerar det inte, tryck på Kontrollera hämtningen längre ned.") : null,
     hämtaMsg ? h("div", {class: hämtaMsg.fel ? "fel" : "info"}, hämtaMsg.text) : null,
     h("button", {class: "prim", disabled: hämtar, onclick: hämtaNu}, hämtar ? "Hämtar… (tar 1–2 minuter)" : "Hämta veckans meny från ICA"),
-    h("p", {class: "dim", style: "margin:8px 0 0"}, "Menyn hämtas annars automatiskt varje vardagsmorgon. Använd knappen när ICA lagt upp en ny meny och ni vill ha den direkt.")].filter(Boolean));
+    h("p", {class: "dim", style: "margin:8px 0 0"}, "Menyn hämtas annars automatiskt varje vardagsmorgon. Använd knappen när ICA lagt upp en ny meny och ni vill ha den direkt."),
+    h("div", {style: "margin-top:12px;padding-top:10px;border-top:1px solid #ddd"},
+      h("button", {type: "button", class: "liten", disabled: !!(kontroll && kontroll.laddar), onclick: kontrolleraHämtning}, kontroll && kontroll.laddar ? "Kontrollerar…" : "Kontrollera hämtningen"),
+      h("span", {class: "dim", style: "margin-left:10px"}, "Visar om de senaste hämtningarna från ICA lyckades."),
+      kontroll && kontroll.fel ? h("div", {class: "fel", style: "margin-top:8px"}, kontroll.fel) : null,
+      kontroll && kontroll.runs ? h("div", {style: "margin-top:8px"},
+        kontroll.runs.length ? kontroll.runs.map(r => h("div", {class: "dim", style: "padding:3px 0"}, h("b", {style: "color:" + (r.status !== "completed" ? "#555" : r.conclusion === "success" ? "#1d7a33" : "#b00020")}, kör(r)), " · " + new Date(r.skapad || r.created_at).toLocaleString("sv-SE", {dateStyle: "short", timeStyle: "short"})))
+          : h("div", {class: "dim"}, "Inga hämtningar har körts än. Tryck på Hämta veckans meny och kontrollera igen."),
+        kontroll.runs.length && kontroll.runs[0].status === "completed" && kontroll.runs[0].conclusion !== "success" ? h("div", {class: "fel", style: "margin-top:6px"}, "Senaste hämtningen misslyckades. Oftast beror det på att ICA:s sida inte svarade eller blockerade anropet. Den gamla menyn ligger kvar. Prova igen om en stund. Fortsätter det, öppna GitHub → Actions → senaste körningen för felmeddelandet.")
+          : kontroll.runs.length && kontroll.runs[0].conclusion === "success" ? h("div", {class: "info", style: "margin-top:6px"}, "Senaste hämtningen gick bra.") : null) : null)].filter(Boolean));
   rita(); kort._rita = rita; hämtaKort.aktiva.push(kort);
   return kort;
 }
@@ -488,7 +551,9 @@ async function hämtaNu(){
     await läsMeny();
     const j = await api("/api/get?fil=allergener.json");                                  // en ny vecka ger en ny tom allergenmall
     D.allergener = byggAllergener(j.data ? kopia(j.data) : null); BAS.allergener = ser(D.allergener);
-    hämtaMsg = {text: "Klart! Menyn gäller vecka " + (menu ? menu.vecka : "?") + (menu && before(före, menu.vecka) ? " (ny vecka, fyll i allergenerna)." : ".") + " TV:n visar den inom någon minut."};
+    hämtaMsg = menu && !before(före, menu.vecka) && menu.vecka !== isoVecka(new Date())
+      ? {fel: true, text: "Hämtningen gick bra men ICA har ännu inte lagt upp en ny meny. Menyn gäller fortfarande vecka " + menu.vecka + ". Försök igen senare."}
+      : {text: "Klart! Menyn gäller vecka " + (menu ? menu.vecka : "?") + (menu && before(före, menu.vecka) ? " (ny vecka, fyll i allergenerna)." : ".") + " TV:n visar den inom någon minut."};
   } catch(e){
     hämtaMsg = {fel: true, text: e.message};
   }
@@ -909,25 +974,219 @@ function vyInstallningar(){
     h("div", {class: "info"}, "Här ställer ni in ", h("b", {}, "när varje vy visas på skylten"), ", ", h("b", {}, "när streckkoderna kan användas i kassan"), " (egna kassatider), när restaurangen är ", h("b", {}, "stängd"), " och vilket ", h("b", {}, "utseende"), " skärmarna ska ha."),
     h("h2", {}, "Tider och dagar"), installLunch(), installBuffe("frukost"), installBuffe("brunch"), installHockey(),
     h("h2", {}, "Stängt"), vyStangt(),
-    h("h2", {}, "Utseende"), vyUtseende());
+    h("h2", {}, "Egna allergener"), vyEgna(),
+    h("h2", {}, "Utseende"), vyUtseende(),
+    h("h2", {}, "Ändra med Claude"), vyClaude());
+}
+
+/* ---------- Ändra inställningar med Claude: skapa fil/prompt och läs in resultatet ---------- */
+const CLAUDE_FILER = ["lunch", "frukost", "brunch", "hockey", "oppett", "ean", "bilder", "utseende", "egna", "allergener"];
+function claudeFil(){
+  const filer = {};
+  CLAUDE_FILER.forEach(k => { if(D[k]) filer[FILNAMN[k]] = D[k]; });
+  const veckans = menu && menu.dagar ? {vecka: menu.vecka, dagar: menu.dagar, vegetariskt: menu.vegetariskt, priser: menu.priser, lunchtid: menu.lunchtid} : null;
+  const egna = (D.egna.lista || []).map(e => e.id + " (" + e.namn + ")");
+  return `# Ändra inställningar för Lunch-TV (ICA Focus Restaurang)
+
+Du hjälper mig att ändra inställningar för vår lunch-TV och kassasida. Nedan finns alla nuvarande inställningar som JSON. Jag beskriver ändringen jag vill göra. Du svarar med **de ändrade filerna** i exakt samma format, så att jag kan klistra in dem i backoffice (Inställningar → "Läs in ändringar från Claude") utan att göra om något manuellt.
+
+## Så här ska du svara
+1. Börja med en kort sammanfattning på svenska av vad du ändrat.
+2. Skicka sedan ETT JSON-block (\`\`\`json … \`\`\`) med formen \`{"_format": "lunch-tv-installningar-1", "filer": {"lunch.json": {…}, …}}\`.
+3. Ta bara med de filer du faktiskt ändrat, men varje fil du tar med ska vara **hel** (alla befintliga värden kvar, inte bara ändringen).
+4. Behåll fältet "_info" i varje fil oförändrat.
+5. Ändra inget jag inte bett om. Hitta inte på streckkoder, priser eller allergener. Fråga hellre.
+
+## Regler för värdena
+- Priser är text i formen "129:-" (heltal, kolon, bindestreck).
+- Tider är "HH:MM" (24 timmar). Datum är "ÅÅÅÅ-MM-DD".
+- Dagar skrivs med små bokstäver: måndag, tisdag, onsdag, torsdag, fredag, lördag, söndag.
+- Streckkoder (EAN) är exakt 13 eller 8 siffror med giltig kontrollsiffra. Tomt = ingen kod.
+- Allergener är en lista med id: ${ALLERGENER.map(a => a[0]).join(", ")}${egna.length ? ", samt egna: " + egna.join(", ") : ""}. \`[]\` betyder inga allergener, \`null\` betyder okänt ("fråga personalen"). Egna allergener läggs till i "egnaallergener.json" som {"id": "egen-bönor", "namn": "Bönor"} (id börjar med "egen-", små bokstäver/siffror/bindestreck, max 30 tecken).
+- Bild (ikon) per rätt i bilder.json är ett av: ${IKONER.map(i => i[0]).join(", ")}.
+- Tema i utseende.json är "klassisk" eller "industri".
+- Rättnamn är nycklar i flera filer (priser, taPriser, ean, bilder, allergener). Skriv dem exakt som de står.
+
+## Vad filerna innehåller
+- **lunch.json**: tid (null = ICA:s tid), dagar, priser (rättnamn → pris), taPriser (rättnamn → takeaway-pris), extra (egna lunchrätter/drycker: namn, pris, takeawayPris, beskrivning, etikett, allergener, och antingen alltid: true eller datum), kassatid {start, slut} (valfri).
+- **frukost.json / brunch.json**: rubrik, tid {start, slut}, dagar, rader [{namn, pris, takeawayPris, beskrivning, allergener}], visaAllergener, kassatid.
+- **hockey.json**: rubrik, underrubrik, banner, tid {start}, matchstart, datum [matchdagar], rader [{namn, pris, takeawayPris, not, allergener}], paket {namn, pris, takeawayPris}, kassatid.
+- **oppettider.json**: rodaDagarStangt (true/false), undantag [{datum, till?, status: "stängt"|"öppet", text}].
+- **ean.json**: standardLunch, standardTakeaway, rätter {namn → kod}, takeaway {namn → kod}.
+- **bilder.json**: rätter {namn → ikon-id}.
+- **utseende.json**: tema.
+- **egnaallergener.json**: lista [{id, namn}].
+- **allergener.json**: gäller en vecka (fältet "vecka") och byggs av veckans ICA-meny. Ändra den bara om jag ber om det.
+- Veckans ICA-rätter (nedan, bara för läsning) går inte att ändra här.
+
+## Veckans meny från ICA (bara läsning)
+\`\`\`json
+${JSON.stringify(veckans, null, 2)}
+\`\`\`
+
+## Nuvarande inställningar
+\`\`\`json
+${JSON.stringify({_format: "lunch-tv-installningar-1", filer}, null, 2)}
+\`\`\`
+
+## Det jag vill ändra
+(Skriv här vad ni vill ändra, t.ex. "Höj alla brunchpriser med 10 kr och lägg till en ny rad: Pannkakor 59:-". Ta bort den här raden och skriv er önskan.)
+`;
+}
+function laddaNer(namn, text){
+  const a = h("a", {href: URL.createObjectURL(new Blob([text], {type: "text/markdown;charset=utf-8"})), download: namn});
+  document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+function läsInClaude(text){
+  let o = null; const m = /```(?:json)?\s*([\s\S]*?)```/i.exec(text);
+  for(const kandidat of [m && m[1], text]){ if(!kandidat) continue; try { o = JSON.parse(kandidat.trim()); break; } catch(e){} }
+  if(!o) { const i = text.indexOf("{"), j = text.lastIndexOf("}"); if(i >= 0 && j > i) try { o = JSON.parse(text.slice(i, j + 1)); } catch(e){} }
+  if(!o || typeof o !== "object") return {fel: "Hittade ingen giltig JSON i texten. Klistra in Claudes svar (eller bara JSON-blocket)."};
+  const filer = o.filer && typeof o.filer === "object" ? o.filer : o;
+  const ändrade = [], okända = [];
+  for(const [fil, data] of Object.entries(filer)){
+    if(fil.startsWith("_")) continue;
+    const k = CLAUDE_FILER.find(x => FILNAMN[x] === fil);
+    if(!k || !data || typeof data !== "object" || Array.isArray(data)){ okända.push(fil); continue; }
+    if(k === "egna" && !Array.isArray(data.lista)){ okända.push(fil + " (lista saknas)"); continue; }
+    if(k === "utseende" && !["klassisk", "industri"].includes(data.tema)){ okända.push(fil + " (ogiltigt tema)"); continue; }
+    if(ser(D[k]) !== ser(data)){ D[k] = kopia(data); ändrade.push(fil); }
+  }
+  if(!ändrade.length) return {fel: okända.length ? "Inget kunde läsas in: " + okända.join(", ") : "Inga ändringar hittades. Allt är redan som i backoffice."};
+  return {ok: ändrade, okända};
+}
+function vyClaude(){
+  const ruta = h("textarea", {rows: "8", placeholder: "Klistra in Claudes svar här (hela svaret eller bara JSON-blocket)…", style: "width:100%;box-sizing:border-box;font-family:monospace;font-size:13px"});
+  const svar = h("div");
+  const fil = h("input", {type: "file", accept: ".json,.md,.txt,application/json,text/*", style: "display:none", onchange: async ev => { const f = ev.target.files[0]; if(f) ruta.value = await f.text(); ev.target.value = ""; }});
+  return h("div", {class: "kort"},
+    h("h3", {}, "Ändra inställningar med Claude"),
+    h("p", {class: "dim", style: "margin:2px 0 8px"}, "1. Skapa filen och ladda upp den i Claude (eller klistra in texten), skriv vad ni vill ändra. 2. Klistra in Claudes svar här. Då ändras bara det som Claude ändrat – era handgjorda inställningar i backoffice finns kvar."),
+    h("button", {type: "button", class: "prim", onclick: () => { laddaNer("lunch-tv-installningar-" + iso(new Date()) + ".md", claudeFil()); toast("Filen är nedladdad. Ladda upp den i Claude."); }}, "Skapa fil för Claude"),
+    h("div", {style: "margin-top:14px"}, h("label", {class: "f", style: "margin-top:0"}, "Läs in ändringar från Claude"), ruta,
+      h("div", {class: "rad", style: "margin-top:8px"},
+        h("button", {type: "button", onclick: () => fil.click()}, "Välj fil…"), fil,
+        h("button", {type: "button", class: "prim", onclick: () => {
+          const r = läsInClaude(ruta.value);
+          if(r.fel){ svar.replaceChildren(h("div", {class: "fel"}, r.fel)); return; }
+          ruta.value = ""; ritaVy(); uppdStatus();
+          toast("Inläst: " + r.ok.join(", ") + ". Kontrollera och tryck Spara.");
+        }}, "Läs in")),
+      svar,
+      h("p", {class: "dim", style: "margin:8px 0 0"}, "Inget sparas förrän ni trycker Spara. Fliken får en • när något är ändrat, och sparfunktionen nekar värden som skulle förstöra skylten.")));
+}
+
+/* ---------- Egna allergener ---------- */
+function ejAllerg(o, id){                     // tar bort en allergen ur alla arbetskopior
+  if(Array.isArray(o)){ o.forEach(x => ejAllerg(x, id)); return; }
+  if(!o || typeof o !== "object") return;
+  for(const k of Object.keys(o)){
+    if(Array.isArray(o[k]) && (k === "allergener" || k === "vegetariskt") && o[k].every(x => typeof x === "string")) o[k] = o[k].filter(x => x !== id);
+    else if(k !== "egna") ejAllerg(o[k], id);
+  }
+}
+function vyEgna(){
+  const lista = D.egna.lista;
+  const inp = h("input", {type: "text", maxlength: "30", placeholder: "T.ex. Bönor, Palmolja, Alkohol", style: "flex:1;min-width:0"});
+  const lagg = () => {
+    const namn = inp.value.trim().replace(/\s+/g, " ");
+    if(!namn) return;
+    if(lista.length >= 40) return toast("Max 40 egna allergener.", true);
+    if(allaAllerg().some(a => nz(a[1]) === nz(namn))) return toast("Det finns redan en allergen som heter så.", true);
+    let bas = "egen-" + (nz(namn).replace(/[^a-z0-9åäö]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 24) || "x"), id = bas, n = 2;
+    while(lista.some(e => e.id === id)) id = bas + "-" + n++;
+    lista.push({id, namn}); ritaVy(); uppdStatus();
+  };
+  inp.addEventListener("keydown", ev => { if(ev.key === "Enter"){ ev.preventDefault(); lagg(); } });
+  return h("div", {},
+    h("div", {class: "info"}, "Lägg till allergener utöver de 14 vanliga (t.ex. bönor eller alkohol). De dyker upp som val på alla rätter och visas på skylten med sin första bokstav i en cirkel."),
+    lista.length ? h("div", {class: "chips", style: "margin-bottom:10px"}, lista.map(e => h("span", {class: "chip on", style: "cursor:default"},
+        h("span", {class: "ic"}, svg(null, e.namn)), e.namn,
+        h("button", {type: "button", class: "liten", style: "margin-left:8px", "aria-label": "Ta bort " + e.namn, onclick: () => {
+          if(!confirm("Ta bort \"" + e.namn + "\"? Den tas också bort från alla rätter.")) return;
+          D.egna.lista = D.egna.lista.filter(x => x.id !== e.id); [D.allergener, D.frukost, D.brunch, D.hockey, D.lunch].forEach(o => ejAllerg(o, e.id)); ritaVy(); uppdStatus(); }}, "Ta bort"))))
+      : h("div", {class: "dim", style: "margin-bottom:10px"}, "Inga egna allergener ännu."),
+    h("div", {class: "rad"}, inp, h("button", {type: "button", onclick: lagg}, "+ Lägg till")));
 }
 
 /* ---------- Utseende ---------- */
 function vyUtseende(){
   const u = D.utseende;
-  const val = (id, titel, text) => h("label", {class: "kort utseende" + (u.tema === id ? " vald" : "")},
-    h("div", {class: "rad"}, h("input", {type: "radio", name: "tema", checked: u.tema === id, style: "flex:none;width:24px;height:24px;min-width:0", onchange: () => { u.tema = id; ritaVy(); uppdStatus(); }}),
-      h("div", {style: "flex:1"}, h("h3", {}, titel), h("div", {class: "dim"}, text)),
-      h("a", {href: "index.html?tema=" + id, target: "_blank", rel: "noopener", class: "liten", style: "flex:none;display:inline-block;padding:8px 14px;border:1px solid var(--svart);border-radius:8px;color:var(--svart);text-decoration:none;background:#fff", onclick: ev => ev.stopPropagation()}, "Förhandsgranska")));
+  const val = (id, titel, text, bg, fg, accent) => {
+    const vald = u.tema === id;
+    return h("div", {class: "temaval" + (vald ? " vald" : ""), role: "radio", "aria-checked": vald ? "true" : "false", tabindex: "0",
+        onclick: () => { u.tema = id; ritaVy(); uppdStatus(); },
+        onkeydown: ev => { if(ev.key === "Enter" || ev.key === " "){ ev.preventDefault(); u.tema = id; ritaVy(); uppdStatus(); } }},
+      h("div", {class: "temaprov", style: "background:" + bg + ";color:" + fg},
+        h("div", {class: "tpt"}, "Dagens lunch"),
+        h("div", {class: "tpr"}, h("span", {}, "Köttbullar"), h("b", {style: "color:" + accent}, "129:-")),
+        h("div", {class: "tpr"}, h("span", {}, "Vegetariskt"), h("b", {style: "color:" + accent}, "119:-"))),
+      h("div", {class: "temainfo"},
+        h("div", {class: "temarubrik"}, h("span", {class: "temaring"}, vald ? "✓" : ""), h("h3", {}, titel), vald ? h("span", {class: "badge"}, "Valt") : null),
+        h("div", {class: "dim"}, text),
+        h("a", {href: "index.html?tema=" + id, target: "_blank", rel: "noopener", class: "temalank", onclick: ev => ev.stopPropagation()}, "Förhandsgranska ↗")));
+  };
   return h("div", {},
     h("div", {class: "info"}, "Välj vilket utseende TV:n och kassan ska ha som standard. Allt innehåll är samma, bara färger och dekor skiljer. Valet gäller alla enheter: TV:n, kassan och iPaden. Det går inte att växla på enskilda enheter."),
-    val("klassisk", "Klassiskt", "Vit kakelvägg, betongskylt, svart text. Så som skylten ser ut i dag."),
-    val("industri", "Industriellt", "Mörk bakgrund, rostfritt stål, koppar och varm gul glöd."));
+    h("div", {class: "temagrid", role: "radiogroup", "aria-label": "Utseende"},
+      val("klassisk", "Klassiskt", "Vit kakelvägg, betongskylt, svart text. Så som skylten ser ut i dag.", "#e9e6df", "#111", "#111"),
+      val("industri", "Industriellt", "Mörk bakgrund, rostfritt stål, koppar och varm gul glöd.", "#1d1f22", "#e8e8e8", "#f2b632")));
 }
+
+/* ---------- Utskrift: en A4-sida per kategori (skriver ut det som står i backoffice just nu, även osparade ändringar) ---------- */
+function skrivUt(kat){
+  let el = $("utskrift"); if(!el){ el = h("div", {id: "utskrift"}); document.body.append(el); }
+  const namnPå = Object.fromEntries(allaAllerg().map(a => [a[0], a[1]]));
+  const alltxt = v => v === undefined || v === null ? "fråga personalen" : (!v.length ? "inga" : v.map(x => namnPå[x] || String(x).replace(/^egen-/, "")).join(", "));
+  const dagTxt = d => !d || !d.length ? "" : d.length === 7 ? "dagligen" : (d.length === 5 && DAGAR.every(x => d.includes(x))) ? "vardagar" : d.length === 1 ? d[0] + "ar" : d.join(", ");
+  const tid = t => t && t.start ? t.start + (t.slut ? "–" + t.slut : "") : "";
+  const rad = (namn, pris, ta, besk, allerg) => h("div", {class: "ur"},
+    h("div", {}, h("div", {class: "un"}, namn), besk ? h("div", {class: "ub"}, besk) : null, allerg !== false ? h("div", {class: "ua"}, "Allergener: " + alltxt(allerg)) : null),
+    (pris || ta) ? h("div", {class: "ut"}, pris || "", ta ? h("small", {}, "Ta med " + ta) : null) : null);
+  const kod = [], idag = new Date().toLocaleDateString("sv-SE", {day: "numeric", month: "long", year: "numeric"});
+  let rubrik = "", pris = "", under = "", fot = [];
+  if(kat === "lunch"){
+    const l = D.lunch, a = D.allergener, pr = (menu && menu.priser) || [];
+    const hitta = n => { const m = pr.find(x => x.toLowerCase().startsWith(n)); return m ? m.replace(/^\D+?\s+(?=\d)/, "").replace(/\s+/g, "") : ""; };
+    const nyckel = (map, n) => { const k = Object.keys(map || {}).find(x => nz(x) === nz(n)); return k === undefined ? "" : map[k]; };
+    const lPris = n => nyckel(l.priser, n) || hitta("dagens lunch"), lTa = n => nyckel(l.taPriser, n);
+    rubrik = "Dagens lunch"; pris = hitta("dagens lunch");
+    const lt = l.tid && l.tid.start ? l.tid : (menu && menu.lunchtid);
+    under = "Vecka " + ((menu && menu.vecka) || "") + " · Bröd, salladsbuffé & kaffe ingår";
+    const delaB = r => { if(r && typeof r === "object") return {n: r.namn || "", b: r.beskrivning || ""}; const t = String(r).trim(), n = dela(t); return {n, b: stor(t.slice(n.length).trim().replace(/^[–-]\s+/, ""))}; };
+    const allergFör = (d, n) => { const o = (a && a.dagar && a.dagar[d]) || {}, k = Object.keys(o).find(x => nz(x) === nz(n)); return k === undefined ? null : o[k]; };
+    if(menu && menu.dagar) DAGAR.forEach(d => { const rs = menu.dagar[d] || []; if(!rs.length) return;
+      kod.push(h("h2", {}, stor(d))); rs.forEach(r => { const o = delaB(r); kod.push(rad(o.n, lPris(o.n), lTa(o.n), o.b, allergFör(d, o.n))); }); });
+    if(menu && menu.vegetariskt){ const o = delaB(menu.vegetariskt); kod.push(h("h2", {class: "veg"}, "Veckans vegetariska · gäller hela veckan")); kod.push(rad(o.n, lPris(o.n), lTa(o.n), o.b, a ? a.vegetariskt : null)); }
+    const ex = (l.extra || []).filter(x => x.alltid === true || x.datum >= iso(new Date()));
+    if(ex.length){ kod.push(h("h2", {}, "Alltid på Focus")); ex.forEach(x => kod.push(rad(x.namn, x.pris || "", x.takeawayPris || "", x.beskrivning || "", x.allergener))); }
+    fot.push("Lunch serveras " + (lt ? tid(lt) : "") + (dagTxt(l.dagar) ? " " + dagTxt(l.dagar) : ""));
+    const sb = hitta("salladsbaren"); if(sb) fot.push("Salladsbaren " + sb);
+  } else if(kat === "frukost" || kat === "brunch"){
+    const f = D[kat];
+    rubrik = f.rubrik || stor(kat); under = [dagTxt(f.dagar), tid(f.tid)].filter(Boolean).join(" · ");
+    (f.rader || []).forEach(r => kod.push(rad(r.namn, r.pris, r.takeawayPris, r.beskrivning, f.visaAllergener === false ? false : r.allergener)));
+  } else if(kat === "hockey"){
+    const k = D.hockey;
+    rubrik = k.rubrik || "Hockeykvällar"; under = k.underrubrik || "";
+    (k.rader || []).forEach(r => kod.push(rad(r.namn, r.pris, r.takeawayPris, r.not, r.allergener)));
+    if(k.paket && k.paket.namn){ kod.push(h("h2", {}, "Paketpris")); kod.push(rad(k.paket.namn, k.paket.pris, k.paket.takeawayPris, "", false)); }
+    const kommande = (k.datum || []).filter(x => x >= iso(new Date())).slice(0, 12);
+    if(kommande.length) fot.push("Matchdagar: " + kommande.map(x => x.slice(5)).join(", "));
+    if(k.tid && k.tid.start) fot.push("Uppladdning från " + k.tid.start + (k.matchstart ? ", matchstart " + k.matchstart : ""));
+  }
+  el.replaceChildren(
+    h("div", {class: "uh"}, h("div", {}, h("h1", {}, rubrik), under ? h("div", {class: "us"}, under) : null), pris ? h("div", {class: "up"}, pris) : null),
+    ...kod,
+    h("div", {class: "uf"}, [...fot, "ICA Focus Restaurang · utskriven " + idag].filter(Boolean).join("  ·  ")));
+  setTimeout(() => window.print(), 50);
+}
+const utskriftsRad = () => h("div", {class: "utskriftsrad"}, h("button", {type: "button", class: "liten", id: "skrivut", onclick: () => skrivUt(flik)}, "🖨 Skriv ut menyn (A4)"),
+  h("span", {class: "dim"}, "Skriver ut det som står här just nu, även sådant som inte är sparat än."));
 
 /* ---------- ramverk ---------- */
 const FLIKAR = [["lunch", "Lunch"], ["frukost", "Frukost"], ["brunch", "Brunch"], ["hockey", "Hockey"], ["installningar", "Inställningar"]];
-const FLIK_DATA = {lunch: ["lunch", "allergener", "ean", "bilder", "slut"], frukost: ["frukost", "ean", "bilder", "slut"], brunch: ["brunch", "ean", "bilder", "slut"], hockey: ["hockey", "ean", "bilder", "slut"], installningar: ["lunch", "frukost", "brunch", "hockey", "oppett", "utseende"]};
+const FLIK_DATA = {lunch: ["lunch", "allergener", "ean", "bilder", "slut"], frukost: ["frukost", "ean", "bilder", "slut"], brunch: ["brunch", "ean", "bilder", "slut"], hockey: ["hockey", "ean", "bilder", "slut"], installningar: ["lunch", "frukost", "brunch", "hockey", "oppett", "utseende", "egna"]};
 const flikSmutsig = id => (FLIK_DATA[id] || [id]).some(k => D[k] && BAS[k] !== ser(D[k]));
 function ritaFlikar(){
   $("tabs").replaceChildren(...FLIKAR.map(([id, t]) => h("button", {class: id === flik ? "on" : "", onclick: () => {
@@ -936,7 +1195,8 @@ function ritaFlikar(){
 }
 function ritaVy(){
   hämtaKort.aktiva = [];
-  $("vy").replaceChildren(flik === "lunch" ? vyLunchRatter() : flik === "frukost" || flik === "brunch" ? vyKategoriBuffe(flik) : flik === "hockey" ? vyKategoriHockey() : vyInstallningar());
+  const vy = flik === "lunch" ? vyLunchRatter() : flik === "frukost" || flik === "brunch" ? vyKategoriBuffe(flik) : flik === "hockey" ? vyKategoriHockey() : vyInstallningar();
+  $("vy").replaceChildren(...(flik === "installningar" ? [] : [utskriftsRad()]), vy);
   uppdStatus();
 }
 function uppdStatus(){
