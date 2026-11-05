@@ -14,8 +14,19 @@
       "namn": "Kaffe",
       "beskrivning": "Kaffe kan alltid köpas",
       "etikett": "",
-      "pris": "",
+      "pris": "25:-",
       "allergener": []
+    },
+    {
+      "namn": "Köttbullar",
+      "beskrivning": "Serveras med lingon, pressgurka och persilja",
+      "etikett": "",
+      "pris": "129:-",
+      "allergener": [
+        "gluten",
+        "ägg"
+      ],
+      "alltid": true
     }
   ],
   "priser": {}
