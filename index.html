@@ -283,8 +283,10 @@
   .banner b { color: #fff; font-weight: 800; text-transform: uppercase; }
   .skylt.hockey #fot, .skylt.hockey .notis { display: none; }
   footer { display: flex; justify-content: space-between; align-items: flex-end; margin-top: calc(var(--u) * 1); }
-  #fot { font-weight: 600; font-size: calc(var(--u) * 3.1); }
-  .notis { font-weight: 700; font-size: calc(var(--u) * 3.5); margin-top: calc(var(--u) * .4); }
+  #fot { font-weight: 600; font-size: calc(var(--u) * 3.1 * var(--kf, 1)); }
+  .nb { white-space: nowrap; }
+  .ic .ini { font-weight: 800; font-size: 1.15em; line-height: 1; }
+  .notis { font-weight: 700; font-size: calc(var(--u) * 3.5 * var(--kf, 1)); margin-top: calc(var(--u) * .4); }
   #status { font-weight: 500; font-size: calc(var(--u) * 2.6); color: #6a1212; }
   footer > div { flex: 1; min-width: 0; padding-right: calc(var(--u) * 3); }
   .logga { flex: none; height: calc(var(--u) * 11); width: calc(var(--u) * 11); display: block; }
@@ -451,6 +453,7 @@ const CONFIG = {
   brunchUrl: "brunch.json",          // brunch (t.ex. lördagar)
   lunchUrl: "lunch.json",            // lunchtider och lunchdagar (egna tider går före ICA:s)
   bilderUrl: "bilder.json",           // vilken bild (ikon) som hör till vilken rätt
+  egnaUrl: "egnaallergener.json",     // egna allergener som lagts till i backoffice
   utseendeUrl: "utseende.json",      // standardutseende (klassisk eller industri)
   eanUrl: "ean.json",                // streckkoder (EAN) per rätt, används bara av kassa.html
   oppettiderUrl: "oppettider.json",  // röda dagar och andra stängda/öppna dagar
@@ -504,6 +507,7 @@ const OPP_URL = PARAMS.get("oppettider") || CONFIG.oppettiderUrl;
 const KASSA = PARAMS.has("kassa");                          // kassa.html: visar streckkoder (EAN) bredvid rätterna
 const EAN_URL = PARAMS.get("ean") || CONFIG.eanUrl;
 const BILDER_URL = PARAMS.get("bilder") || CONFIG.bilderUrl;
+const EGNA_URL = PARAMS.get("egna") || CONFIG.egnaUrl;
 const UTSEENDE_URL = PARAMS.get("utseende") || CONFIG.utseendeUrl;
 let meny = null, allerg = null, frukost = null, hockey = null, slutsåld = null, ean = null, brunch = null, lunch = null, opp = null, bilder = null, utseende = null;
 const SLUT_URL = PARAMS.get("slut") || CONFIG.slutUrl;
@@ -579,10 +583,14 @@ function allergenerFör(dag, namn){
   if(typeof lista === "string") lista = lista.split(/[,;]/).map(s => s.trim()).filter(Boolean);
   return Array.isArray(lista) ? lista : null;
 }
-function allergId(x){ const k = nz(x); const id = ALIAS[k] || k; return ALLERGENER[id] ? id : null; }
+let egna = [];                                                   // egna allergener: [{id:"egen-…", namn}]
+const egenAllerg = id => (egna || []).find(e => e && e.id === id);
+function allergId(x){ const k = nz(x); const id = ALIAS[k] || k; return ALLERGENER[id] || egenAllerg(k) ? id : null; }
 function chip(x, kort){
   const id = allergId(x);
-  if(!id) return `<span class="al"><span class="ic">!</span><span class="t">${esc(x)}</span></span>`;   // okänt ord visas hellre än försvinner
+  if(!id) return `<span class="al"><span class="ic">!</span><span class="t">${esc(String(x).replace(/^egen-/, ""))}</span></span>`;   // okänt ord visas hellre än försvinner
+  const e = egenAllerg(id);
+  if(e) return `<span class="al${kort ? " kort" : ""}"><span class="ic"><span class="ini">${esc(Array.from(e.namn.trim())[0] || "?").toUpperCase()}</span></span><span class="t">${esc(e.namn)}</span></span>`;
   const a = ALLERGENER[id];
   return `<span class="al${kort ? " kort" : ""}"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#a-${a.s}"/></svg></span><span class="t">${a.t}</span></span>`;
 }
@@ -607,8 +615,9 @@ async function hämtaJson(url, nyckel){
 }
 
 async function hämtaSnabba(){
-  const [s, o, bi, ut] = await Promise.all([hämtaJson(SLUT_URL, "slutsald"), hämtaJson(OPP_URL, "oppettider"), hämtaJson(BILDER_URL, "bilder"), hämtaJson(UTSEENDE_URL, "utseende")]);
+  const [s, o, bi, ut, eg] = await Promise.all([hämtaJson(SLUT_URL, "slutsald"), hämtaJson(OPP_URL, "oppettider"), hämtaJson(BILDER_URL, "bilder"), hämtaJson(UTSEENDE_URL, "utseende"), hämtaJson(EGNA_URL, "egna")]);
   slutsåld = s.data; opp = o.data; bilder = bi.data; utseende = ut.data;
+  egna = eg.data && Array.isArray(eg.data.lista) ? eg.data.lista.filter(e => e && typeof e.id === "string" && typeof e.namn === "string") : [];
   tillämpaTema();
   if(KASSA) ean = (await hämtaJson(EAN_URL, "ean")).data;
 }
@@ -645,6 +654,13 @@ function passa(){
   const förbred = () => r.classList.contains("enrad") && [...r.querySelectorAll(".rad:not(.veg) .rl > div")].some(d => d.scrollWidth > d.clientWidth + 1);   // en rad per rätt: texten får inte bryta eller gå utanför
   while((r.scrollHeight > r.clientHeight + 1 || förbred()) && k > .4 && i++ < 80){ k *= .97; r.style.setProperty("--k", k); fitta(); }
   if(pn){ pn.style.display = ""; passaPanel(r, pn); }
+  // Sidfoten får aldrig skjutas ut ur skylten (annars försvinner t.ex. salladsbarens pris): krymp den vid behov
+  const sk = document.querySelector(".skylt");
+  let kf = 1, j = 0;
+  sk.style.setProperty("--kf", 1);
+  const ft = document.querySelector("footer");
+  const utanför = () => ft.getBoundingClientRect().bottom > sk.getBoundingClientRect().bottom - 1 || sk.scrollHeight > sk.clientHeight + 1 || [...ft.querySelectorAll("#fot > div")].some(d => d.scrollWidth > d.clientWidth + 1);
+  while(utanför() && kf > .5 && j++ < 30){ kf *= .95; sk.style.setProperty("--kf", kf); }
   return k;
 }
 function passaPanel(r, pn){
@@ -837,7 +853,7 @@ function rita(){
   const sallad = pris("salladsbaren");
   document.getElementById("fot").innerHTML =
     (läge !== "frukost" && läge !== "brunch" && (fr || bl) ? `<div>${[fr ? `Frukostbuffé ${frDagar} ${frTid}` : "", bl ? `Brunch ${blDagar} ${blTid}` : ""].filter(Boolean).map(esc).join("  ·  ")}</div>` : "") +
-    `<div>Lunch serveras ${esc(lunchStart)}–${esc(lunchEnd)}` + (sallad ? `  ·  Salladsbaren ${esc(sallad)}` : "") + `</div>` +
+    `<div><span class="nb">Lunch serveras ${esc(lunchStart)}–${esc(lunchEnd)}</span>` + (sallad ? `  ·  <span class="nb">Salladsbaren ${esc(sallad)}</span>` : "") + `</div>` +
     (läge !== "stängt" && stängtInfo(plusDagar(n, 1)) ? `<div class="imorgon">Stängt imorgon${stängtInfo(plusDagar(n, 1)).orsak ? ": " + esc(stängtInfo(plusDagar(n, 1)).orsak) : ""}</div>` : "");
   document.getElementById("notis").textContent = CONFIG.notis || "";
   const bn = document.getElementById("banner");
