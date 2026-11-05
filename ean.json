@@ -8,14 +8,14 @@
     "Brunchbuffé": "2095050100006",
     "Hamburgare": "2095061200009",
     "Paketpris mat + dryck": "2095080300001",
-    "Öl": "2095070400001",
     "Vin": "2095080100007",
     "Räkmacka": "2095080200004",
     "Barnfrukost": "2095050700008",
     "Lunch": "2095007800003",
     "Salladsbaren": "2095052100004",
     "Salladsbar": "2095052100004",
-    "Take-Away Kaffe": "2095020700007"
+    "Take-Away Kaffe": "2095020700007",
+    "Öl, 50 cl Mariestad": "2095070400001"
   },
   "takeaway": {
     "Kaffe": "2095020700007"
