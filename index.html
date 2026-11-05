@@ -551,6 +551,7 @@ function tillämpaTema(){ document.body.classList.toggle("industri", valtTema() 
 const kodRad = (...a) => KASSA ? `<i class="br"></i>` + kod(...a) : "";
 const lunchPris = namn => { const m = lunch && lunch.priser; if(!m || !namn) return ""; const k = nz(namn); for(const n in m) if(nz(n) === k) return String(m[n] || ""); return ""; };
 const lunchTaPris = namn => { const m = lunch && lunch.taPriser; if(!m || !namn) return ""; const k = nz(namn); for(const n in m) if(nz(n) === k) return String(m[n] || ""); return ""; };
+const visa = namn => { const m = lunch && lunch.visning; if(!m || !namn) return namn; const k = nz(namn); for(const n in m) if(nz(n) === k && String(m[n]).trim()) return String(m[n]).trim(); return namn; };   // eget visningsnamn på ICA-rätter (ändras i backoffice)
 const taHtml = (pris, blk) => pris ? `<span class="tp${blk ? " blk" : ""}">Ta med ${esc(pris)}</span>` : "";
 const slutMärke = () => `<span class="sl">Slutsåld</span>`;
 
@@ -913,12 +914,12 @@ function rita(){
       const rader = (dagar[d] || []).map(r => dela(r).namn).concat(extraDag(iso(new Date(mån.getFullYear(), mån.getMonth(), mån.getDate() + i))).filter(e => e.alltid !== true).map(e => e.namn));
       return `<div class="rad${d === idag ? " idag" : ""}">
         <div class="dagnamn"><span class="dag fit" data-max="28">${d}</span><span class="dagdatum">${datum(i)}</span></div>
-        <div class="rl">${rader.map(nm => { const sl = d === idag && ärSlut(nm, n); return `<div class="${sl ? "slut" : ""}">${ikonFör(nm)}<span class="nm">${esc(nm)}</span>${lunchPris(nm) ? `<span class="rpris">${esc(lunchPris(nm))}</span>` : ""}${taHtml(lunchTaPris(nm))}${sl ? slutMärke() : ""}</div>`; }).join("") || "<div>Ingen meny registrerad</div>"}</div>
+        <div class="rl">${rader.map(nm => { const sl = d === idag && ärSlut(nm, n); return `<div class="${sl ? "slut" : ""}">${ikonFör(nm)}<span class="nm">${esc(visa(nm))}</span>${lunchPris(nm) ? `<span class="rpris">${esc(lunchPris(nm))}</span>` : ""}${taHtml(lunchTaPris(nm))}${sl ? slutMärke() : ""}</div>`; }).join("") || "<div>Ingen meny registrerad</div>"}</div>
       </div>`;
     }).join("");
     if(veg) html += `<div class="rad veg">
         <div class="dagnamn"><span class="dag fit" data-max="28">Veckans<br>vegetariska</span><span class="dagunder">Gäller hela veckan</span></div>
-        <div class="rl"><div class="${ärSlut(veg.namn, n) ? "slut" : ""}">${ikonFör(veg.namn)}<span class="nm">${esc(veg.namn)}</span>${lunchPris(veg.namn) ? `<span class="rpris">${esc(lunchPris(veg.namn))}</span>` : ""}${taHtml(lunchTaPris(veg.namn))}${ärSlut(veg.namn, n) ? slutMärke() : ""}<span class="hv">Mån–fre</span></div>${veg.besk ? `<div class="vbesk">${esc(veg.besk)}</div>` : ""}</div>
+        <div class="rl"><div class="${ärSlut(veg.namn, n) ? "slut" : ""}">${ikonFör(veg.namn)}<span class="nm">${esc(visa(veg.namn))}</span>${lunchPris(veg.namn) ? `<span class="rpris">${esc(lunchPris(veg.namn))}</span>` : ""}${taHtml(lunchTaPris(veg.namn))}${ärSlut(veg.namn, n) ? slutMärke() : ""}<span class="hv">Mån–fre</span></div>${veg.besk ? `<div class="vbesk">${esc(veg.besk)}</div>` : ""}</div>
       </div>`;
     // Rätter som alltid serveras (alltid på) får en egen ruta längst ned till höger (tom yta i den gröna raden), så att dagarnas rader behåller sin textstorlek
     const alltid = extraDag("").filter(e => e.alltid === true);
@@ -943,7 +944,7 @@ function rita(){
   if(!rätter || !rätter.length) return msg("Ingen meny registrerad för idag");
 
   const textHtml = (o, ids, etikett, sl) =>
-    `${etikett ? `<div class="vlabel">${etikett}</div>` : ""}<div class="namn">${ikonFör(o.namn)}<span class="nm">${esc(o.namn)}</span>${o.pris ? `<span class="rpris">${esc(o.pris)}</span>` : ""}${taHtml(o.tapris)}${sl ? slutMärke() : ""}</div>${o.besk ? `<div class="besk">${esc(o.besk)}</div>` : ""}${SYN ? allergRad(ids) : ""}`;
+    `${etikett ? `<div class="vlabel">${etikett}</div>` : ""}<div class="namn">${ikonFör(o.namn)}<span class="nm">${esc(visa(o.namn))}</span>${o.pris ? `<span class="rpris">${esc(o.pris)}</span>` : ""}${taHtml(o.tapris)}${sl ? slutMärke() : ""}</div>${o.besk ? `<div class="besk">${esc(o.besk)}</div>` : ""}${SYN ? allergRad(ids) : ""}`;
   const rättHtml = p => {
     const sl = ärSlut(p.o.namn, n), text = textHtml(p.o, p.ids, p.et, sl);
     return KASSA ? `<div class="rätt k${sl ? " slut" : ""}"><div class="rtext">${text}</div>${kodPar(p.o.namn, n, "lunch")}</div>` : `<div class="rätt${sl ? " slut" : ""}">${text}</div>`;
