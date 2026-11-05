@@ -580,10 +580,11 @@ function vyExtra(){
     lista.replaceChildren(...(l.extra.length ? l.extra.map((e, i) => {
       const f = (etikett, nyckel, ph, bredd) => h("div", {style: "flex:" + bredd + ";min-width:130px"}, h("label", {class: "f"}, etikett), h("input", {type: "text", value: e[nyckel] || "", placeholder: ph, oninput: ev => { e[nyckel] = ev.target.value; uppdStatus(); }}));
       return h("div", {class: "kort"},
-        h("div", {class: "dim"}, (e.alltid ? "Visas alla lunchdagar" : vd(e.datum)) + " · Allergener: " + (e.allergener === null || e.allergener === undefined ? "ej angivet" : e.allergener.length ? e.allergener.join(", ") : "inga")),
+        h("div", {class: "dim"}, (e.alltid ? "Visas alla lunchdagar" : vd(e.datum))),
         h("div", {class: "rad"}, f("Namn", "namn", "", 3), f("Pris", "pris", "t.ex. 99:-", 1)),
         h("div", {class: "rad"}, f("Beskrivning", "beskrivning", "", 3), f("Etikett", "etikett", "t.ex. Take away", 1)),
-        h("button", {type: "button", class: "liten fara", onclick: () => { l.extra.splice(i, 1); ritaLista(); uppdStatus(); }}, "Ta bort"));
+        h("label", {class: "f"}, "Allergener"), allergVal(() => e.allergener === undefined ? null : e.allergener, v => e.allergener = v, uppdStatus),
+        h("button", {type: "button", class: "liten fara", style: "margin-top:10px", onclick: () => { l.extra.splice(i, 1); ritaLista(); uppdStatus(); }}, "Ta bort"));
     }) : [h("p", {class: "dim"}, "Inga extra rätter inlagda.")]));
   };
   const ritaForm = () => form.replaceChildren(
@@ -738,7 +739,7 @@ function vyRatter(){
   const pr = D.lunch.priser = D.lunch.priser || {};
   const prisFör = { get: n => { const k = nyckelI(pr, n); return k === undefined ? "" : pr[k]; }, set: (n, v) => { const k = nyckelI(pr, n); if(k !== undefined) delete pr[k]; if(v.trim()) pr[n] = v; } };
   lunchNamn.forEach(n => delar.push(kort({namn: n, pris: {get: () => prisFör.get(n), set: v => prisFör.set(n, v)}, standardKod: !!e.standardLunch})));
-  extra.forEach(x => delar.push(kort({namn: x.namn, sättNamn: v => x.namn = v, pris: {get: () => x.pris, set: v => x.pris = v}, notis: (x.alltid ? "Extra rätt · alltid på" : "Extra rätt · " + x.datum) + " (datum, etikett och allergener ändras under Lunch)", standardKod: !!e.standardLunch})));
+  extra.forEach(x => delar.push(kort({namn: x.namn, sättNamn: v => x.namn = v, pris: {get: () => x.pris, set: v => x.pris = v}, notis: (x.alltid ? "Extra rätt · alltid på" : "Extra rätt · " + x.datum) + " (datum, etikett och allergener ändras under Lunch, där allergenerna kan rättas i efterhand)", standardKod: !!e.standardLunch})));
   const bf = (rubrik, f) => { const rd = (f && f.rader) || []; if(!rd.length) return; delar.push(h("h2", {}, rubrik)); rd.forEach(r => delar.push(kort({namn: r.namn, sättNamn: v => r.namn = v, pris: {get: () => r.pris, set: v => r.pris = v}}))); };
   bf("Frukost", D.frukost); bf("Brunch", D.brunch);
   const hk = D.hockey;
