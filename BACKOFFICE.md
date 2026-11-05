@@ -120,9 +120,13 @@ Fem flikar: **Lunch**, **Frukost**, **Brunch**, **Hockey** och **Inställningar*
 - **Inställningar** samlar:
   - **Tider och dagar** för Lunch, Frukost, Brunch och Hockey: när vyn visas på skylten, och under *Streckkoder i kassavyn* egna tider för när koderna kan användas i kassan (annars samma som skylten). För Hockey även matchdagar, uppladdning och matchstart.
   - **Stängt** (röda dagar och undantag).
-  - **Utseende**: Klassiskt eller Industriellt för alla skärmar (`?tema=industri` i adressen används bara för förhandsgranskning).
+  - **Egna allergener**: lägg till allergener utöver de 14 vanliga (t.ex. Bönor). De blir val på alla rätter och visas på skylten som en cirkel med första bokstaven. Sparas i `egnaallergener.json`.
+  - **Utseende**: välj Klassiskt eller Industriellt (kort med förhandsvisning) för alla skärmar. `?tema=industri` i adressen används bara för förhandsgranskning.
+  - **Ändra med Claude**: *Skapa fil för Claude* laddar ner en fil med instruktioner och alla nuvarande inställningar. Ladda upp den i Claude, beskriv ändringen och klistra in svaret under *Läs in ändringar från Claude*. Bara det som Claude ändrat läses in (flikar får •), inget sparas förrän ni trycker Spara.
 - **Spara** sparar alla ändrade filer i alla flikar på en gång.
 - **Bilder**: välj ur galleriet på rättens kort. Sparas i `bilder.json`.
 - **Takeaway**: visas som "Ta med 79:-" intill ordinarie pris. Har rätten två streckkoder visar kassan **ÄTA HÄR** och **TA MED**. Rätter som delar streckkod får samma grå bakgrundsnyans i kassans dagvy.
 - **Allergener** på frukost-, brunch- och hockeyrätter visas på skylten bara när ni fyllt i dem.
-- Nya filer att ladda upp: `bilder.json` och `utseende.json`. Klistra in nya `worker/worker.js` i Cloudflare (Edit code → Deploy), annars nekas de nya fälten när ni sparar.
+- **Skriv ut (A4)**: knappen högst upp på varje kategoriflik skriver ut menyn på en A4-sida (det som står i backoffice just nu, även osparat). På iPad: Dela → Skriv ut.
+- **Hämta veckans meny**: visar en varning om menyn inte är för innevarande vecka. *Kontrollera hämtningen* visar de senaste körningarna (lyckades/misslyckades). Misslyckas de: öppna GitHub → Actions → senaste körningen. Får Workern inte läsa körningarna saknar GitHub-nyckeln behörigheten *Actions: Read and write*.
+- Nya filer att ladda upp: `bilder.json`, `utseende.json` och `egnaallergener.json` (kan skapas första gången ni sparar). Klistra in nya `worker/worker.js` i Cloudflare (Edit code → Deploy), annars nekas de nya fälten när ni sparar.
