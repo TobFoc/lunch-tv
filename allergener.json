@@ -27,11 +27,19 @@
     },
     "torsdag": {
       "Viltskavsgryta": null,
-      "Dagens fångst": null
+      "Dagens fångst": [
+        "laktos"
+      ]
     },
     "fredag": {
-      "Rosastekt flankstek": null,
-      "Dagens fångst": null
+      "Rosastekt flankstek": [
+        "gluten",
+        "laktos",
+        "fisk"
+      ],
+      "Dagens fångst": [
+        "laktos"
+      ]
     }
   },
   "vegetariskt": [
