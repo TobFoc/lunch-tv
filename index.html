@@ -133,6 +133,8 @@
   .kodpar .kod { --bw: 26; align-self: stretch; width: calc(var(--u) * var(--bw) * var(--k, 1)); }
   .kassa .bred .rätt.k .kodpar .kod { --bw: 26; }
   .tp { font-size: .55em; font-weight: 700; margin-left: .7em; white-space: nowrap; opacity: .85; }
+  .ph { display: block; font-size: .42em; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; opacity: .8; line-height: 1.1; text-align: right; }
+  .tp.blk .ph { display: inline; margin-right: .5em; font-size: 1em; letter-spacing: 0; text-transform: none; opacity: 1; }
   .tp.blk { display: block; margin: .25em 0 0; text-align: right; line-height: 1.1; }
   .kl { align-self: flex-start; background: #111; color: #fff; font-weight: 800; font-size: calc(var(--u) * 2.6 * var(--k, 1)); letter-spacing: .1em; text-transform: uppercase; line-height: 1; padding: calc(var(--u) * .5 * var(--k, 1)) calc(var(--u) * 1.1 * var(--k, 1)); }
   .kk.ta .kl { background: var(--grön); }
@@ -241,9 +243,12 @@
   .kod.ingen.sl2 { border-color: var(--röd); color: var(--röd); }
   .rätt.k { display: grid; grid-template-columns: 1fr auto; column-gap: calc(var(--u) * 3); align-items: center; }
   .kassa .lista { gap: calc(var(--u) * 3.4 * var(--k, 1)); }
-  .kassa .frad { grid-template-columns: calc(var(--u) * 11) 1fr calc(var(--u) * 25) calc(var(--u) * 34); column-gap: calc(var(--u) * 2); align-items: center; }
+  .kassa .frad { grid-template-columns: calc(var(--u) * 11) 1fr auto calc(var(--u) * 34); column-gap: calc(var(--u) * 2); align-items: center; }
   .kassa .frad .fpris { text-align: right; }
   .kassa .frad .kod { width: 100%; }
+  .kassa .frad .kodpar { flex-wrap: nowrap; }
+  .kassa .frad .kodpar .kod, .kassa .hrad .kodpar .kod, .kassa .hpaket .kodpar .kod { --bw: 18; width: calc(var(--u) * var(--bw) * var(--k, 1)); }
+  .kassa .hrad .kodpar, .kassa .hpaket .kodpar { margin-left: auto; flex-wrap: nowrap; }
   .kassa .hrad .kod, .kassa .hpaket .kod { --bw: 34; margin-left: auto; }
   .kassa .hrad .kod + .hpris, .kassa .hpaket .kod + .hpris { margin-left: calc(var(--u) * 3); }
   .kassa .hrad .hpris, .kassa .hpaket .hpris { min-width: calc(var(--u) * 20); text-align: right; }
@@ -252,15 +257,17 @@
   @media (orientation: portrait) {
     .kassa .rätt.k { grid-template-columns: 1fr; row-gap: calc(var(--u) * 1.4); }
     .kassa .rätt.k .kod { justify-self: start; --bw: 38; }
-    .kassa .frad { grid-template-columns: calc(var(--u) * 9) 1fr calc(var(--u) * 24); row-gap: calc(var(--u) * 1.4); align-items: start; }
+    .kassa .frad { grid-template-columns: calc(var(--u) * 9) 1fr calc(var(--u) * 33); row-gap: calc(var(--u) * 1.4); align-items: start; }
     .kassa .frad .nr, .kassa .frad .fmitt { grid-row: 1; }
     .kassa .frad .fpris { grid-column: 3; grid-row: 1; }
-    .kassa .frad .kod { grid-column: 2 / 4; grid-row: 2; width: calc(var(--u) * 38); justify-self: start; }
+    .kassa .frad .kod, .kassa .frad .kodpar { grid-column: 2 / 4; grid-row: 2; justify-self: start; }
+    .kassa .frad .kod { width: calc(var(--u) * 38); }
     .kassa .hrad, .kassa .hpaket { display: grid; grid-template-columns: 1fr auto; column-gap: calc(var(--u) * 2); row-gap: calc(var(--u) * 1.2); align-items: baseline; }
     .kassa .hrad .hnamn, .kassa .hpaket .hnamn { grid-column: 1; grid-row: 1; }
     .kassa .hrad .hpris, .kassa .hpaket .hpris { grid-column: 2; grid-row: 1; min-width: 0; margin-left: 0; }
     .kassa .hrad .hnot { grid-column: 1 / -1; }
-    .kassa .hrad .kod, .kassa .hpaket .kod { grid-column: 1 / -1; justify-self: start; margin-left: 0; width: calc(var(--u) * 38); }
+    .kassa .hrad .kod, .kassa .hpaket .kod, .kassa .hrad .kodpar, .kassa .hpaket .kodpar { grid-column: 1 / -1; justify-self: start; margin-left: 0; }
+    .kassa .hrad .kod, .kassa .hpaket .kod { width: calc(var(--u) * 38); }
     .kassa .hrad .kod + .hpris, .kassa .hpaket .kod + .hpris { margin-left: 0; }
   }
   /* Slutsåld */
@@ -553,6 +560,8 @@ const lunchPris = namn => { const m = lunch && lunch.priser; if(!m || !namn) ret
 const lunchTaPris = namn => { const m = lunch && lunch.taPriser; if(!m || !namn) return ""; const k = nz(namn); for(const n in m) if(nz(n) === k) return String(m[n] || ""); return ""; };
 const visa = namn => { const m = lunch && lunch.visning; if(!m || !namn) return namn; const k = nz(namn); for(const n in m) if(nz(n) === k && String(m[n]).trim()) return String(m[n]).trim(); return namn; };   // eget visningsnamn på ICA-rätter (ändras i backoffice)
 const taHtml = (pris, blk) => pris ? `<span class="tp${blk ? " blk" : ""}">Ta med ${esc(pris)}</span>` : "";
+// Pris med tydlig "Äta här"/"Ta med" när samma vara har två priser (frukost, brunch, hockey)
+const prisHtml = (pris, ta) => ta ? `<span class="ph">Äta här</span>${esc(pris || "")}<span class="tp blk"><span class="ph">Ta med</span>${esc(ta)}</span>` : esc(pris || "");
 const slutMärke = () => `<span class="sl">Slutsåld</span>`;
 
 // "Slottsstek serveras med skysås, ..." -> namn "Slottsstek", beskrivning "Med skysås, ..."
@@ -875,8 +884,8 @@ function rita(){
     if(!hockey || !(hockey.rader || []).length) return msg("Hockeymenyn saknas");
     const pk = hockey.paket;
     el.innerHTML = `<div class="hockey">` + hockey.rader.map(r =>
-      `<div class="hrad${ärSlut(r.namn, n) ? " slut" : ""}"><span class="hnamn">${ikonFör(r.namn)}<span class="nm">${esc(r.namn)}</span>${ärSlut(r.namn, n) ? slutMärke() : ""}</span>${r.not || (Array.isArray(r.allergener) && CONFIG.visaAllergener) ? `<span class="hnot">${esc(r.not || "")}${Array.isArray(r.allergener) ? ` Allergener: ${r.allergener.length ? esc(r.allergener.join(", ")) : "inga"}` : ""}</span>` : ""}${kod(r.namn, n)}<span class="hpris">${esc(r.pris || "")}${taHtml(r.takeawayPris, true)}</span></div>`).join("") +
-      (pk ? `<div class="hpaket"><span class="hnamn">${esc(pk.namn)}</span>${kod(pk.namn, n)}<span class="hpris">${esc(pk.pris)}${taHtml(pk.takeawayPris, true)}</span></div>` : "") + `</div>`;
+      `<div class="hrad${ärSlut(r.namn, n) ? " slut" : ""}"><span class="hnamn">${ikonFör(r.namn)}<span class="nm">${esc(r.namn)}</span>${ärSlut(r.namn, n) ? slutMärke() : ""}</span>${r.not || (Array.isArray(r.allergener) && CONFIG.visaAllergener) ? `<span class="hnot">${esc(r.not || "")}${Array.isArray(r.allergener) ? ` Allergener: ${r.allergener.length ? esc(r.allergener.join(", ")) : "inga"}` : ""}</span>` : ""}${kodPar(r.namn, n)}<span class="hpris">${prisHtml(r.pris, r.takeawayPris)}</span></div>`).join("") +
+      (pk ? `<div class="hpaket"><span class="hnamn">${esc(pk.namn)}</span>${kodPar(pk.namn, n)}<span class="hpris">${prisHtml(pk.pris, pk.takeawayPris)}</span></div>` : "") + `</div>`;
     return passa();
   }
 
@@ -887,7 +896,7 @@ function rita(){
       const sl = ärSlut(r.namn, n);
       return `<div class="frad${sl ? " slut" : ""}"><div class="nr">${i + 1}.</div>` +
         `<div class="fmitt"><div class="fnamn">${ikonFör(r.namn)}<span class="nm">${esc(r.namn)}</span>${sl ? slutMärke() : ""}</div>${r.beskrivning ? `<div class="fbesk">${esc(r.beskrivning)}</div>` : ""}${CONFIG.visaAllergener && Array.isArray(r.allergener) ? allergRad(r.allergener) : ""}</div>` +
-        kod(r.namn, n) + `<div class="fpris">${esc(r.pris || "")}${taHtml(r.takeawayPris, true)}</div></div>`;
+        kodPar(r.namn, n) + `<div class="fpris">${prisHtml(r.pris, r.takeawayPris)}</div></div>`;
     }).join("") + `</div>`;
     return passa();
   }
