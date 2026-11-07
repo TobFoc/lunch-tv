@@ -16,7 +16,6 @@
     "Rosastekt flankstek": "kott",
     "Frukostbuffé": "kaffemacka",
     "Kaffe & fralla": "kaffemacka",
-    "Barnfrukost": "kaffemacka",
     "Hamburgare": "burgare",
     "Vin": "vin",
     "Paketpris mat + dryck": "burgare",
@@ -25,6 +24,7 @@
     "Salladsbaren": "sallad",
     "Brunchbuffé": "vaffla",
     "Take-Away Kaffe": "takeaway",
-    "Öl, 50 cl Mariestad": "ol"
+    "Öl, 50 cl Mariestad": "ol",
+    "BarnBrunch": "kaffemacka"
   }
 }
