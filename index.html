@@ -247,7 +247,7 @@
   .kassa .frad .fpris { text-align: right; }
   .kassa .frad .kod { width: 100%; }
   .kassa .frad .kodpar { flex-wrap: nowrap; }
-  .kassa .frad .kodpar .kod, .kassa .hrad .kodpar .kod, .kassa .hpaket .kodpar .kod { --bw: 18; width: calc(var(--u) * var(--bw) * var(--k, 1)); }
+  .kassa .frad .kodpar .kod, .kassa .hrad .kodpar .kod, .kassa .hpaket .kodpar .kod { --bw: 22; width: calc(var(--u) * var(--bw) * var(--k, 1)); }
   .kassa .hrad .kodpar, .kassa .hpaket .kodpar { margin-left: auto; flex-wrap: nowrap; }
   .kassa .hrad .kod, .kassa .hpaket .kod { --bw: 34; margin-left: auto; }
   .kassa .hrad .kod + .hpris, .kassa .hpaket .kod + .hpris { margin-left: calc(var(--u) * 3); }
@@ -260,6 +260,8 @@
     .kassa .frad { grid-template-columns: calc(var(--u) * 9) 1fr calc(var(--u) * 33); row-gap: calc(var(--u) * 1.4); align-items: start; }
     .kassa .frad .nr, .kassa .frad .fmitt { grid-row: 1; }
     .kassa .frad .fpris { grid-column: 3; grid-row: 1; }
+    .kassa .frad .kodpar .kod, .kassa .hrad .kodpar .kod, .kassa .hpaket .kodpar .kod { --bw: 38; }
+    .kassa .hpris > .ph { display: inline; margin-right: .5em; font-size: .4em; }
     .kassa .frad .kod, .kassa .frad .kodpar { grid-column: 2 / 4; grid-row: 2; justify-self: start; }
     .kassa .frad .kod { width: calc(var(--u) * 38); }
     .kassa .hrad, .kassa .hpaket { display: grid; grid-template-columns: 1fr auto; column-gap: calc(var(--u) * 2); row-gap: calc(var(--u) * 1.2); align-items: baseline; }
