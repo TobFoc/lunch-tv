@@ -13,6 +13,19 @@
       "namn": "Brunchbuffé",
       "pris": "99:-",
       "beskrivning": "Inkl gröt, ägg, bacon & våfflor"
+    },
+    {
+      "namn": "Kaffe",
+      "pris": "25:-",
+      "takeawayPris": "25:-"
+    },
+    {
+      "namn": "Barnbrunch",
+      "pris": "49:-"
+    },
+    {
+      "namn": "Kaffe & fralla",
+      "pris": "45:-"
     }
   ]
 }
