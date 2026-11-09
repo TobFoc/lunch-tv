@@ -159,6 +159,18 @@
     .kassa .bred .lista.medpar .rätt.k { grid-template-columns: 1fr; row-gap: calc(var(--u) * .8); }
     .kassa .bred .lista.medpar .kodpar, .kassa .bred .lista.medpar .gkod { justify-self: start; }
   }
+  /* Kassa, dagvy: Äta här / Ta med staplade (större streckkoder) på högersidan där det annars är tomt */
+  .kassa .bred .kodpar { flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: calc(var(--u) * 1.4 * var(--k, 1)); }
+  .kassa .bred .kodpar .kod, .kassa .bred .rätt.k .kodpar .kod { --bw: 42; }
+  .kassa .bred .rätt.k { grid-template-columns: 1fr auto; column-gap: calc(var(--u) * 3); align-items: center; }
+  .kassa .bred .gkod, .kassa .bred .lista.medpar .kodpar { justify-self: end; align-self: center; }
+  .kassa .bred .gtxt { width: auto; text-align: center; }
+  @media (orientation: portrait) {
+    .kassa .bred .rätt.k { grid-template-columns: 1fr auto; }
+    .kassa .bred .kodpar .kod, .kassa .bred .rätt.k .kodpar .kod { --bw: 32; }
+    .kassa .bred .lista.medpar .rätt.k { grid-template-columns: 1fr auto; }
+    .kassa .bred .lista.medpar .kodpar, .kassa .bred .lista.medpar .gkod { justify-self: end; }
+  }
   .vkalltid .ap { margin-left: .6em; white-space: nowrap; }
   .vkalltid .ab { font-weight: 500; font-size: calc(var(--u) * 4.2 * var(--k, 1)); line-height: 1.15; margin-top: calc(var(--u) * .3); }
   .rad { display: grid; grid-template-columns: calc(var(--u) * 33) 1fr; align-items: stretch; background: rgba(255,255,255,.3); }
@@ -288,7 +300,8 @@
   .hpris { margin-left: auto; font-weight: 800; font-size: calc(var(--u) * 8 * var(--k, 1)); line-height: 1; color: #fff; white-space: nowrap; }
   .hpaket { margin-top: calc(var(--u) * 2.2 * var(--k, 1)); display: flex; align-items: baseline; gap: calc(var(--u) * 2); background: #e2d77a; color: #0b1733; padding: calc(var(--u) * 1.4 * var(--k, 1)) calc(var(--u) * 2.4); }
   .hpaket .hnamn, .hpaket .hpris { color: #0b1733; }
-  .banner { display: none; align-items: center; gap: calc(var(--u) * 2); margin-top: calc(var(--u) * 1.2); padding: calc(var(--u) * .9) calc(var(--u) * 2.4); background: #0b1733; color: #e2d77a; border-left: calc(var(--u) * 1.2) solid #e2d77a; font-weight: 700; font-size: calc(var(--u) * 3.4); line-height: 1.1; white-space: nowrap; justify-content: space-between; }
+  .banner { display: none; align-items: center; gap: calc(var(--u) * 2); margin-top: calc(var(--u) * 1.2); padding: calc(var(--u) * .9) calc(var(--u) * 2.4); background: #0b1733; color: #e2d77a; border-left: calc(var(--u) * 1.2) solid #e2d77a; font-weight: 700; font-size: calc(var(--u) * 3.4); line-height: 1.1; flex-wrap: wrap; row-gap: calc(var(--u) * .3); justify-content: space-between; }
+  .banner > * { white-space: nowrap; }
   .banner b { color: #fff; font-weight: 800; text-transform: uppercase; }
   .skylt.hockey #fot, .skylt.hockey .notis { display: none; }
   footer { display: flex; justify-content: space-between; align-items: flex-end; margin-top: calc(var(--u) * 1); }
