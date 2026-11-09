@@ -263,6 +263,14 @@
   /* Kassaläge (kassa.html): streckkoder bredvid rätterna, tillräckligt långt från varandra för att kunna scannas en i taget */
   body.kassa { cursor: auto; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; overscroll-behavior: none; touch-action: manipulation; }
   body.kassa .skylt { top: max(3vh, env(safe-area-inset-top)); height: calc(100% - max(3vh, env(safe-area-inset-top)) - max(3vh, env(safe-area-inset-bottom))); }
+
+  /* Klicka på en streckkod för att förstora den (15 s, klick stänger) */
+  body.kassa .kod:not(.ingen) { cursor: zoom-in; }
+  #kodzoom { position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center; cursor: zoom-out; }
+  #kodzoom .zk { display: flex; flex-direction: column; gap: 1.2vmin; align-items: flex-start; background: #fff; padding: 2.5vmin; border: .5vmin solid #111; box-shadow: 0 2vmin 8vmin rgba(0,0,0,.6); width: min(92vw, 150vh); }
+  #kodzoom .kl { font-size: 4vmin; padding: .8vmin 2vmin; }
+  #kodzoom .kod { width: 100%; min-height: 0; border: 0; padding: 0; cursor: zoom-out; }
+  #kodzoom .kod svg { width: 100%; height: auto; max-height: 70vh; display: block; }
   .kod { flex: none; align-self: center; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fff; border: calc(var(--u) * .15) solid #111; padding: calc(var(--u) * .8) calc(var(--u) * 1.4); line-height: 0; width: calc(var(--u) * var(--bw, 30)); min-height: calc(var(--u) * 6); }
   .kod svg { display: block; width: 100%; height: auto; shape-rendering: crispEdges; }
   .kod.ingen { background: transparent; border: calc(var(--u) * .2) dashed #777; color: #555; font-weight: 600; font-size: calc(var(--u) * 2.6); line-height: 1.1; text-align: center; text-transform: uppercase; letter-spacing: .06em; }
@@ -1075,6 +1083,25 @@ if(KASSA){
   vaken(); document.addEventListener("visibilitychange", () => { if(document.visibilityState === "visible") vaken(); });
   ["gesturestart", "gesturechange", "dblclick"].forEach(e => document.addEventListener(e, ev => ev.preventDefault()));
 }
+
+/* ----- Förstora streckkod vid klick ----- */
+let kodZoomTimer = null;
+function stängKodZoom(){ clearTimeout(kodZoomTimer); kodZoomTimer = null; const z = document.getElementById("kodzoom"); if(z) z.remove(); }
+document.addEventListener("click", ev => {
+  if(document.getElementById("kodzoom")){ stängKodZoom(); return; }
+  if(!document.body.classList.contains("kassa")) return;
+  const kod = ev.target.closest(".kod");
+  if(!kod || kod.classList.contains("ingen") || !kod.querySelector("svg")) return;
+  const kk = kod.closest(".kk");
+  const z = document.createElement("div"); z.id = "kodzoom";
+  const box = document.createElement("div"); box.className = "zk";
+  if(kk){ const l = kk.querySelector(".kl"); if(l){ const lc = l.cloneNode(true); if(kk.classList.contains("ta")) lc.style.background = "var(--grön)"; box.appendChild(lc); } }
+  box.appendChild(kod.cloneNode(true));
+  z.appendChild(box);
+  z.addEventListener("click", ev => { ev.stopPropagation(); stängKodZoom(); });
+  document.body.appendChild(z);
+  kodZoomTimer = setTimeout(stängKodZoom, 15000);
+});
 tillämpaTema();
 hämtaMeny();
 setInterval(hämtaMeny, CONFIG.hämtaVarjeMinut * 60 * 1000);
