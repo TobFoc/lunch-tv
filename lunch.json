@@ -39,9 +39,7 @@
   ],
   "priser": {},
   "taPriser": {},
-  "visning": {
-    "Dagens fångst": "Kolja"
-  },
+  "visning": {},
   "ingenTa": {
     "Salladsbaren": true,
     "Paketpris mat + dryck": true,
