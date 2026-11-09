@@ -41,5 +41,11 @@
   "taPriser": {},
   "visning": {
     "Dagens fångst": "Kolja"
+  },
+  "ingenTa": {
+    "Salladsbaren": true,
+    "Paketpris mat + dryck": true,
+    "Vin": true,
+    "Öl, 50 cl Mariestad": true
   }
 }
