@@ -3,24 +3,24 @@
   "vecka": 46,
   "dagar": {
     "måndag": {
-      "&Ouml;rtbakad fl&auml;skkarr&eacute;": null,
-      "Bohusl&auml;nsk fiskgryta": null
+      "Örtbakad fläskkarré": null,
+      "Bohuslänsk fiskgryta": null
     },
     "tisdag": {
-      "Adobo chicken &ndash; filippinsk kycklinggryta med soja och vitl&ouml;k": null,
+      "Adobo chicken – filippinsk kycklinggryta med soja och vitlök": null,
       "Havets Wallenbergare": null
     },
     "onsdag": {
-      "Marockansk tagine &ndash; lammgryta": null,
-      "Dagens f&aring;ngst": null
+      "Marockansk tagine – lammgryta": null,
+      "Dagens fångst": null
     },
     "torsdag": {
       "Wallenbergare": null,
-      "Dagens f&aring;ngst": null
+      "Dagens fångst": null
     },
     "fredag": {
       "Lasagne al forno": null,
-      "Dagens f&aring;ngst": null
+      "Dagens fångst": null
     }
   },
   "vegetariskt": null
