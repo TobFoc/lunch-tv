@@ -173,7 +173,13 @@
   }
   /* Kassa, dagvy: den grå rutan ligger bara bakom texten. Streckkoderna står utanför, högerställda mot skyltens kant */
   .kassa .bred .rätt.grupp { background: none; border-left: 0; padding: 0; }
-  .kassa .bred .rätt.grupp .rtext { background: var(--gb); border-left: calc(var(--u) * .9) solid var(--gl); padding: calc(var(--u) * 1.2) calc(var(--u) * 1.6); align-self: stretch; }
+  .kassa .bred .rätt.grupp .rtext { background: none; border: 0; padding: 0; align-self: center; }
+  /* avdelare mellan rätter som har olika streckkoder + större text på rätter med egen kod (t.ex. kaffe, salladsbar) */
+  .kassa .bred .lista.medpar .rätt.k { border-top: calc(var(--u) * .35) solid var(--svart); padding-top: calc(var(--u) * 1.4 * var(--k, 1)); }
+  .kassa .bred .lista.medpar .rätt.k:first-child { border-top: 0; padding-top: 0; }
+  .kassa .bred .rätt.k:not(.grupp) .namn { font-size: calc(var(--u) * 8 * var(--k, 1)); }
+  .kassa .bred .rätt.k:not(.grupp) .besk { font-size: calc(var(--u) * 4.6 * var(--k, 1)); }
+  .kassa .bred .rätt.k:not(.grupp) .rpris { font-size: calc(var(--u) * 6.4 * var(--k, 1)); }
   .kassa .bred .rätt.k > .kodpar, .kassa .bred .gkod { justify-self: end; margin-left: auto; }
   .kassa .bred .gkod { align-items: flex-end; }
   .kassa .bred .gkod > .kodpar, .kassa .bred .rätt.k > .kodpar { align-self: flex-end; }
