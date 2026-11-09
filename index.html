@@ -585,7 +585,9 @@ function valtTema(){
 function tillämpaTema(){ document.body.classList.toggle("industri", valtTema() === "industri"); }
 const kodRad = (...a) => KASSA ? `<i class="br"></i>` + kod(...a) : "";
 const lunchPris = namn => { const m = lunch && lunch.priser; if(!m || !namn) return ""; const k = nz(namn); for(const n in m) if(nz(n) === k) return String(m[n] || ""); return ""; };
-const lunchTaPris = namn => { const m = lunch && lunch.taPriser; if(!m || !namn) return ""; const k = nz(namn); for(const n in m) if(nz(n) === k) return String(m[n] || ""); return ""; };
+const ingenTa = namn => { const m = lunch && lunch.ingenTa; return !!(m && namn && Object.keys(m).some(k => m[k] && nz(k) === nz(namn))); };   // rätter som inte kan tas med
+const taV = (namn, pris) => ingenTa(namn) ? "" : pris;
+const lunchTaPris = namn => { if(ingenTa(namn)) return "";  const m = lunch && lunch.taPriser; if(!m || !namn) return ""; const k = nz(namn); for(const n in m) if(nz(n) === k) return String(m[n] || ""); return ""; };
 const visa = namn => { const m = lunch && lunch.visning; if(!m || !namn) return namn; const k = nz(namn); for(const n in m) if(nz(n) === k && String(m[n]).trim()) return String(m[n]).trim(); return namn; };   // eget visningsnamn på ICA-rätter (ändras i backoffice)
 const taHtml = (pris, blk) => pris ? `<span class="tp${blk ? " blk" : ""}">Ta med ${esc(pris)}</span>` : "";
 // Pris med tydlig "Äta här"/"Ta med" när samma vara har två priser (frukost, brunch, hockey)
@@ -773,7 +775,7 @@ function eanFör(namn, reserv){
   return eanOk(c) ? c : null;
 }
 function eanTa(namn, reserv){           // streckkod för takeaway (annan moms), om rätten kan köpas med sig
-  if(!ean) return null;
+  if(!ean || ingenTa(namn)) return null;
   const m = ean.takeaway || {};
   const k = Object.keys(m).find(x => nz(x) === nz(namn));
   const c = k !== undefined ? String(m[k]) : (reserv === "lunch" && ean.standardTakeaway ? String(ean.standardTakeaway) : "");
@@ -920,8 +922,8 @@ function rita(){
     if(!hockey || !(hockey.rader || []).length) return msg("Hockeymenyn saknas");
     const pk = hockey.paket;
     el.innerHTML = `<div class="hockey">` + hockey.rader.map(r =>
-      `<div class="hrad${ärSlut(r.namn, n) ? " slut" : ""}"><span class="hnamn">${ikonFör(r.namn)}<span class="nm">${esc(r.namn)}</span>${ärSlut(r.namn, n) ? slutMärke() : ""}</span>${r.not || (Array.isArray(r.allergener) && CONFIG.visaAllergener) ? `<span class="hnot">${esc(r.not || "")}${Array.isArray(r.allergener) ? ` Allergener: ${r.allergener.length ? esc(r.allergener.join(", ")) : "inga"}` : ""}</span>` : ""}${kodPar(r.namn, n)}<span class="hpris">${prisHtml(r.pris, r.takeawayPris)}</span></div>`).join("") +
-      (pk ? `<div class="hpaket"><span class="hnamn">${esc(pk.namn)}</span>${kodPar(pk.namn, n)}<span class="hpris">${prisHtml(pk.pris, pk.takeawayPris)}</span></div>` : "") + `</div>`;
+      `<div class="hrad${ärSlut(r.namn, n) ? " slut" : ""}"><span class="hnamn">${ikonFör(r.namn)}<span class="nm">${esc(r.namn)}</span>${ärSlut(r.namn, n) ? slutMärke() : ""}</span>${r.not || (Array.isArray(r.allergener) && CONFIG.visaAllergener) ? `<span class="hnot">${esc(r.not || "")}${Array.isArray(r.allergener) ? ` Allergener: ${r.allergener.length ? esc(r.allergener.join(", ")) : "inga"}` : ""}</span>` : ""}${kodPar(r.namn, n)}<span class="hpris">${prisHtml(r.pris, taV(r.namn, r.takeawayPris))}</span></div>`).join("") +
+      (pk ? `<div class="hpaket"><span class="hnamn">${esc(pk.namn)}</span>${kodPar(pk.namn, n)}<span class="hpris">${prisHtml(pk.pris, taV(pk.namn, pk.takeawayPris))}</span></div>` : "") + `</div>`;
     return passa();
   }
 
@@ -932,7 +934,7 @@ function rita(){
       const sl = ärSlut(r.namn, n);
       return `<div class="frad${sl ? " slut" : ""}"><div class="nr">${i + 1}.</div>` +
         `<div class="fmitt"><div class="fnamn">${ikonFör(r.namn)}<span class="nm">${esc(r.namn)}</span>${sl ? slutMärke() : ""}</div>${r.beskrivning ? `<div class="fbesk">${esc(r.beskrivning)}</div>` : ""}${CONFIG.visaAllergener && Array.isArray(r.allergener) ? allergRad(r.allergener) : ""}</div>` +
-        kodPar(r.namn, n) + `<div class="fpris">${prisHtml(r.pris, r.takeawayPris)}</div></div>`;
+        kodPar(r.namn, n) + `<div class="fpris">${prisHtml(r.pris, taV(r.namn, r.takeawayPris))}</div></div>`;
     }).join("") + `</div>`;
     return passa();
   }
@@ -970,7 +972,7 @@ function rita(){
     const alltid = extraDag("").filter(e => e.alltid === true);
     if(alltid.length){
       const nA = alltid.length, kl = nA <= 2 ? "a1" : nA <= 4 ? "a2" : "a3";
-      const sida = alltid.map(e => { const sl = ärSlut(e.namn, n); return `<div class="ar${sl ? " slut" : ""}">${e.etikett ? `<div class="ae">${esc(e.etikett)}</div>` : ""}<div class="an">${ikonFör(e.namn)}<span class="nm">${esc(e.namn)}</span>${e.pris ? `<span class="ap">${esc(e.pris)}</span>` : ""}${taHtml(e.takeawayPris)}${sl ? slutMärke() : ""}</div>${KASSA && /kaffe/i.test(e.namn) ? kodPar(e.namn, n, "lunch") : ""}</div>`; }).join("");
+      const sida = alltid.map(e => { const sl = ärSlut(e.namn, n); return `<div class="ar${sl ? " slut" : ""}">${e.etikett ? `<div class="ae">${esc(e.etikett)}</div>` : ""}<div class="an">${ikonFör(e.namn)}<span class="nm">${esc(e.namn)}</span>${e.pris ? `<span class="ap">${esc(e.pris)}</span>` : ""}${taHtml(taV(e.namn, e.takeawayPris))}${sl ? slutMärke() : ""}</div>${KASSA && /kaffe/i.test(e.namn) ? kodPar(e.namn, n, "lunch") : ""}</div>`; }).join("");
       const ruta = `<aside class="vkalltid vkhead ${kl}"><div class="vkrubrik">Alltid på Focus</div><div class="vklista">${sida}</div></aside>`;
       if(veg) html = html.replace(/(<div class="rad veg">[\s\S]*)<\/div>\s*$/, (m, fore) => fore + ruta + "</div>").replace('<div class="rad veg">', '<div class="rad veg medRuta">');
       else html += `<div class="rad veg medRuta"><div class="dagnamn"><span class="dag fit" data-max="28">Alltid på<br>Focus</span></div><div class="rl"></div>${ruta}</div>`;
@@ -985,7 +987,7 @@ function rita(){
   if(nuMin >= slut) return msg("Lunchen är avslutad för idag", "Välkommen tillbaka imorgon!");
   if(nuMin < start) return msg(`Lunchen serveras från ${lk.start}`);
 
-  const rätter = [...(dagar[dagNamn] || []), ...extraIdag.filter(e => KASSA || e.alltid !== true).map(e => ({namn: e.namn, beskrivning: e.beskrivning || "", allergener: e.allergener, etikett: e.etikett || "", pris: e.pris || "", tapris: e.takeawayPris || ""}))];
+  const rätter = [...(dagar[dagNamn] || []), ...extraIdag.filter(e => KASSA || e.alltid !== true).map(e => ({namn: e.namn, beskrivning: e.beskrivning || "", allergener: e.allergener, etikett: e.etikett || "", pris: e.pris || "", tapris: taV(e.namn, e.takeawayPris) || ""}))];
   if(!rätter || !rätter.length) return msg("Ingen meny registrerad för idag");
 
   const textHtml = (o, ids, etikett, sl) =>
@@ -1000,7 +1002,7 @@ function rita(){
   if(veg) poster.push({o: veg, ids: allergenerFör("vegetariskt"), et: "Veckans vegetariska · gäller hela veckan"});
   // Rätter som alltid serveras (alltid på) får en egen ruta under dagen, så att de inte blandas med dagens rätter (i kassavyn ligger de kvar i listan, där streckkoden finns)
   const alltidRätter = KASSA ? [] : extraIdag.filter(e => e.alltid === true);
-  const alltidHtml = alltidRätter.length ? `<aside class="vkalltid dagpanel"><div class="vkrubrik">Alltid på Focus</div><div class="vklista">${alltidRätter.map(e => { const sl = ärSlut(e.namn, n); return `<div class="ar${sl ? " slut" : ""}">${e.etikett ? `<div class="ae">${esc(e.etikett)}</div>` : ""}<div class="an">${ikonFör(e.namn)}<span class="nm">${esc(e.namn)}</span>${e.pris ? `<span class="ap">${esc(e.pris)}</span>` : ""}${taHtml(e.takeawayPris)}${sl ? slutMärke() : ""}</div>${e.beskrivning ? `<div class="ab">${esc(e.beskrivning)}</div>` : ""}</div>`; }).join("")}</div></aside>` : "";
+  const alltidHtml = alltidRätter.length ? `<aside class="vkalltid dagpanel"><div class="vkrubrik">Alltid på Focus</div><div class="vklista">${alltidRätter.map(e => { const sl = ärSlut(e.namn, n); return `<div class="ar${sl ? " slut" : ""}">${e.etikett ? `<div class="ae">${esc(e.etikett)}</div>` : ""}<div class="an">${ikonFör(e.namn)}<span class="nm">${esc(e.namn)}</span>${e.pris ? `<span class="ap">${esc(e.pris)}</span>` : ""}${taHtml(taV(e.namn, e.takeawayPris))}${sl ? slutMärke() : ""}</div>${e.beskrivning ? `<div class="ab">${esc(e.beskrivning)}</div>` : ""}</div>`; }).join("")}</div></aside>` : "";
   let lista;
   if(!KASSA) lista = poster.map(rättHtml).join("");
   else {
