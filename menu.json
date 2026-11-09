@@ -1,34 +1,31 @@
 {
-  "vecka": 45,
-  "lunchtid": {
-    "start": "11:00",
-    "slut": "14:30"
-  },
+  "vecka": 46,
+  "lunchtid": null,
   "priser": [
     "Dagens lunch 129:-",
     "Salladsbaren 99:-"
   ],
-  "vegetariskt": "Svamppasta med grönkål, parmesan och friterad schalottenlök",
+  "vegetariskt": "Chana Saag &ndash; Indisk currygryta med kik&auml;rtor och spenat serveras med ris, koriander och yoghurt",
   "dagar": {
     "måndag": [
-      "Pannbiff med grönpepparsås, rostad potatis och haricots verts",
-      "Fisk och skaldjursgryta serveras med potatis, morot, räkor, kräftstjärtar och dill"
+      "&Ouml;rtbakad fl&auml;skkarr&eacute; serveras med italiensk tomats&aring;s och rostad potatis",
+      "Bohusl&auml;nsk fiskgryta med potatis, purjol&ouml;k, kr&auml;ftstj&auml;rtar samt f&auml;rskost med timjan"
     ],
     "tisdag": [
-      "Stekt fläsk med raggmunk, rårörda lingon och persilja",
-      "Bohuslänsk fiskpudding serveras med skirat smör, räkor, pepparrot, dill och citron"
+      "Adobo chicken &ndash; filippinsk kycklinggryta med soja och vitl&ouml;k serveras med ris, chili och salladsl&ouml;k",
+      "Havets Wallenbergare serveras med skaldjurss&aring;s, potatismos, gr&ouml;na &auml;rtor och dill"
     ],
     "onsdag": [
-      "Paneng Chicken – Thailändsk kycklinggryta med cashewnötter, ris, koriander, salladslök, chili och lime",
-      "Panerad sej serveras med dillkokt potatis, räkröra, gröna ärtor, citron och dill"
+      "Marockansk tagine &ndash; lammgryta serveras med couscous och chermoula",
+      "Dagens f&aring;ngst serveras med Sandefjordss&aring;s, handskalade r&auml;kor, timjansrostad morot och grillad citron"
     ],
     "torsdag": [
-      "Viltskavsgryta med champinjoner, lök, varmrökt sidfläsk samt potatismos och svartvinbärsgelé",
-      "Dagens fångst serveras med knaperstekt chorizo, rimmad gurka, jordärtskockspuré och brynt smör"
+      "Wallenbergare med potatismos, brynt sm&ouml;r, gr&ouml;na &auml;rtor och r&aring;r&ouml;rda lingon",
+      "Dagens f&aring;ngst serveras med gr&ouml;n currys&aring;s, picklad ingef&auml;ra, ris och fris&eacute;esallad"
     ],
     "fredag": [
-      "Rosastekt flankstek serveras med nattbakad tomat, Café de Paris-sås och pommes frites",
-      "Dagens fångst med Vermouth-sås, glaserad morot, pommes ecrassé och vattenkrasse"
+      "Lasagne al forno serveras med parmesan samt tomatsallad med r&ouml;dl&ouml;k och balsamvin&auml;ger",
+      "Dagens f&aring;ngst serveras med Champagnes&aring;s, kryddbakad spetsk&aring;l, potatis och dillolja"
     ]
   }
 }
