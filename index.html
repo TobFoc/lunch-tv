@@ -109,14 +109,14 @@
   body.kassa .vkhead .vklista { grid-template-columns: 1fr; row-gap: calc(var(--u) * .6 * var(--k, 1)); }
   body.kassa .vkhead .ar { white-space: normal; flex-wrap: wrap; align-items: center; }
   body.kassa .vkhead .an { font-size: calc(var(--u) * 4.4 * var(--k, 1)); overflow: visible; }
-  body.kassa .vkhead .ar .kod { --bw: 26; margin-left: auto; }
+  body.kassa .vkhead .ar .kod { --bw: 39; margin-left: auto; }
   /* Kassavyn, veckomenyn med streckkod på "Alltid på Focus": koden får stort utrymme längst ned, de andra rätterna ligger kvar överst på en rad vardera */
   body.kassa #rätter.vecka.enrad .rad:not(.veg) .rl > div { white-space: nowrap; }
   body.kassa #rätter.vecka.enrad .vkhead .vklista { align-content: center; }
   body.kassa #rätter.vecka.enrad .vkhead .ar { flex-direction: column; align-items: center; gap: calc(var(--u) * .6); }
-  body.kassa #rätter.vecka.enrad .vkhead .ar .kod { --bw: 64; margin-left: 0; align-self: center; }
+  body.kassa #rätter.vecka.enrad .vkhead .ar .kod { --bw: 96; margin-left: 0; align-self: center; }
   @media (orientation: portrait) {
-    body.kassa #rätter.vecka.enrad .vkhead .ar .kod { --bw: 56; }
+    body.kassa #rätter.vecka.enrad .vkhead .ar .kod { --bw: 84; }
     body.kassa #rätter.vecka.enrad .rad:not(.veg) { grid-template-columns: calc(var(--u) * 30) 1fr; }
     body.kassa #rätter.vecka.enrad .rad:not(.veg) .dagnamn { flex-direction: column; align-items: flex-start; justify-content: center; gap: 0; }
     body.kassa #rätter.vecka.enrad .rad:not(.veg) .dag { font-size: calc(var(--u) * 5.6 * var(--k, 1)); }
@@ -130,8 +130,8 @@
   .rätt.grupp[data-ton="3"] { --gb: rgba(0,0,0,.05); --gl: #b0b0ae; }
   .kodpar { display: flex; flex-wrap: wrap; gap: calc(var(--u) * 1.2); align-items: flex-start; background: rgba(255,255,255,.45); border: calc(var(--u) * .2) solid #111; padding: calc(var(--u) * .8); }
   .kodpar .kk { display: flex; flex-direction: column; gap: calc(var(--u) * .4); }
-  .kodpar .kod { --bw: 26; align-self: stretch; width: calc(var(--u) * var(--bw) * var(--k, 1)); }
-  .kassa .bred .rätt.k .kodpar .kod { --bw: 26; }
+  .kodpar .kod { --bw: 39; align-self: stretch; width: calc(var(--u) * var(--bw) * var(--k, 1)); }
+  .kassa .bred .rätt.k .kodpar .kod { --bw: 39; }
   .tp { font-size: .55em; font-weight: 700; margin-left: .7em; white-space: nowrap; opacity: .85; }
   .ph { display: block; font-size: .42em; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; opacity: .8; line-height: 1.1; text-align: right; }
   .tp.blk .ph { display: inline; margin-right: .5em; font-size: 1em; letter-spacing: 0; text-transform: none; opacity: 1; }
@@ -140,8 +140,8 @@
   .kk.ta .kl { background: var(--grön); }
   .rätt.k > .kodpar, .gkod > .kodpar { align-self: center; }
   body.kassa #rätter.vecka.enrad .vkhead .ar .kodpar { justify-content: center; }
-  body.kassa #rätter.vecka.enrad .vkhead .ar .kodpar .kod { --bw: 40; }
-  @media (orientation: portrait) { body.kassa #rätter.vecka.enrad .vkhead .ar .kodpar .kod { --bw: 38; } }
+  body.kassa #rätter.vecka.enrad .vkhead .ar .kodpar .kod { --bw: 60; }
+  @media (orientation: portrait) { body.kassa #rätter.vecka.enrad .vkhead .ar .kodpar .kod { --bw: 57; } }
   body.industri .rätt.grupp { --gb: rgba(255,255,255,.09); --gl: #9a9a98; }
   body.industri .rätt.grupp[data-ton="1"] { --gb: rgba(255,255,255,.17); --gl: #c4c4c2; }
   body.industri .rätt.grupp[data-ton="2"] { --gb: rgba(255,255,255,.25); --gl: #e0e0de; }
@@ -161,14 +161,14 @@
   }
   /* Kassa, dagvy: Äta här / Ta med staplade (större streckkoder) på högersidan där det annars är tomt */
   .kassa .bred .kodpar { flex-direction: row; flex-wrap: nowrap; align-items: flex-start; gap: calc(var(--u) * 1.4 * var(--k, 1)); }
-  .kassa .bred .kodpar .kod, .kassa .bred .rätt.k .kodpar .kod { --bw: 25; }
+  .kassa .bred .kodpar .kod, .kassa .bred .rätt.k .kodpar .kod { --bw: 37.5; }
   .kassa .bred .rätt.k { grid-template-columns: 1fr auto; column-gap: calc(var(--u) * 3); align-items: center; }
   .kassa .bred .gkod, .kassa .bred .lista.medpar .kodpar { justify-self: end; }
   .kassa .bred .gtxt { width: auto; text-align: center; }
   @media (orientation: portrait) {
     .kassa .bred .rätt.k { grid-template-columns: 1fr auto; }
     .kassa .bred .kodpar { flex-direction: column; align-items: stretch; }
-    .kassa .bred .kodpar .kod, .kassa .bred .rätt.k .kodpar .kod { --bw: 34; }
+    .kassa .bred .kodpar .kod, .kassa .bred .rätt.k .kodpar .kod { --bw: 51; }
     .kassa .bred .lista.medpar .rätt.k { grid-template-columns: 1fr auto; }
     .kassa .bred .lista.medpar .kodpar, .kassa .bred .lista.medpar .gkod { justify-self: end; }
   }
@@ -236,7 +236,7 @@
   .bred .lista { border-left: 0; padding-left: 0; }
   .kassa .bred .lista { display: grid; grid-template-columns: 1fr 1fr; column-gap: calc(var(--u) * 4); row-gap: calc(var(--u) * 2 * var(--k, 1)); align-items: start; }
   .kassa .bred .rätt.k { grid-template-columns: 1fr; row-gap: calc(var(--u) * .8); align-items: start; }
-  .kassa .bred .rätt.k .kod { justify-self: start; --bw: 34; }
+  .kassa .bred .rätt.k .kod { justify-self: start; --bw: 51; }
   .gkod { display: flex; flex-direction: column; align-items: flex-start; align-self: center; gap: calc(var(--u) * .6); }
   .gkod .kod { align-self: flex-start; }
   .gtxt { font-weight: 700; font-size: calc(var(--u) * 2.6); text-transform: uppercase; letter-spacing: .05em; line-height: 1.1; text-align: left; width: 0; min-width: 100%; }
@@ -273,20 +273,20 @@
   .kassa .frad .fpris { text-align: right; }
   .kassa .frad .kod { width: 100%; }
   .kassa .frad .kodpar { flex-wrap: nowrap; }
-  .kassa .frad .kodpar .kod, .kassa .hrad .kodpar .kod, .kassa .hpaket .kodpar .kod { --bw: 22; width: calc(var(--u) * var(--bw) * var(--k, 1)); }
+  .kassa .frad .kodpar .kod, .kassa .hrad .kodpar .kod, .kassa .hpaket .kodpar .kod { --bw: 33; width: calc(var(--u) * var(--bw) * var(--k, 1)); }
   .kassa .hrad .kodpar, .kassa .hpaket .kodpar { margin-left: auto; flex-wrap: nowrap; }
-  .kassa .hrad .kod, .kassa .hpaket .kod { --bw: 34; margin-left: auto; }
+  .kassa .hrad .kod, .kassa .hpaket .kod { --bw: 51; margin-left: auto; }
   .kassa .hrad .kod + .hpris, .kassa .hpaket .kod + .hpris { margin-left: calc(var(--u) * 3); }
   .kassa .hrad .hpris, .kassa .hpaket .hpris { min-width: calc(var(--u) * 20); text-align: right; }
   .kassa .hnamn { font-size: calc(var(--u) * 6.4 * var(--k, 1)); }
   /* Stående surfplatta i kassaläge: streckkoden flyttas under texten så att både kod och pris får plats */
   @media (orientation: portrait) {
     .kassa .rätt.k { grid-template-columns: 1fr; row-gap: calc(var(--u) * 1.4); }
-    .kassa .rätt.k .kod { justify-self: start; --bw: 38; }
+    .kassa .rätt.k .kod { justify-self: start; --bw: 57; }
     .kassa .frad { grid-template-columns: calc(var(--u) * 9) 1fr auto; row-gap: calc(var(--u) * 1.4); align-items: start; }
     .kassa .frad .nr, .kassa .frad .fmitt { grid-row: 1; }
     .kassa .frad .kodpar, .kassa .hrad .kodpar, .kassa .hpaket .kodpar { flex-direction: column; align-items: stretch; }
-    .kassa .frad .kodpar .kod, .kassa .hrad .kodpar .kod, .kassa .hpaket .kodpar .kod { --bw: 26; }
+    .kassa .frad .kodpar .kod, .kassa .hrad .kodpar .kod, .kassa .hpaket .kodpar .kod { --bw: 39; }
     .kassa .hpris > .ph { display: inline; margin-right: .5em; font-size: .4em; }
     .kassa .frad .kod { grid-column: 3; grid-row: 1 / span 2; justify-self: end; align-self: center; }
     .kassa .frad .kodpar { grid-column: 3; grid-row: 1 / span 2; justify-self: end; align-self: center; }
