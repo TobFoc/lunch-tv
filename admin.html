@@ -217,12 +217,20 @@ function dela(r){
   return t;
 }
 
+/* Reparerar text där å/ä/ö blivit "Ã¥/Ã¤/Ã¶" (en fil sparad i fel teckenkodning), så att sidan visar rätt oavsett */
+const MOJI = [["Ã¥","å"],["Ã¤","ä"],["Ã¶","ö"],["Ã…","Å"],["Ã\u0085","Å"],["Ã„","Ä"],["Ã\u0084","Ä"],["Ã–","Ö"],["Ã\u0096","Ö"],["Ã©","é"],["Ã¨","è"],["Ã¼","ü"],["Â\u00a0"," "],["Â "," "]];
+const lagaTecken = v => {
+  if(typeof v === "string") return /Ã|Â/.test(v) ? MOJI.reduce((t, [a, b]) => t.split(a).join(b), v) : v;
+  if(Array.isArray(v)) return v.map(lagaTecken);
+  if(v && typeof v === "object"){ const o = {}; for(const k of Object.keys(v)) o[lagaTecken(k)] = lagaTecken(v[k]); return o; }
+  return v;
+};
 async function api(väg, init){
   if(!API) throw new Error("Backoffice är inte kopplat till sin sparfunktion än (se BACKOFFICE.md).");
   let r;
   try { r = await fetch(API + väg, {...init, headers: {"x-pin": pin, ...(init && init.headers)}}); }
   catch(e){ throw new Error("Ingen kontakt med servern. Kontrollera nätverket."); }
-  const j = await r.json().catch(() => ({}));
+  const j = lagaTecken(await r.json().catch(() => ({})));
   if(!r.ok){ const e = new Error(j.fel || ("Fel " + r.status)); e.status = r.status; throw e; }
   return j;
 }
