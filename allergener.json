@@ -1,50 +1,27 @@
 {
-  "_info": "Fyll i allergener för varje rätt. Ersätt null med en lista, t.ex. [\"gluten\", \"laktos\"]. [] betyder att rätten inte innehåller några av de 14 allergenerna. null betyder att uppgift saknas och då visas 'fråga personalen'. Giltiga ord: gluten, laktos (mjölk), nötter, ägg, fisk, skaldjur, blötdjur, selleri, senap, soja, sesam, jordnötter, lupin, sulfit. Rättens namn måste stå exakt som på TV:n.",
-  "vecka": 45,
+  "_info": "Fyll i allergener för varje rätt. Ersätt null med en lista, t.ex. [\"gluten\", \"laktos\"]. [] betyder inga allergener. null betyder att uppgift saknas och då visas 'fråga personalen'. Rättens namn måste stå exakt som på TV:n.",
+  "vecka": 46,
   "dagar": {
     "måndag": {
-      "Pannbiff": [],
-      "Fisk och skaldjursgryta": null
+      "&Ouml;rtbakad fl&auml;skkarr&eacute;": null,
+      "Bohusl&auml;nsk fiskgryta": null
     },
     "tisdag": {
-      "Stekt fläsk": null,
-      "Bohuslänsk fiskpudding": null
+      "Adobo chicken &ndash; filippinsk kycklinggryta med soja och vitl&ouml;k": null,
+      "Havets Wallenbergare": null
     },
     "onsdag": {
-      "Paneng Chicken": [
-        "nötter",
-        "fisk",
-        "skaldjur",
-        "soja"
-      ],
-      "Panerad sej": [
-        "gluten",
-        "laktos",
-        "ägg",
-        "fisk",
-        "skaldjur"
-      ]
+      "Marockansk tagine &ndash; lammgryta": null,
+      "Dagens f&aring;ngst": null
     },
     "torsdag": {
-      "Viltskavsgryta": null,
-      "Dagens fångst": [
-        "laktos"
-      ]
+      "Wallenbergare": null,
+      "Dagens f&aring;ngst": null
     },
     "fredag": {
-      "Rosastekt flankstek": [
-        "gluten",
-        "laktos",
-        "fisk",
-        "senap"
-      ],
-      "Dagens fångst": [
-        "laktos"
-      ]
+      "Lasagne al forno": null,
+      "Dagens f&aring;ngst": null
     }
   },
-  "vegetariskt": [
-    "gluten",
-    "laktos"
-  ]
+  "vegetariskt": null
 }
