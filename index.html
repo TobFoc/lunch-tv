@@ -161,16 +161,23 @@
   }
   /* Kassa, dagvy: Äta här / Ta med staplade (större streckkoder) på högersidan där det annars är tomt */
   .kassa .bred .kodpar { flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: calc(var(--u) * 1.4 * var(--k, 1)); }
-  .kassa .bred .kodpar .kod, .kassa .bred .rätt.k .kodpar .kod { --bw: 42; }
+  .kassa .bred .kodpar .kod, .kassa .bred .rätt.k .kodpar .kod { --bw: 44; }
   .kassa .bred .rätt.k { grid-template-columns: 1fr auto; column-gap: calc(var(--u) * 3); align-items: center; }
-  .kassa .bred .gkod, .kassa .bred .lista.medpar .kodpar { justify-self: end; align-self: center; }
+  .kassa .bred .gkod, .kassa .bred .lista.medpar .kodpar { justify-self: end; }
   .kassa .bred .gtxt { width: auto; text-align: center; }
   @media (orientation: portrait) {
     .kassa .bred .rätt.k { grid-template-columns: 1fr auto; }
-    .kassa .bred .kodpar .kod, .kassa .bred .rätt.k .kodpar .kod { --bw: 32; }
+    .kassa .bred .kodpar .kod, .kassa .bred .rätt.k .kodpar .kod { --bw: 34; }
     .kassa .bred .lista.medpar .rätt.k { grid-template-columns: 1fr auto; }
     .kassa .bred .lista.medpar .kodpar, .kassa .bred .lista.medpar .gkod { justify-self: end; }
   }
+  /* Kassa, dagvy: den grå rutan ligger bara bakom texten. Streckkoderna står utanför, högerställda mot skyltens kant */
+  .kassa .bred .rätt.grupp { background: none; border-left: 0; padding: 0; }
+  .kassa .bred .rätt.grupp .rtext { background: var(--gb); border-left: calc(var(--u) * .9) solid var(--gl); padding: calc(var(--u) * 1.2) calc(var(--u) * 1.6); align-self: stretch; }
+  .kassa .bred .rätt.k > .kodpar, .kassa .bred .gkod { justify-self: end; margin-left: auto; }
+  .kassa .bred .gkod { align-items: flex-end; }
+  .kassa .bred .gkod > .kodpar, .kassa .bred .rätt.k > .kodpar { align-self: flex-end; }
+  .kassa .bred .lista.medpar .rätt.k { align-self: stretch; width: 100%; box-sizing: border-box; }
   .vkalltid .ap { margin-left: .6em; white-space: nowrap; }
   .vkalltid .ab { font-weight: 500; font-size: calc(var(--u) * 4.2 * var(--k, 1)); line-height: 1.15; margin-top: calc(var(--u) * .3); }
   .rad { display: grid; grid-template-columns: calc(var(--u) * 33) 1fr; align-items: stretch; background: rgba(255,255,255,.3); }
