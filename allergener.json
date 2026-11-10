@@ -8,7 +8,12 @@
     },
     "tisdag": {
       "Adobo chicken – filippinsk kycklinggryta med soja och vitlök": null,
-      "Havets Wallenbergare": null
+      "Havets Wallenbergare": [
+        "gluten",
+        "laktos",
+        "ägg",
+        "fisk"
+      ]
     },
     "onsdag": {
       "Marockansk tagine – lammgryta": null,
