@@ -1,5 +1,5 @@
 {
-  "vecka": 46,
+  "vecka": 47,
   "lunchtid": {
     "start": "11:00",
     "slut": "14:30"
@@ -8,27 +8,27 @@
     "Dagens lunch 129:-",
     "Salladsbaren 99:-"
   ],
-  "vegetariskt": "Chana Saag – Indisk currygryta med kikärtor och spenat serveras med ris, koriander och yoghurt",
+  "vegetariskt": "Halloumi Stroganoff med ris, gräddfil och saltgurka",
   "dagar": {
     "måndag": [
-      "Örtbakad fläskkarré serveras med italiensk tomatsås och rostad potatis",
-      "Bohuslänsk fiskgryta med potatis, purjolök, kräftstjärtar samt färskost med timjan"
+      "Pannbiff med potatismos, gräddsås, stekt lök och pressgurka",
+      "Bouillabaisse – fransk fiskgryta med musslor, räkor, potatis och aioli"
     ],
     "tisdag": [
-      "Adobo chicken – filippinsk kycklinggryta med soja och vitlök serveras med ris, chili och salladslök",
-      "Havets Wallenbergare serveras med skaldjurssås, potatismos, gröna ärtor och dill"
+      "Fransk dragonkyckling i krämig sås serveras med ris och rostade rotfrukter",
+      "Panerad sej serveras med tartarsås, potatis, dill, citron och ärtor"
     ],
     "onsdag": [
-      "Marockansk tagine – lammgryta serveras med couscous och chermoula",
-      "Dagens fångst serveras med Sandefjordssås, handskalade räkor, timjansrostad morot och grillad citron"
+      "Chinese sticky pork i sötsur sås serveras med ris, salladslök och koriander",
+      "Dagens fångst serveras med rödbetor, kapris, knaprigt bacon och rödvinssås"
     ],
     "torsdag": [
-      "Wallenbergare med potatismos, brynt smör, gröna ärtor och rårörda lingon",
-      "Dagens fångst serveras med grön currysås, picklad ingefära, ris och friséesallad"
+      "Högrevschili med ris, pico de gallo, gräddfil och nachos",
+      "Stekt strömming med potatismos, skirat smör, rårörda lingon och dill"
     ],
     "fredag": [
-      "Lasagne al forno serveras med parmesan samt tomatsallad med rödlök och balsamvinäger",
-      "Dagens fångst serveras med Champagnesås, kryddbakad spetskål, potatis och dillolja"
+      "Rödvinsbräserad Wagyu-fransyska serveras med potatismos, rökt sidfläsk, morot och gräslök",
+      "Dagens fångst serveras med kastanjepuré, stekt shiitake och kycklingvelouté"
     ]
   }
 }
