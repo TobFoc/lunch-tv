@@ -31,5 +31,7 @@
       "Dagens fångst": null
     }
   },
-  "vegetariskt": null
+  "vegetariskt": [
+    "laktos"
+  ]
 }
