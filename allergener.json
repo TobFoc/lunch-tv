@@ -3,8 +3,16 @@
   "vecka": 47,
   "dagar": {
     "måndag": {
-      "Pannbiff": null,
-      "Bouillabaisse": null
+      "Pannbiff": [
+        "laktos"
+      ],
+      "Bouillabaisse": [
+        "fisk",
+        "skaldjur",
+        "blötdjur",
+        "selleri",
+        "sulfit"
+      ]
     },
     "tisdag": {
       "Fransk dragonkyckling i krämig sås": null,
