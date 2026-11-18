@@ -824,6 +824,9 @@ function kodPar(namn, n, reserv, taPris){
   if(ärSlut(namn, n) && (ea || ta)) return `<div class="kod ingen sl2">Slutsåld</div>`;
   const kanTa = !!ta || (!!tp && !ingenTa(namn));                // rätten kan köpas både här och med sig
   if(!kanTa || (!ea && !ta)) return kod(namn, n, reserv);        // bara en kod (ingen takeaway) eller ingen kod alls
+  return kodParHtml(ea, ta, tp);
+}
+function kodParHtml(ea, ta, tp){        // Äta här-kod + grön Ta med-knapp
   const vänster = ea ? `<div class="kod">${eanSvg(ea)}</div>` : `<div class="kod ingen">Ingen streckkod</div>`;
   const knapp = ta ? `<button type="button" class="tamed" data-ean="${esc(ta)}"><span class="tt">Ta med</span>${tp ? `<span class="tpris">${esc(tp)}</span>` : ""}<span class="ts">tryck för kod</span></button>`
                    : `<div class="tamed saknas"><span class="tt">Ta med</span>${tp ? `<span class="tpris">${esc(tp)}</span>` : ""}<span class="ts">kod saknas</span></div>`;
@@ -1063,7 +1066,7 @@ function rita(){
       g.ton = ton++ % 4;          // samma gråa nyans för rätter som delar streckkod
       const alla = g.p.every(p => ärSlut(p.o.namn, n));
       return `<div class="rätt k grupp${alla ? " slut" : ""}" data-ton="${g.ton}"><div class="rtext">${g.p.map(p => { const sl = ärSlut(p.o.namn, n); return `<div class="gi${sl ? " slut" : ""}">${textHtml(p.o, p.ids, p.et, sl)}</div>`; }).join("")}</div>` +
-        `<div class="gkod">` + (alla ? `<div class="kod ingen sl2">Slutsåld</div>` : g.t ? `<div class="kodpar"><div class="kk"><div class="kl">Äta här</div><div class="kod">${eanSvg(g.c)}</div></div><div class="kk ta"><div class="kl">Ta med</div><div class="kod">${eanSvg(g.t)}</div></div></div>` : `<div class="kod">${eanSvg(g.c)}</div>`) + `<div class="gtxt">Samma kod för alla ${g.p.length} rätter</div></div></div>`;
+        `<div class="gkod">` + (alla ? `<div class="kod ingen sl2">Slutsåld</div>` : g.t ? kodParHtml(g.c, g.t, (tps => tps.length && tps.every(x => x === tps[0]) ? tps[0] : "")(g.p.map(p => p.o.tapris || ""))) : `<div class="kod">${eanSvg(g.c)}</div>`) + `<div class="gtxt">Samma kod för alla ${g.p.length} rätter</div></div></div>`;
     }).join("");
   }
   if(KASSA){      // kassa: dagen står i rubriken (där det annars står "Dagens lunch"), så att rätterna får hela bredden
