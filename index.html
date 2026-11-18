@@ -268,11 +268,15 @@
   /* Kassa: Äta här-koden syns, Ta med är en grön knapp som öppnar koden stort */
   .kassa .kodpar { flex-direction: row !important; flex-wrap: nowrap !important; align-items: stretch !important; background: none !important; border: 0 !important; padding: 0 !important; gap: calc(var(--u) * 2 * var(--k, 1)) !important; }
   .kassa .kodpar .kk { flex: none; }
+  .kassa .frad .kodpar, .kassa .hrad .kodpar { justify-self: end; margin-left: auto; }
+  .kassa .kodpar .kk .kod.ingen { min-width: 0; }
+  .kassa .hrad .hpris { margin-left: 0; }
   .kassa .kodpar .tamed { flex: none; align-self: stretch; width: calc(var(--u) * 13 * var(--k, 1)); min-width: 0; border: 0; border-radius: calc(var(--u) * 1.3); background: var(--grön); color: #fff; font-family: inherit; font-weight: 800; text-transform: uppercase; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; box-shadow: 0 calc(var(--u) * .4) calc(var(--u) * 1) rgba(0,0,0,.35); cursor: pointer; padding: calc(var(--u) * .6); -webkit-appearance: none; appearance: none; }
   .kassa .kodpar .tamed .tt { font-size: calc(var(--u) * 2.4 * var(--k, 1)); letter-spacing: .06em; }
   .kassa .kodpar .tamed .tpris { font-size: calc(var(--u) * 3.6 * var(--k, 1)); margin-top: calc(var(--u) * .4); letter-spacing: 0; }
   .kassa .kodpar .tamed .ts { font-size: calc(var(--u) * 1.6 * var(--k, 1)); font-weight: 600; text-transform: none; margin-top: calc(var(--u) * .6); opacity: .9; }
   body.industri .kassa .kodpar .tamed, body.industri.kassa .kodpar .tamed { background: #6cc36a; color: #1d0f05; }
+  .kassa .kodpar .tamed.saknas { background: transparent; color: #555; border: calc(var(--u) * .25) dashed #777; box-shadow: none; cursor: default; }
   .kassa .tp, .kassa .tp.blk { display: none; }
   #kodzoom .kl.ztamed { background: var(--grön); }
   #kodzoom .kl { font-size: 4vmin; }
@@ -733,7 +737,7 @@ function passa(){
   r.style.setProperty("--k", 1);
   fitta();
   const förbred = () => r.classList.contains("enrad") && [...r.querySelectorAll(".rad:not(.veg) .rl > div")].some(d => d.scrollWidth > d.clientWidth + 1);   // en rad per rätt: texten får inte bryta eller gå utanför
-  while((r.scrollHeight > r.clientHeight + 1 || (KASSA && r.scrollWidth > r.clientWidth + 1) || förbred()) && k > .4 && i++ < 80){ k *= .97; r.style.setProperty("--k", k); fitta(); }
+  while((r.scrollHeight > r.clientHeight + 1 || r.scrollWidth > r.clientWidth + 1 || förbred()) && k > .4 && i++ < 80){ k *= .97; r.style.setProperty("--k", k); fitta(); }
   if(pn){ pn.style.display = ""; passaPanel(r, pn); }
   // Sidfoten får aldrig skjutas ut ur skylten (annars försvinner t.ex. salladsbarens pris): krymp den vid behov
   const sk = document.querySelector(".skylt");
@@ -816,11 +820,14 @@ function eanTa(namn, reserv){           // streckkod för takeaway (annan moms),
 }
 // Kassa: rätter som även säljs som takeaway visar två koder under samma rätt: "Äta här" och "Ta med"
 function kodPar(namn, n, reserv, taPris){
-  const ta = eanTa(namn, reserv);
-  if(!ta || !eanFör(namn, reserv)) return kod(namn, n, reserv);
-  if(ärSlut(namn, n)) return `<div class="kod ingen sl2">Slutsåld</div>`;
-  const tp = taPris || lunchTaPris(namn);
-  return `<div class="kodpar"><div class="kk"><div class="kl">Äta här</div><div class="kod">${eanSvg(eanFör(namn, reserv))}</div></div><button type="button" class="tamed" data-ean="${esc(ta)}"><span class="tt">Ta med</span>${tp ? `<span class="tpris">${esc(tp)}</span>` : ""}<span class="ts">tryck för kod</span></button></div>`;
+  const ea = eanFör(namn, reserv), ta = eanTa(namn, reserv), tp = taPris || lunchTaPris(namn);
+  if(ärSlut(namn, n) && (ea || ta)) return `<div class="kod ingen sl2">Slutsåld</div>`;
+  const kanTa = !!ta || (!!tp && !ingenTa(namn));                // rätten kan köpas både här och med sig
+  if(!kanTa || (!ea && !ta)) return kod(namn, n, reserv);        // bara en kod (ingen takeaway) eller ingen kod alls
+  const vänster = ea ? `<div class="kod">${eanSvg(ea)}</div>` : `<div class="kod ingen">Ingen streckkod</div>`;
+  const knapp = ta ? `<button type="button" class="tamed" data-ean="${esc(ta)}"><span class="tt">Ta med</span>${tp ? `<span class="tpris">${esc(tp)}</span>` : ""}<span class="ts">tryck för kod</span></button>`
+                   : `<div class="tamed saknas"><span class="tt">Ta med</span>${tp ? `<span class="tpris">${esc(tp)}</span>` : ""}<span class="ts">kod saknas</span></div>`;
+  return `<div class="kodpar"><div class="kk"><div class="kl">Äta här</div>${vänster}</div>${knapp}</div>`;
 }
 function kod(namn, n, reserv, visaSlut = true){
   if(!KASSA) return "";
@@ -1117,7 +1124,7 @@ document.addEventListener("click", ev => {
   if(document.getElementById("kodzoom")){ stängKodZoom(); return; }
   if(!document.body.classList.contains("kassa")) return;
   const tb = ev.target.closest(".tamed");
-  if(tb){ öppnaKodZoom("Ta med", true, eanSvg(tb.dataset.ean)); return; }
+  if(tb){ if(tb.dataset.ean) öppnaKodZoom("Ta med", true, eanSvg(tb.dataset.ean)); return; }
   const kod = ev.target.closest(".kod");
   if(!kod || kod.classList.contains("ingen") || !kod.querySelector("svg")) return;
   const kk = kod.closest(".kk"), l = kk && kk.querySelector(".kl");
