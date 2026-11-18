@@ -264,6 +264,19 @@
   body.kassa { cursor: auto; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; overscroll-behavior: none; touch-action: manipulation; }
   body.kassa .skylt { top: max(3vh, env(safe-area-inset-top)); height: calc(100% - max(3vh, env(safe-area-inset-top)) - max(3vh, env(safe-area-inset-bottom))); }
 
+
+  /* Kassa: Äta här-koden syns, Ta med är en grön knapp som öppnar koden stort */
+  .kassa .kodpar { flex-direction: row !important; flex-wrap: nowrap !important; align-items: stretch !important; background: none !important; border: 0 !important; padding: 0 !important; gap: calc(var(--u) * 2 * var(--k, 1)) !important; }
+  .kassa .kodpar .kk { flex: none; }
+  .kassa .kodpar .tamed { flex: none; align-self: stretch; width: calc(var(--u) * 13 * var(--k, 1)); min-width: 0; border: 0; border-radius: calc(var(--u) * 1.3); background: var(--grön); color: #fff; font-family: inherit; font-weight: 800; text-transform: uppercase; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; box-shadow: 0 calc(var(--u) * .4) calc(var(--u) * 1) rgba(0,0,0,.35); cursor: pointer; padding: calc(var(--u) * .6); -webkit-appearance: none; appearance: none; }
+  .kassa .kodpar .tamed .tt { font-size: calc(var(--u) * 2.4 * var(--k, 1)); letter-spacing: .06em; }
+  .kassa .kodpar .tamed .tpris { font-size: calc(var(--u) * 3.6 * var(--k, 1)); margin-top: calc(var(--u) * .4); letter-spacing: 0; }
+  .kassa .kodpar .tamed .ts { font-size: calc(var(--u) * 1.6 * var(--k, 1)); font-weight: 600; text-transform: none; margin-top: calc(var(--u) * .6); opacity: .9; }
+  body.industri .kassa .kodpar .tamed, body.industri.kassa .kodpar .tamed { background: #6cc36a; color: #1d0f05; }
+  .kassa .tp, .kassa .tp.blk { display: none; }
+  #kodzoom .kl.ztamed { background: var(--grön); }
+  #kodzoom .kl { font-size: 4vmin; }
+
   /* Klicka på en streckkod för att förstora den (15 s, klick stänger) */
   body.kassa .kod:not(.ingen) { cursor: zoom-in; }
   #kodzoom { position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center; cursor: zoom-out; }
@@ -281,7 +294,7 @@
   .kassa .frad .fpris { text-align: right; }
   .kassa .frad .kod { width: 100%; }
   .kassa .frad .kodpar { flex-wrap: nowrap; }
-  .kassa .frad .kodpar .kod, .kassa .hrad .kodpar .kod, .kassa .hpaket .kodpar .kod { --bw: 33; width: calc(var(--u) * var(--bw) * var(--k, 1)); }
+  .kassa .frad .kodpar .kod, .kassa .hrad .kodpar .kod, .kassa .hpaket .kodpar .kod { --bw: 32; width: calc(var(--u) * var(--bw) * var(--k, 1)); }
   .kassa .hrad .kodpar, .kassa .hpaket .kodpar { margin-left: auto; flex-wrap: nowrap; }
   .kassa .hrad .kod, .kassa .hpaket .kod { --bw: 51; margin-left: auto; }
   .kassa .hrad .kod + .hpris, .kassa .hpaket .kod + .hpris { margin-left: calc(var(--u) * 3); }
@@ -294,7 +307,7 @@
     .kassa .frad { grid-template-columns: calc(var(--u) * 9) 1fr auto; row-gap: calc(var(--u) * 1.4); align-items: start; }
     .kassa .frad .nr, .kassa .frad .fmitt { grid-row: 1; }
     .kassa .frad .kodpar, .kassa .hrad .kodpar, .kassa .hpaket .kodpar { flex-direction: column; align-items: stretch; }
-    .kassa .frad .kodpar .kod, .kassa .hrad .kodpar .kod, .kassa .hpaket .kodpar .kod { --bw: 39; }
+    .kassa .frad .kodpar .kod, .kassa .hrad .kodpar .kod, .kassa .hpaket .kodpar .kod { --bw: 36; }
     .kassa .hpris > .ph { display: inline; margin-right: .5em; font-size: .4em; }
     .kassa .frad .kod { grid-column: 3; grid-row: 1 / span 2; justify-self: end; align-self: center; }
     .kassa .frad .kodpar { grid-column: 3; grid-row: 1 / span 2; justify-self: end; align-self: center; }
@@ -602,11 +615,13 @@ function valtTema(){
 }
 function tillämpaTema(){ document.body.classList.toggle("industri", valtTema() === "industri"); }
 const kodRad = (...a) => KASSA ? `<i class="br"></i>` + kod(...a) : "";
-const lunchPris = namn => { const m = lunch && lunch.priser; if(!m || !namn) return ""; const k = nz(namn); for(const n in m) if(nz(n) === k) return String(m[n] || ""); return ""; };
+let RD = "";   // veckodagen som ritas just nu: inställningar kan sparas per dag ("Rättnamn@torsdag") och faller tillbaka på gemensamma ("Rättnamn")
+const dagNyckel = (m, namn) => { if(!m || !namn) return undefined; const k = nz(namn), dk = RD ? k + "@" + RD : null; let alt; for(const n in m){ const nn = nz(n); if(dk && nn === dk) return n; if(nn === k && alt === undefined) alt = n; } return alt; };
+const lunchPris = namn => { const m = lunch && lunch.priser, k = dagNyckel(m, namn); return k === undefined ? "" : String(m[k] || ""); };
 const ingenTa = namn => { const m = lunch && lunch.ingenTa; return !!(m && namn && Object.keys(m).some(k => m[k] && nz(k) === nz(namn))); };   // rätter som inte kan tas med
 const taV = (namn, pris) => ingenTa(namn) ? "" : pris;
-const lunchTaPris = namn => { if(ingenTa(namn)) return "";  const m = lunch && lunch.taPriser; if(!m || !namn) return ""; const k = nz(namn); for(const n in m) if(nz(n) === k) return String(m[n] || ""); return ""; };
-const visa = namn => { const m = lunch && lunch.visning; if(!m || !namn) return namn; const k = nz(namn); for(const n in m) if(nz(n) === k && String(m[n]).trim()) return String(m[n]).trim(); return namn; };   // eget visningsnamn på ICA-rätter (ändras i backoffice)
+const lunchTaPris = namn => { if(ingenTa(namn)) return ""; const m = lunch && lunch.taPriser, k = dagNyckel(m, namn); return k === undefined ? "" : String(m[k] || ""); };
+const visa = namn => { const m = lunch && lunch.visning, k = dagNyckel(m, namn); return k !== undefined && String(m[k]).trim() ? String(m[k]).trim() : namn; };   // eget visningsnamn på ICA-rätter (ändras i backoffice)
 const taHtml = (pris, blk) => pris ? `<span class="tp${blk ? " blk" : ""}">Ta med ${esc(pris)}</span>` : "";
 // Pris med tydlig "Äta här"/"Ta med" när samma vara har två priser (frukost, brunch, hockey)
 const prisHtml = (pris, ta) => ta ? `<span class="ph">Äta här</span>${esc(pris || "")}<span class="tp blk"><span class="ph">Ta med</span>${esc(ta)}</span>` : esc(pris || "");
@@ -718,7 +733,7 @@ function passa(){
   r.style.setProperty("--k", 1);
   fitta();
   const förbred = () => r.classList.contains("enrad") && [...r.querySelectorAll(".rad:not(.veg) .rl > div")].some(d => d.scrollWidth > d.clientWidth + 1);   // en rad per rätt: texten får inte bryta eller gå utanför
-  while((r.scrollHeight > r.clientHeight + 1 || förbred()) && k > .4 && i++ < 80){ k *= .97; r.style.setProperty("--k", k); fitta(); }
+  while((r.scrollHeight > r.clientHeight + 1 || (KASSA && r.scrollWidth > r.clientWidth + 1) || förbred()) && k > .4 && i++ < 80){ k *= .97; r.style.setProperty("--k", k); fitta(); }
   if(pn){ pn.style.display = ""; passaPanel(r, pn); }
   // Sidfoten får aldrig skjutas ut ur skylten (annars försvinner t.ex. salladsbarens pris): krymp den vid behov
   const sk = document.querySelector(".skylt");
@@ -800,11 +815,12 @@ function eanTa(namn, reserv){           // streckkod för takeaway (annan moms),
   return eanOk(c) ? c : null;
 }
 // Kassa: rätter som även säljs som takeaway visar två koder under samma rätt: "Äta här" och "Ta med"
-function kodPar(namn, n, reserv){
+function kodPar(namn, n, reserv, taPris){
   const ta = eanTa(namn, reserv);
   if(!ta || !eanFör(namn, reserv)) return kod(namn, n, reserv);
   if(ärSlut(namn, n)) return `<div class="kod ingen sl2">Slutsåld</div>`;
-  return `<div class="kodpar"><div class="kk"><div class="kl">Äta här</div><div class="kod">${eanSvg(eanFör(namn, reserv))}</div></div><div class="kk ta"><div class="kl">Ta med</div><div class="kod">${eanSvg(ta)}</div></div></div>`;
+  const tp = taPris || lunchTaPris(namn);
+  return `<div class="kodpar"><div class="kk"><div class="kl">Äta här</div><div class="kod">${eanSvg(eanFör(namn, reserv))}</div></div><button type="button" class="tamed" data-ean="${esc(ta)}"><span class="tt">Ta med</span>${tp ? `<span class="tpris">${esc(tp)}</span>` : ""}<span class="ts">tryck för kod</span></button></div>`;
 }
 function kod(namn, n, reserv, visaSlut = true){
   if(!KASSA) return "";
@@ -895,6 +911,7 @@ function veckoSpann(n){                                           // "2–6 nov.
 
 function rita(){
   const n = nu(), dagNamn = DAGAR[n.getDay()], nuMin = n.getHours()*60 + n.getMinutes();
+  RD = dagNamn;
   const lunchStart = lunchTid().start, lunchEnd = lunchTid().slut;
   const lk = kassaTid(lunch, {start: lunchStart, slut: lunchEnd});     // kassavyn kan ha egna lunchtider (texten visar alltid ICA:s/egna textider)
   const start = minuter(lk.start), slut = minuter(lk.slut);
@@ -919,7 +936,7 @@ function rita(){
   const sallad = pris("salladsbaren");
   document.getElementById("fot").innerHTML =
     (läge !== "frukost" && läge !== "brunch" && (fr || bl) ? `<div>${[fr ? `Frukostbuffé ${frDagar} ${frTid}` : "", bl ? `Brunch ${blDagar} ${blTid}` : ""].filter(Boolean).map(esc).join("  ·  ")}</div>` : "") +
-    `<div><span class="nb">Lunch serveras ${esc(lunchStart)}–${esc(lunchEnd)}</span>` + (sallad ? `  ·  <span class="nb">Salladsbaren ${esc(sallad)}</span>` : "") + `</div>` +
+    `<div><span class="nb">Lunch serveras ${esc(lunchStart)}–${esc(lunchEnd)}</span>` + (sallad && läge !== "frukost" ? `  ·  <span class="nb">Salladsbaren ${esc(sallad)}</span>` : "") + `</div>` +
     (läge !== "stängt" && stängtInfo(plusDagar(n, 1)) ? `<div class="imorgon">Stängt imorgon${stängtInfo(plusDagar(n, 1)).orsak ? ": " + esc(stängtInfo(plusDagar(n, 1)).orsak) : ""}</div>` : "");
   document.getElementById("notis").textContent = CONFIG.notis || "";
   const bn = document.getElementById("banner");
@@ -940,8 +957,8 @@ function rita(){
     if(!hockey || !(hockey.rader || []).length) return msg("Hockeymenyn saknas");
     const pk = hockey.paket;
     el.innerHTML = `<div class="hockey">` + hockey.rader.map(r =>
-      `<div class="hrad${ärSlut(r.namn, n) ? " slut" : ""}"><span class="hnamn">${ikonFör(r.namn)}<span class="nm">${esc(r.namn)}</span>${ärSlut(r.namn, n) ? slutMärke() : ""}</span>${r.not || (Array.isArray(r.allergener) && CONFIG.visaAllergener) ? `<span class="hnot">${esc(r.not || "")}${Array.isArray(r.allergener) ? ` Allergener: ${r.allergener.length ? esc(r.allergener.join(", ")) : "inga"}` : ""}</span>` : ""}${kodPar(r.namn, n)}<span class="hpris">${prisHtml(r.pris, taV(r.namn, r.takeawayPris))}</span></div>`).join("") +
-      (pk ? `<div class="hpaket"><span class="hnamn">${esc(pk.namn)}</span>${kodPar(pk.namn, n)}<span class="hpris">${prisHtml(pk.pris, taV(pk.namn, pk.takeawayPris))}</span></div>` : "") + `</div>`;
+      `<div class="hrad${ärSlut(r.namn, n) ? " slut" : ""}"><span class="hnamn">${ikonFör(r.namn)}<span class="nm">${esc(r.namn)}</span>${ärSlut(r.namn, n) ? slutMärke() : ""}</span>${r.not || (Array.isArray(r.allergener) && CONFIG.visaAllergener) ? `<span class="hnot">${esc(r.not || "")}${Array.isArray(r.allergener) ? ` Allergener: ${r.allergener.length ? esc(r.allergener.join(", ")) : "inga"}` : ""}</span>` : ""}${kodPar(r.namn, n, undefined, taV(r.namn, r.takeawayPris))}<span class="hpris">${prisHtml(r.pris, taV(r.namn, r.takeawayPris))}</span></div>`).join("") +
+      (pk ? `<div class="hpaket"><span class="hnamn">${esc(pk.namn)}</span>${kodPar(pk.namn, n, undefined, taV(pk.namn, pk.takeawayPris))}<span class="hpris">${prisHtml(pk.pris, taV(pk.namn, pk.takeawayPris))}</span></div>` : "") + `</div>`;
     return passa();
   }
 
@@ -952,7 +969,7 @@ function rita(){
       const sl = ärSlut(r.namn, n);
       return `<div class="frad${sl ? " slut" : ""}"><div class="nr">${i + 1}.</div>` +
         `<div class="fmitt"><div class="fnamn">${ikonFör(r.namn)}<span class="nm">${esc(r.namn)}</span>${sl ? slutMärke() : ""}</div>${r.beskrivning ? `<div class="fbesk">${esc(r.beskrivning)}</div>` : ""}${CONFIG.visaAllergener && Array.isArray(r.allergener) ? allergRad(r.allergener) : ""}</div>` +
-        kodPar(r.namn, n) + `<div class="fpris">${prisHtml(r.pris, taV(r.namn, r.takeawayPris))}</div></div>`;
+        kodPar(r.namn, n, undefined, taV(r.namn, r.takeawayPris)) + `<div class="fpris">${prisHtml(r.pris, taV(r.namn, r.takeawayPris))}</div></div>`;
     }).join("") + `</div>`;
     return passa();
   }
@@ -976,12 +993,14 @@ function rita(){
     const mån = new Date(n.getFullYear(), n.getMonth(), n.getDate() - ((n.getDay() + 6) % 7));    // veckans måndag
     const datum = i => new Date(mån.getFullYear(), mån.getMonth(), mån.getDate() + i).toLocaleDateString("sv-SE", {day: "numeric", month: "short"});
     let html = VECKODAGAR.map((d, i) => {
+      RD = d;
       const rader = (dagar[d] || []).map(r => dela(r).namn).concat(extraDag(iso(new Date(mån.getFullYear(), mån.getMonth(), mån.getDate() + i))).filter(e => e.alltid !== true).map(e => e.namn));
       return `<div class="rad${d === idag ? " idag" : ""}">
         <div class="dagnamn"><span class="dag fit" data-max="28">${d}</span><span class="dagdatum">${datum(i)}</span></div>
         <div class="rl">${rader.map(nm => { const sl = d === idag && ärSlut(nm, n); return `<div class="${sl ? "slut" : ""}">${ikonFör(nm)}<span class="nm">${esc(visa(nm))}</span>${lunchPris(nm) ? `<span class="rpris">${esc(lunchPris(nm))}</span>` : ""}${taHtml(lunchTaPris(nm))}${sl ? slutMärke() : ""}</div>`; }).join("") || "<div>Ingen meny registrerad</div>"}</div>
       </div>`;
     }).join("");
+    RD = dagNamn;
     if(veg) html += `<div class="rad veg">
         <div class="dagnamn"><span class="dag fit" data-max="28">Veckans<br>vegetariska</span><span class="dagunder">Gäller hela veckan</span></div>
         <div class="rl"><div class="${ärSlut(veg.namn, n) ? "slut" : ""}">${ikonFör(veg.namn)}<span class="nm">${esc(visa(veg.namn))}</span>${lunchPris(veg.namn) ? `<span class="rpris">${esc(lunchPris(veg.namn))}</span>` : ""}${taHtml(lunchTaPris(veg.namn))}${ärSlut(veg.namn, n) ? slutMärke() : ""}<span class="hv">Mån–fre</span></div>${veg.besk ? `<div class="vbesk">${esc(veg.besk)}</div>` : ""}</div>
@@ -990,7 +1009,7 @@ function rita(){
     const alltid = extraDag("").filter(e => e.alltid === true);
     if(alltid.length){
       const nA = alltid.length, kl = nA <= 2 ? "a1" : nA <= 4 ? "a2" : "a3";
-      const sida = alltid.map(e => { const sl = ärSlut(e.namn, n); return `<div class="ar${sl ? " slut" : ""}">${e.etikett ? `<div class="ae">${esc(e.etikett)}</div>` : ""}<div class="an">${ikonFör(e.namn)}<span class="nm">${esc(e.namn)}</span>${e.pris ? `<span class="ap">${esc(e.pris)}</span>` : ""}${taHtml(taV(e.namn, e.takeawayPris))}${sl ? slutMärke() : ""}</div>${KASSA && /kaffe/i.test(e.namn) ? kodPar(e.namn, n, "lunch") : ""}</div>`; }).join("");
+      const sida = alltid.map(e => { const sl = ärSlut(e.namn, n); return `<div class="ar${sl ? " slut" : ""}">${e.etikett ? `<div class="ae">${esc(e.etikett)}</div>` : ""}<div class="an">${ikonFör(e.namn)}<span class="nm">${esc(e.namn)}</span>${e.pris ? `<span class="ap">${esc(e.pris)}</span>` : ""}${taHtml(taV(e.namn, e.takeawayPris))}${sl ? slutMärke() : ""}</div>${KASSA && /kaffe/i.test(e.namn) ? kodPar(e.namn, n, "lunch", taV(e.namn, e.takeawayPris)) : ""}</div>`; }).join("");
       const ruta = `<aside class="vkalltid vkhead ${kl}"><div class="vkrubrik">Alltid på Focus</div><div class="vklista">${sida}</div></aside>`;
       if(veg) html = html.replace(/(<div class="rad veg">[\s\S]*)<\/div>\s*$/, (m, fore) => fore + ruta + "</div>").replace('<div class="rad veg">', '<div class="rad veg medRuta">');
       else html += `<div class="rad veg medRuta"><div class="dagnamn"><span class="dag fit" data-max="28">Alltid på<br>Focus</span></div><div class="rl"></div>${ruta}</div>`;
@@ -1012,7 +1031,7 @@ function rita(){
     `${etikett ? `<div class="vlabel">${etikett}</div>` : ""}<div class="namn">${ikonFör(o.namn)}<span class="nm">${esc(visa(o.namn))}</span>${o.pris ? `<span class="rpris">${esc(o.pris)}</span>` : ""}${taHtml(o.tapris)}${sl ? slutMärke() : ""}</div>${o.besk ? `<div class="besk">${esc(o.besk)}</div>` : ""}${SYN ? allergRad(ids) : ""}`;
   const rättHtml = p => {
     const sl = ärSlut(p.o.namn, n), text = textHtml(p.o, p.ids, p.et, sl);
-    return KASSA ? `<div class="rätt k${sl ? " slut" : ""}"><div class="rtext">${text}</div>${kodPar(p.o.namn, n, "lunch")}</div>` : `<div class="rätt${sl ? " slut" : ""}">${text}</div>`;
+    return KASSA ? `<div class="rätt k${sl ? " slut" : ""}"><div class="rtext">${text}</div>${kodPar(p.o.namn, n, "lunch", p.o.tapris)}</div>` : `<div class="rätt${sl ? " slut" : ""}">${text}</div>`;
   };
   const poster = rätter.map(r => { const o = dela(r); if(!o.pris) o.pris = lunchPris(o.namn); if(!o.tapris) o.tapris = lunchTaPris(o.namn); return {o, ids: r && typeof r === "object" && r.allergener !== undefined ? r.allergener : allergenerFör(dagNamn, o.namn), et: r && r.etikett ? r.etikett : ""}; });
   if(veg && !veg.pris) veg.pris = lunchPris(veg.namn);
@@ -1084,23 +1103,25 @@ if(KASSA){
   ["gesturestart", "gesturechange", "dblclick"].forEach(e => document.addEventListener(e, ev => ev.preventDefault()));
 }
 
-/* ----- Förstora streckkod vid klick ----- */
+/* ----- Förstora streckkod vid klick (Äta här-koden) eller Ta med-knappen ----- */
 let kodZoomTimer = null;
 function stängKodZoom(){ clearTimeout(kodZoomTimer); kodZoomTimer = null; const z = document.getElementById("kodzoom"); if(z) z.remove(); }
-document.addEventListener("click", ev => {
-  if(document.getElementById("kodzoom")){ stängKodZoom(); return; }
-  if(!document.body.classList.contains("kassa")) return;
-  const kod = ev.target.closest(".kod");
-  if(!kod || kod.classList.contains("ingen") || !kod.querySelector("svg")) return;
-  const kk = kod.closest(".kk");
+function öppnaKodZoom(etikett, ta, svgHtml){
   const z = document.createElement("div"); z.id = "kodzoom";
-  const box = document.createElement("div"); box.className = "zk";
-  if(kk){ const l = kk.querySelector(".kl"); if(l){ const lc = l.cloneNode(true); if(kk.classList.contains("ta")) lc.style.background = "var(--grön)"; box.appendChild(lc); } }
-  box.appendChild(kod.cloneNode(true));
-  z.appendChild(box);
+  z.innerHTML = `<div class="zk"><div class="kl${ta ? " ztamed" : ""}">${etikett}</div><div class="kod">${svgHtml}</div></div>`;
   z.addEventListener("click", ev => { ev.stopPropagation(); stängKodZoom(); });
   document.body.appendChild(z);
   kodZoomTimer = setTimeout(stängKodZoom, 15000);
+}
+document.addEventListener("click", ev => {
+  if(document.getElementById("kodzoom")){ stängKodZoom(); return; }
+  if(!document.body.classList.contains("kassa")) return;
+  const tb = ev.target.closest(".tamed");
+  if(tb){ öppnaKodZoom("Ta med", true, eanSvg(tb.dataset.ean)); return; }
+  const kod = ev.target.closest(".kod");
+  if(!kod || kod.classList.contains("ingen") || !kod.querySelector("svg")) return;
+  const kk = kod.closest(".kk"), l = kk && kk.querySelector(".kl");
+  öppnaKodZoom(l ? l.textContent : "", !!(kk && kk.classList.contains("ta")), kod.innerHTML);
 });
 tillämpaTema();
 hämtaMeny();
