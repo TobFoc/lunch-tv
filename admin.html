@@ -877,6 +877,10 @@ const ctrlFör = (lista, i) => ({upp: i > 0 ? () => flyttaRad(lista, i, -1) : nu
 function prisFält(map, namn){      // pris per rättnamn i en karta (t.ex. lunch.priser)
   return {get: () => { const k = nyckelI(map, namn); return k === undefined ? "" : map[k]; }, set: v => { const k = nyckelI(map, namn); if(k !== undefined) delete map[k]; if(v.trim()) map[namn] = v; }};
 }
+function prisFältDag(map, namn, dag){      // pris/visningsnamn per rätt OCH dag (nyckel "Rättnamn@dag")
+  const dk = () => Object.keys(map).find(k => nz(k) === nz(namn) + "@" + dag);
+  return {get: () => { const k = dk(); return k === undefined ? "" : map[k]; }, set: v => { const k = dk(); if(k !== undefined) delete map[k]; if(v.trim()) map[namn + "@" + dag] = v; }};
+}
 const textFält = (etikett, get, set, ph) => [h("label", {class: "f"}, etikett), h("input", {type: "text", value: get() || "", placeholder: ph || "", oninput: ev => { set(ev.target.value); uppdStatus(); }})];
 
 /* ---------- Gemensamma koder och sparade koder ---------- */
@@ -917,9 +921,20 @@ function vyLunchRatter(){
   delar.push(h("div", {class: "info"}, "Här ligger alla lunchrätter: namn, pris, takeaway-pris, streckkoder, bild, allergener och slutsåld. Tider och dagar för lunchen ställer ni in under ", h("b", {}, "Inställningar"), ". Tryck Spara när ni är klara, så sparas allt på en gång."));
   (MSG.allergener || []).forEach(m => delar.push(h("div", {class: "fel"}, m)));
   if(!menu) delar.push(h("div", {class: "fel"}, "Veckans meny kunde inte läsas. ICA:s lunchrätter visas inte här."));
-  delar.push(h("h2", {}, "Veckans rätter från ICA"));
-  delar.push(h("p", {class: "dim", style: "margin:0"}, "Namnen hämtas från hemsidan och är låsta, men ni kan välja ett eget namn som visas på TV:n (fältet under namnet). Pris, takeaway-pris, streckkoder, bild och allergener ändrar ni själva. Tomt pris betyder bara lunchpriset i rubriken."));
-  namn.forEach(n => delar.push(V.kort({namn: n, standardKod: true, visning: prisFält(l.visning, n), pris: prisFält(l.priser, n), taPris: prisFält(l.taPriser, n), allerg: icaAllerg(n)})));
+  /* Flytta gemensamma inställningar ("Dagens fångst") till respektive dag ("Dagens fångst@tisdag"), så att varje dag kan ändras för sig */
+  if(menu && menu.dagar) ["priser", "taPriser", "visning"].forEach(f => { const m = l[f];
+    DAGAR.forEach(d => ((menu.dagar[d]) || []).forEach(r => { const n = dela(r), k = nyckelI(m, n); if(k !== undefined && !Object.keys(m).some(x => nz(x) === nz(n) + "@" + d)) m[n + "@" + d] = m[k]; }));
+    DAGAR.forEach(d => ((menu.dagar[d]) || []).forEach(r => { const k = nyckelI(m, dela(r)); if(k !== undefined) delete m[k]; })); });
+  const allergDag = (n, d) => ({
+    get: () => { const k = Object.keys(a.dagar[d] || {}).find(x => nz(x) === nz(n)); return k !== undefined && Array.isArray(a.dagar[d][k]) ? a.dagar[d][k] : null; },
+    set: v => { a.dagar[d] = a.dagar[d] || {}; const k = Object.keys(a.dagar[d]).find(x => nz(x) === nz(n)); a.dagar[d][k !== undefined ? k : n] = v; }});
+  const dagTitel = d => d[0].toUpperCase() + d.slice(1);
+  delar.push(h("h2", {}, "Veckans rätter från ICA, per dag"));
+  delar.push(h("p", {class: "dim", style: "margin:0"}, "Rätterna är ordnade efter den dag de serveras. Namn och beskrivning hämtas från hemsidan och är låsta, men ni kan välja ett eget namn som visas på TV:n (fältet under namnet). Pris, takeaway-pris och allergener sparas ", h("b", {}, "separat för varje dag"), ", så Dagens fångst på tisdag och torsdag kan ha olika pris och allergener. Streckkoder, bild, ingen takeaway och slutsåld följer rättens namn och är gemensamma för alla dagar."));
+  DAGAR.forEach(d => { const rr = (menu && menu.dagar && menu.dagar[d]) || []; if(!rr.length) return;
+    delar.push(h("h3", {class: "dagrubrik", style: "margin:22px 0 4px;font-size:1.15em"}, dagTitel(d)));
+    rr.forEach(r => { const n = dela(r);
+      delar.push(V.kort({namn: n, standardKod: true, notis: dagTitel(d) + ": " + String(r), visning: prisFältDag(l.visning, n, d), pris: prisFältDag(l.priser, n, d), taPris: prisFältDag(l.taPriser, n, d), allerg: allergDag(n, d)})); }); });
   if(veg){
     delar.push(h("h2", {}, "Veckans vegetariska"));
     delar.push(V.kort({namn: veg, standardKod: true, visning: prisFält(l.visning, veg), pris: prisFält(l.priser, veg), taPris: prisFält(l.taPriser, veg), allerg: {get: () => a.vegetariskt, set: v => a.vegetariskt = v}}));
