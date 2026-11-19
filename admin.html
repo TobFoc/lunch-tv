@@ -75,6 +75,8 @@
     #utskrift { display: block !important; color: #000; font-family: "Inter", Arial, sans-serif; font-size: 10pt; line-height: 1.2; }
     #utskrift h1 { font-size: 24pt; margin: 0; text-transform: uppercase; letter-spacing: .02em; line-height: 1.05; }
     #utskrift .uh { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 3pt solid #000; padding-bottom: 6pt; margin-bottom: 8pt; gap: 12pt; }
+    #utskrift .ulogo { height: 20mm; width: 20mm; flex: none; align-self: flex-start; order: 3; }
+    #utskrift .uh { align-items: center; }
     #utskrift .uh .up { font-size: 24pt; font-weight: 800; white-space: nowrap; }
     #utskrift .us { font-size: 11pt; margin: 0 0 6pt; }
     #utskrift h2 { font-size: 11pt; text-transform: uppercase; letter-spacing: .08em; margin: 6pt 0 1pt; padding: 1.5pt 6pt; background: #000; color: #fff; break-after: avoid; }
@@ -1276,9 +1278,14 @@ function skrivUt(kat){
     if(k.tid && k.tid.start) fot.push("Uppladdning från " + k.tid.start + (k.matchstart ? ", matchstart " + k.matchstart : ""));
   }
   el.replaceChildren(
-    h("div", {class: "uh"}, h("div", {}, h("h1", {}, rubrik), under ? h("div", {class: "us"}, under) : null), pris ? h("div", {class: "up"}, pris) : null),
+    h("div", {class: "uh"}, h("div", {}, h("h1", {}, rubrik), under ? h("div", {class: "us"}, under) : null), pris ? h("div", {class: "up"}, pris) : null, h("img", {class: "ulogo", src: "assets/ica-focus-logo.png", alt: "ICA Focus"})),
     ...kod,
     h("div", {class: "uf"}, [...fot, "ICA Focus Restaurang · utskriven " + idag].filter(Boolean).join("  ·  ")));
+  // Krymp så att allt får plats på en A4-sida: mät innehållet i utskriftsbredd (190 mm) och sänk zoomen vid behov
+  el.style.cssText = "display:block;position:absolute;left:-9999px;top:0;width:190mm;zoom:1";
+  const maxH = 275 * 96 / 25.4, hög = el.scrollHeight;
+  el.style.cssText = "";
+  if(hög > maxH) el.style.zoom = String(Math.max(0.35, Math.floor(maxH / hög * 100) / 100));
   setTimeout(() => window.print(), 50);
 }
 const utskriftsRad = () => h("div", {class: "utskriftsrad"}, h("button", {type: "button", class: "liten", id: "skrivut", onclick: () => skrivUt(flik)}, "🖨 Skriv ut menyn (A4)"),
