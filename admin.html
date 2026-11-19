@@ -1081,7 +1081,7 @@ Du hjälper mig att ändra inställningar för vår lunch-TV och kassasida. Neda
 - Streckkoder (EAN) är exakt 13 eller 8 siffror med giltig kontrollsiffra. Tomt = ingen kod.
 - Allergener är en lista med id: ${ALLERGENER.map(a => a[0]).join(", ")}${egna.length ? ", samt egna: " + egna.join(", ") : ""}. \`[]\` betyder inga allergener, \`null\` betyder okänt ("fråga personalen"). Egna allergener läggs till i "egnaallergener.json" som {"id": "egen-bönor", "namn": "Bönor"} (id börjar med "egen-", små bokstäver/siffror/bindestreck, max 30 tecken).
 - Bild (ikon) per rätt i bilder.json är ett av: ${IKONER.map(i => i[0]).join(", ")}.
-- Tema i utseende.json är "klassisk" eller "industri".
+- Tema i utseende.json är "klassisk", "industri", "jul" eller "asiatisk".
 - Rättnamn är nycklar i flera filer (priser, taPriser, ean, bilder, allergener). Skriv dem exakt som de står.
 
 ## Vad filerna innehåller
@@ -1126,7 +1126,7 @@ function läsInClaude(text){
     const k = CLAUDE_FILER.find(x => FILNAMN[x] === fil);
     if(!k || !data || typeof data !== "object" || Array.isArray(data)){ okända.push(fil); continue; }
     if(k === "egna" && !Array.isArray(data.lista)){ okända.push(fil + " (lista saknas)"); continue; }
-    if(k === "utseende" && !["klassisk", "industri"].includes(data.tema)){ okända.push(fil + " (ogiltigt tema)"); continue; }
+    if(k === "utseende" && !["klassisk", "industri", "jul", "asiatisk"].includes(data.tema)){ okända.push(fil + " (ogiltigt tema)"); continue; }
     if(ser(D[k]) !== ser(data)){ D[k] = kopia(data); ändrade.push(fil); }
   }
   if(!ändrade.length) return {fel: okända.length ? "Inget kunde läsas in: " + okända.join(", ") : "Inga ändringar hittades. Allt är redan som i backoffice."};
@@ -1204,10 +1204,33 @@ function vyUtseende(){
         h("a", {href: "index.html?tema=" + id, target: "_blank", rel: "noopener", class: "temalank", onclick: ev => ev.stopPropagation()}, "Förhandsgranska ↗")));
   };
   return h("div", {},
-    h("div", {class: "info"}, "Välj vilket utseende TV:n och kassan ska ha som standard. Allt innehåll är samma, bara färger och dekor skiljer. Valet gäller alla enheter: TV:n, kassan och iPaden. Det går inte att växla på enskilda enheter."),
+    h("div", {class: "info"}, "Välj standardutseende för TV:n och kassan, det som gäller när inget datumstyrt tema pågår. Allt innehåll är samma, bara färger och dekor skiljer. Valet gäller alla enheter: TV:n, kassan och iPaden. Det går inte att växla på enskilda enheter."),
     h("div", {class: "temagrid", role: "radiogroup", "aria-label": "Utseende"},
       val("klassisk", "Klassiskt", "Vit kakelvägg, betongskylt, svart text. Så som skylten ser ut i dag.", "#e9e6df", "#111", "#111"),
-      val("industri", "Industriellt", "Mörk bakgrund, rostfritt stål, koppar och varm gul glöd.", "#1d1f22", "#e8e8e8", "#f2b632")));
+      val("industri", "Industriellt", "Mörk bakgrund, rostfritt stål, koppar och varm gul glöd.", "#1d1f22", "#e8e8e8", "#f2b632"),
+      val("jul", "Jul", "Mörkgrön skylt med granrisgirlang, julkulor, ljusslinga och snö. Röda dagplattor och guldrubrik.", "#123221", "#fbf3e0", "#ffd86a"),
+      val("asiatisk", "Asiatiskt", "Djupröd skylt med röda lyktor, bambu, körsbärsblom och vågmönster. Guld och kinaröd.", "#2a1012", "#f8eed8", "#f2c75c")),
+    h("h2", {}, "Datumstyrda teman"),
+    h("div", {class: "info"}, "Välj ett tema som startar och slutar av sig självt, t.ex. Jul 1 december till 6 januari. Efter slutdatum går skylten tillbaka till standardtemat ovan (", h("b", {}, TEMANAMN[u.tema] || u.tema), "). Lämna slutdatum tomt för ett tema som gäller tills vidare. Om perioder överlappar gäller den som startade senast."),
+    periodLista(u));
+}
+const TEMANAMN = {klassisk: "Klassiskt", industri: "Industriellt", jul: "Jul", asiatisk: "Asiatiskt"};
+function periodLista(u){
+  const lista = Array.isArray(u.perioder) ? u.perioder : [];
+  const idag = (() => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); })();
+  const rad = (p, i) => {
+    const aktiv = (!p.från || idag >= p.från) && (!p.till || idag <= p.till), slut = p.till && idag > p.till;
+    const fel = p.från && p.till && p.till < p.från;
+    return h("div", {class: "periodrad", style: "display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:8px 0;padding:10px;border:1px solid #ccc;border-radius:8px;background:#fff"},
+      h("select", {onchange: e => { p.tema = e.target.value; uppdStatus(); ritaVy(); }}, ...Object.keys(TEMANAMN).map(k => h("option", {value: k, selected: p.tema === k}, TEMANAMN[k]))),
+      h("label", {class: "dim"}, "Från "), h("input", {type: "date", value: p.från || "", oninput: e => { p.från = e.target.value; uppdStatus(); }, onchange: () => ritaVy()}),
+      h("label", {class: "dim"}, "Till och med "), h("input", {type: "date", value: p.till || "", oninput: e => { p.till = e.target.value; uppdStatus(); }, onchange: () => ritaVy()}),
+      fel ? h("span", {class: "badge", style: "background:#b3261e;color:#fff"}, "Slutdatum före start") : aktiv ? h("span", {class: "badge"}, "Pågår nu") : slut ? h("span", {class: "dim"}, "Avslutad") : h("span", {class: "dim"}, "Kommande"),
+      h("button", {type: "button", class: "liten", onclick: () => { lista.splice(i, 1); ritaVy(); uppdStatus(); }}, "Ta bort"));
+  };
+  return h("div", {},
+    ...(lista.length ? lista.map(rad) : [h("p", {class: "dim"}, "Inga datumstyrda teman. Skylten använder standardtemat hela tiden.")]),
+    h("button", {type: "button", onclick: () => { const år = new Date().getFullYear(); (u.perioder = Array.isArray(u.perioder) ? u.perioder : []).push({tema: "jul", från: år + "-12-01", till: (år + 1) + "-01-06"}); ritaVy(); uppdStatus(); }}, "+ Lägg till period"));
 }
 
 /* ---------- Utskrift: en A4-sida per kategori (skriver ut det som står i backoffice just nu, även osparade ändringar) ---------- */
