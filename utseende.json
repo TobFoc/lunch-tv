@@ -1,5 +1,16 @@
 {
   "_info": "Standardutseende på skylten (tema) samt datumstyrda perioder (perioder: tema, från, till). Efter en period återgår skylten till standardtemat. Ändras i backofficet.",
   "tema": "klassisk",
-  "perioder": []
+  "perioder": [
+    {
+      "tema": "asiatisk",
+      "från": "2026-11-27",
+      "till": "2026-11-27"
+    },
+    {
+      "tema": "jul",
+      "från": "2026-12-18",
+      "till": "2026-12-23"
+    }
+  ]
 }
