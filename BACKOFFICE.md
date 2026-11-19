@@ -121,7 +121,7 @@ Fem flikar: **Lunch**, **Frukost**, **Brunch**, **Hockey** och **Inställningar*
   - **Tider och dagar** för Lunch, Frukost, Brunch och Hockey: när vyn visas på skylten, och under *Streckkoder i kassavyn* egna tider för när koderna kan användas i kassan (annars samma som skylten). För Hockey även matchdagar, uppladdning och matchstart.
   - **Stängt** (röda dagar och undantag).
   - **Egna allergener**: lägg till allergener utöver de 14 vanliga (t.ex. Bönor). De blir val på alla rätter och visas på skylten som en cirkel med första bokstaven. Sparas i `egnaallergener.json`.
-  - **Utseende**: välj Klassiskt eller Industriellt (kort med förhandsvisning) för alla skärmar. `?tema=industri` i adressen används bara för förhandsgranskning.
+  - **Utseende**: välj Klassiskt, Industriellt, Jul (granris, julkulor, snö) eller Asiatiskt (lyktor, bambu, körsbärsblom) (kort med förhandsvisning) för alla skärmar. `?tema=jul`, `?tema=asiatisk` eller `?tema=industri` i adressen används bara för förhandsgranskning.
   - **Ändra med Claude**: *Skapa fil för Claude* laddar ner en fil med instruktioner och alla nuvarande inställningar. Ladda upp den i Claude, beskriv ändringen och klistra in svaret under *Läs in ändringar från Claude*. Bara det som Claude ändrat läses in (flikar får •), inget sparas förrän ni trycker Spara.
 - **Spara** sparar alla ändrade filer i alla flikar på en gång.
 - **Bilder**: välj ur galleriet på rättens kort. Sparas i `bilder.json`.
@@ -135,3 +135,10 @@ Fem flikar: **Lunch**, **Frukost**, **Brunch**, **Hockey** och **Inställningar*
 - **Hämtning från ICA**: ICA blockerar GitHubs servrar (HTTP 403), så knappen och den dagliga hämtningen görs i stället av Cloudflare-Workern (klistra in nya `worker.js`). Vill ni ha automatisk hämtning varje vardag: Cloudflare → er Worker → Settings → Triggers → Cron Triggers → lägg till `30 4 * * 1-5` (och gärna `30 8 * * 1-5`). Blockerar ICA även Cloudflare: *Kontrollera hämtningen* visar då raden ur GitHubs logg. Reservväg som alltid fungerar: *Klistra in menyn manuellt* (öppna ICA:s lunchsida, markera allt, kopiera, klistra in).
 - **Hämta veckans meny**: visar en varning om menyn inte är för innevarande vecka. *Kontrollera hämtningen* visar de senaste körningarna (lyckades/misslyckades). Misslyckas de: öppna GitHub → Actions → senaste körningen. Får Workern inte läsa körningarna saknar GitHub-nyckeln behörigheten *Actions: Read and write*.
 - Nya filer att ladda upp: `bilder.json`, `utseende.json` och `egnaallergener.json` (kan skapas första gången ni sparar). Klistra in nya `worker/worker.js` i Cloudflare (Edit code → Deploy), annars nekas de nya fälten när ni sparar.
+
+
+## Datumstyrda teman
+
+Under **Inställningar → Utseende** väljer ni först **standardtemat**. Det är det som skylten och kassan har när inget annat pågår och som de går tillbaka till efter en period.
+
+Under **Datumstyrda teman** trycker ni **+ Lägg till period**, väljer tema, startdatum och slutdatum (till och med). Exempel: Jul 1 december–6 januari. Lämnar ni slutdatum tomt gäller temat tills vidare. Överlappar perioder gäller den som startade senast. Varje rad visar Pågår nu, Kommande eller Avslutad. Skylten byter tema av sig själv vid midnatt, ingen omstart behövs. Glöm inte **Spara**.
