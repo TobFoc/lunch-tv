@@ -1244,7 +1244,7 @@ function skrivUt(kat){
   const tid = t => t && t.start ? t.start + (t.slut ? "–" + t.slut : "") : "";
   const rad = (namn, pris, ta, besk, allerg) => h("div", {class: "ur"},
     h("div", {}, h("div", {class: "un"}, namn), besk ? h("div", {class: "ub"}, besk) : null, allerg !== false ? h("div", {class: "ua"}, "Allergener: " + alltxt(allerg)) : null),
-    (pris || ta) ? h("div", {class: "ut"}, pris || "", ta ? h("small", {}, "Ta med " + ta) : null) : null);
+    null);      // priset skrivs bara ut i sidhuvudet, inte på varje rad
   const kod = [], idag = new Date().toLocaleDateString("sv-SE", {day: "numeric", month: "long", year: "numeric"});
   let rubrik = "", pris = "", under = "", fot = [];
   if(kat === "lunch"){
@@ -1282,9 +1282,14 @@ function skrivUt(kat){
     ...kod,
     h("div", {class: "uf"}, [...fot, "ICA Focus Restaurang · utskriven " + idag].filter(Boolean).join("  ·  ")));
   // Krymp så att allt får plats på en A4-sida: mät innehållet i utskriftsbredd (190 mm) och sänk zoomen vid behov
+  const mät = document.createElement("style");      // samma regler som vid utskrift, så att höjden stämmer
+  mät.textContent = [...document.styleSheets].flatMap(ss => { try { return [...ss.cssRules]; } catch(e){ return []; } })
+    .filter(r => r.type === CSSRule.MEDIA_RULE && /print/.test(r.conditionText || r.media.mediaText))
+    .flatMap(r => [...r.cssRules]).filter(r => r.type === CSSRule.STYLE_RULE && r.selectorText.indexOf("#utskrift") === 0).map(r => r.cssText).join("\n");
+  document.head.append(mät);
   el.style.cssText = "display:block;position:absolute;left:-9999px;top:0;width:190mm;zoom:1";
-  const maxH = 275 * 96 / 25.4, hög = el.scrollHeight;
-  el.style.cssText = "";
+  const maxH = 272 * 96 / 25.4, hög = el.scrollHeight;
+  el.style.cssText = ""; mät.remove();
   if(hög > maxH) el.style.zoom = String(Math.max(0.35, Math.floor(maxH / hög * 100) / 100));
   setTimeout(() => window.print(), 50);
 }
