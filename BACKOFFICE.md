@@ -142,3 +142,8 @@ Fem flikar: **Lunch**, **Frukost**, **Brunch**, **Hockey** och **Inställningar*
 Under **Inställningar → Utseende** väljer ni först **standardtemat**. Det är det som skylten och kassan har när inget annat pågår och som de går tillbaka till efter en period.
 
 Under **Datumstyrda teman** trycker ni **+ Lägg till period**, väljer tema, startdatum och slutdatum (till och med). Exempel: Jul 1 december–6 januari. Lämnar ni slutdatum tomt gäller temat tills vidare. Överlappar perioder gäller den som startade senast. Varje rad visar Pågår nu, Kommande eller Avslutad. Skylten byter tema av sig själv vid midnatt, ingen omstart behövs. Glöm inte **Spara**.
+
+
+## Utskrift
+
+**Skriv ut menyn (A4)** ger alltid en enda sida: innehållet krymps automatiskt om det är långt. ICA Focus-loggan sitter uppe till höger.
