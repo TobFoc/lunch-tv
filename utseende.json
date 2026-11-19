@@ -1,4 +1,5 @@
 {
-  "_info": "Standardutseende på skylten: klassisk eller industri. Ändras i backofficet.",
-  "tema": "klassisk"
+  "_info": "Standardutseende på skylten (tema) samt datumstyrda perioder (perioder: tema, från, till). Efter en period återgår skylten till standardtemat. Ändras i backofficet.",
+  "tema": "klassisk",
+  "perioder": []
 }
