@@ -252,6 +252,15 @@
   .bred .dagkol .dag { font-size: calc(var(--u) * 9); }
   .bred .dagkol .datum { margin-top: 0; font-size: calc(var(--u) * 5); }
   .bred .lista { border-left: 0; padding-left: 0; }
+  /* Många rätter på en dag (TV): rätterna delas i två kolumner (.tät). Är det ändå för mycket döljs raden "Allergener: fråga personalen" (.glest) och en gemensam notis visas längst ner */
+  body:not(.kassa) .dagrad .lista.tät { display: block; column-count: 2; column-gap: calc(var(--u) * 5); }
+  body:not(.kassa) .dagrad .lista.tät > .rätt { break-inside: avoid; margin-bottom: calc(var(--u) * 2.2 * var(--k, 1)); }
+  body:not(.kassa) .dagrad .lista.tät > .rätt:last-child { margin-bottom: 0; }
+  .kassa .lista.tät .rätt.grupp .rtext { display: block; column-count: 2; column-gap: calc(var(--u) * 4); }
+  .kassa .lista.tät .rätt.grupp .gi { break-inside: avoid; margin-bottom: calc(var(--u) * 1.6 * var(--k, 1)); }
+  .lista .oknot { display: none; }
+  .lista.glest .al-rad:has(.okänd) { display: none; }
+  .lista.glest .oknot { display: block; break-inside: avoid; font-weight: 600; font-style: italic; font-size: calc(var(--u) * 2.6 * var(--k, 1)); }
   .kassa .bred .lista { display: grid; grid-template-columns: 1fr 1fr; column-gap: calc(var(--u) * 4); row-gap: calc(var(--u) * 2 * var(--k, 1)); align-items: start; }
   .kassa .bred .rätt.k { grid-template-columns: 1fr; row-gap: calc(var(--u) * .8); align-items: start; }
   .kassa .bred .rätt.k .kod { justify-self: start; --bw: 51; }
@@ -989,6 +998,21 @@ function passaPanel(r, pn){
   }
 }
 
+const överskott = () => { const r = document.getElementById("rätter"); return Math.max(0, r.scrollHeight - r.clientHeight) + Math.max(0, r.scrollWidth - r.clientWidth); };
+const bättre = (k, ö, k0, ö0) => k > k0 + .02 || (k0 < .45 && ö < ö0 - 2);      // större text, eller (när texten redan är minimal) mindre som sticker ut
+function tätare(li, k0){                      // många rätter: delar upp i kolumner, döljer sedan "fråga personalen"-raderna (en gemensam notis i stället). Returnerar ny krympfaktor.
+  const ö0 = överskott();
+  li.classList.add("tät");
+  let k = passa(), ö = överskott();
+  if(!bättre(k, ö, k0, ö0)){ li.classList.remove("tät"); passa(); return k0; }
+  if(k < .8){
+    li.insertAdjacentHTML("beforeend", `<div class="oknot">Allergener: fråga personalen när inget anges.</div>`);
+    li.classList.add("glest");
+    const k2 = passa(), ö2 = överskott();
+    if(!bättre(k2, ö2, k, ö)){ li.classList.remove("glest"); li.querySelector(".oknot").remove(); passa(); } else k = k2;
+  }
+  return k;
+}
 function dagLista(dagar){
   if(dagar.length === 7) return "dagligen";
   if(dagar.length === 5 && VECKODAGAR.every(d => dagar.includes(d))) return "vardagar";
@@ -1302,11 +1326,12 @@ function rita(){
     const harPar = poster.some(p => eanTa(p.o.namn, "lunch") && eanFör(p.o.namn, "lunch"));
     el.innerHTML = `<div class="dagrad bred"><div class="lista${harPar ? " medpar" : ""}">${lista}</div></div>`;
     let kk = passa();
+    if(kk < .8) kk = tätare(el.querySelector(".lista"), kk);
     if(kk < .8){
-      const sk = document.querySelector(".skylt");
+      const sk = document.querySelector(".skylt"), ö1 = överskott();
       sk.classList.add("kassakompakt");
       const k3 = passa();
-      if(k3 <= kk + .02){ sk.classList.remove("kassakompakt"); passa(); }
+      if(!bättre(k3, överskott(), kk, ö1)){ sk.classList.remove("kassakompakt"); passa(); }
     }
     return;
   }
@@ -1323,6 +1348,7 @@ function rita(){
     passa();
     k1 = Number(el.style.getPropertyValue("--k")) || 1;
   }
+  if(!KASSA && k1 < .8) k1 = tätare(el.querySelector(".lista"), k1);      // TV: många rätter i två kolumner
   if(k1 < .8){
     const dr = el.querySelector(".dagrad");
     dr.classList.add("bred");
