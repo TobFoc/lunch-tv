@@ -147,3 +147,7 @@ Under **Datumstyrda teman** trycker ni **+ Lägg till period**, väljer tema, st
 ## Utskrift
 
 **Skriv ut menyn (A4)** ger alltid en enda sida: innehållet krymps automatiskt om det är långt. ICA Focus-loggan sitter uppe till höger.
+
+## Många rätter en dag
+
+När en dag har upp mot 10 rätter delas listan automatiskt i två kolumner på TV:n, och i kassan läggs rätterna med gemensam streckkod i två kolumner. Blir det ändå för trångt döljs raderna "Allergener: fråga personalen" och en gemensam notis visas längst ner. Rätter med angivna allergener visar dem som vanligt.
