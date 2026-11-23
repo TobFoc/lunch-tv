@@ -1,38 +1,36 @@
 {
   "_info": "Fyll i allergener för varje rätt. Ersätt null med en lista, t.ex. [\"gluten\", \"laktos\"]. [] betyder inga allergener. null betyder att uppgift saknas och då visas 'fråga personalen'. Rättens namn måste stå exakt som på TV:n.",
-  "vecka": 47,
+  "vecka": 48,
   "dagar": {
     "måndag": {
-      "Pannbiff": [
-        "laktos"
+      "Helstekt fläskkarré": [
+        "laktos",
+        "senap"
       ],
-      "Bouillabaisse": [
-        "ägg",
+      "Bohuslänsk fisksoppa": [
+        "laktos",
         "fisk",
         "skaldjur",
-        "blötdjur",
         "selleri",
         "sulfit"
       ]
     },
     "tisdag": {
-      "Fransk dragonkyckling i krämig sås": null,
-      "Panerad sej": null
+      "Stekt fläsk": null,
+      "Dagens fångst": null
     },
     "onsdag": {
-      "Chinese sticky pork i sötsur sås": null,
-      "Dagens fångst": null
+      "Lamm Rogan Josh": null,
+      "Havets Wallenbergare": null
     },
     "torsdag": {
-      "Högrevschili": null,
-      "Stekt strömming": null
+      "Kålpudding": null,
+      "Dagens fångst": null
     },
     "fredag": {
-      "Rödvinsbräserad Wagyu-fransyska": null,
-      "Dagens fångst": null
+      "Rostad fläsksida": null,
+      "Smörbakad långafilé": null
     }
   },
-  "vegetariskt": [
-    "laktos"
-  ]
+  "vegetariskt": null
 }
