@@ -1,5 +1,5 @@
 {
-  "vecka": 47,
+  "vecka": 48,
   "lunchtid": {
     "start": "11:00",
     "slut": "14:30"
@@ -8,27 +8,27 @@
     "Dagens lunch 129:-",
     "Salladsbaren 99:-"
   ],
-  "vegetariskt": "Halloumi Stroganoff med ris, gräddfil och saltgurka",
+  "vegetariskt": "Texas black bean chili med ris, koriander och gräddfil",
   "dagar": {
     "måndag": [
-      "Pannbiff med potatismos, gräddsås, stekt lök och pressgurka",
-      "Bouillabaisse – fransk fiskgryta med musslor, räkor, potatis och aioli"
+      "Helstekt fläskkarré med rostad potatis, morötter och grönpepparsås",
+      "Bohuslänsk fisksoppa med potatis och purjolök samt räkor och dill"
     ],
     "tisdag": [
-      "Fransk dragonkyckling i krämig sås serveras med ris och rostade rotfrukter",
-      "Panerad sej serveras med tartarsås, potatis, dill, citron och ärtor"
+      "Stekt fläsk med raggmunk, rårörda lingon och persilja",
+      "Dagens fångst serveras med vitvinssås, smörstekt brysselkål, potatis, gräslök och dill"
     ],
     "onsdag": [
-      "Chinese sticky pork i sötsur sås serveras med ris, salladslök och koriander",
-      "Dagens fångst serveras med rödbetor, kapris, knaprigt bacon och rödvinssås"
+      "Lamm Rogan Josh serveras med ris, grön chutney och yoghurt",
+      "Havets Wallenbergare serveras med potatis, dillmajonnäs, gröna ärtor och citron"
     ],
     "torsdag": [
-      "Högrevschili med ris, pico de gallo, gräddfil och nachos",
-      "Stekt strömming med potatismos, skirat smör, rårörda lingon och dill"
+      "Kålpudding med skysås, potatis, rårörda lingon och pressgurka",
+      "Dagens fångst serveras med skaldjursrisotto, parmesan, basilika och bakade kvisttomater"
     ],
     "fredag": [
-      "Rödvinsbräserad Wagyu-fransyska serveras med potatismos, rökt sidfläsk, morot och gräslök",
-      "Dagens fångst serveras med kastanjepuré, stekt shiitake och kycklingvelouté"
+      "Rostad fläsksida med knaprig svål, gräddsås, rödkål och stekt potatis",
+      "Smörbakad långafilé med saffranssås, grönkål och stekta kastanjer"
     ]
   }
 }
