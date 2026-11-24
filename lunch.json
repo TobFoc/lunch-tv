@@ -40,28 +40,25 @@
       "namn": "Smörstekt lax",
       "beskrivning": "Serveras med nikirishoyu och japanskt ris",
       "etikett": "Koizen",
-      "pris": "129:-",
+      "pris": "",
       "allergener": null,
-      "datum": "2026-11-27",
-      "takeawayPris": "129:-"
+      "datum": "2026-11-27"
     },
     {
       "namn": "Fräsch sidosallad",
       "beskrivning": "Serveras med ponzu-sesamshoyu och rostade sesamfrön",
       "etikett": "Koizen",
-      "pris": "129:-",
+      "pris": "",
       "allergener": null,
-      "datum": "2026-11-27",
-      "takeawayPris": "129:-"
+      "datum": "2026-11-27"
     },
     {
       "namn": "Grillad entrecôte",
       "beskrivning": "Serveras med yakinikusås och japanskt ris",
       "etikett": "Koizen",
-      "pris": "129:-",
+      "pris": "",
       "allergener": null,
-      "datum": "2026-11-27",
-      "takeawayPris": "129:-"
+      "datum": "2026-11-27"
     }
   ],
   "priser": {},
