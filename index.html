@@ -680,6 +680,16 @@
 
 
 
+  /* En ensam streckkod (utan Ta med-knapp) är aldrig bredare än koden i ett kod+knapp-par i samma vy */
+  .kassa .rätt.k > .kod, .kassa .gkod > .kod { --bw: 39; width: calc(var(--u) * var(--bw) * var(--k, 1)); }
+  .kassa .bred .rätt.k > .kod { --bw: 37.5; }
+  .kassa .frad > .kod, .kassa .hrad > .kod, .kassa .hpaket > .kod { --bw: 32; width: calc(var(--u) * var(--bw) * var(--k, 1)); }
+  body.kassa #rätter.vecka.enrad .vkhead .ar > .kod { --bw: 60; width: calc(var(--u) * var(--bw) * var(--k, 1)); }
+  @media (orientation: portrait) {
+    .kassa .bred .rätt.k > .kod { --bw: 51; }
+    .kassa .frad > .kod, .kassa .hrad > .kod, .kassa .hpaket > .kod { --bw: 36; }
+    body.kassa #rätter.vecka.enrad .vkhead .ar > .kod { --bw: 57; }
+  }
 </style>
 </head>
 <body>
