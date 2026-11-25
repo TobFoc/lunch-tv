@@ -41,5 +41,7 @@
       "Smörbakad långafilé": null
     }
   },
-  "vegetariskt": null
+  "vegetariskt": [
+    "laktos"
+  ]
 }
