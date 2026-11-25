@@ -20,8 +20,17 @@
       "Dagens fångst": null
     },
     "onsdag": {
-      "Lamm Rogan Josh": null,
-      "Havets Wallenbergare": null
+      "Lamm Rogan Josh": [
+        "laktos",
+        "nötter"
+      ],
+      "Havets Wallenbergare": [
+        "gluten",
+        "laktos",
+        "ägg",
+        "fisk",
+        "senap"
+      ]
     },
     "torsdag": {
       "Kålpudding": null,
