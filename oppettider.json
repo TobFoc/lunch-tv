@@ -1,5 +1,6 @@
 {
-  "_info": "Stängda och öppna dagar. rodaDagarStangt = stäng automatiskt på svenska röda dagar. undantag = egna datum: {\"datum\":\"2026-12-24\",\"status\":\"stängt\",\"text\":\"Julafton\"} stänger (valfritt \"till\" för flera dagar i rad), {\"datum\":\"2026-12-26\",\"status\":\"öppet\"} har öppet på en röd dag. Kan ändras i backofficet.",
+  "_info": "Stängda och öppna dagar. rodaDagarStangt = stäng automatiskt på svenska röda dagar. undantag = egna datum: {\"datum\":\"2026-12-24\",\"status\":\"stängt\",\"text\":\"Julafton\"} stänger (valfritt \"till\" för flera dagar i rad), {\"datum\":\"2026-12-26\",\"status\":\"öppet\"} har öppet på en röd dag. Kan ändras i backofficet. tider = ändrade tider för enskilda dagar: {\"datum\":\"2026-11-28\",\"tjanst\":\"brunch\",\"status\":\"öppet\",\"start\":\"07:00\",\"slut\":\"12:00\"} (tjanst = frukost, brunch eller lunch; status \"stängt\" = serveras inte den dagen; valfritt \"till\" för flera dagar). Går före vanliga tider och dagar.",
   "rodaDagarStangt": true,
-  "undantag": []
+  "undantag": [],
+  "tider": []
 }
