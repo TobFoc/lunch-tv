@@ -1133,15 +1133,27 @@ function lunchTid(){                                                // egna tide
   const lt = (lunch && lunch.tid && lunch.tid.start && lunch.tid.slut && lunch.tid) || (meny && meny.lunchtid) || {};
   return {start: lt.start || CONFIG.lunchStart, slut: lt.slut || CONFIG.lunchEnd};
 }
+// Ändrade tider för enskilda dagar (oppettider.json → "tider"): {datum, till?, tjanst: frukost|brunch|lunch, status: "öppet"|"stängt", start, slut}
+// Returnerar undefined = ingen ändring (vanliga tider/dagar gäller), null = serveras inte den dagen, {start, slut} = serveras då (oavsett veckodag)
+function övertid(tj, d){
+  const k = iso(d), l = ((opp && opp.tider) || []).filter(e => e && e.tjanst === tj && e.datum <= k && k <= (e.till || e.datum));
+  const e = l[l.length - 1];
+  if(!e) return undefined;
+  return e.status === "stängt" ? null : (TID_RE.test(e.start || "") && TID_RE.test(e.slut || "") ? {start: e.start, slut: e.slut} : undefined);
+}
+function tjTid(tj, d){                                               // effektiv tid för en tjänst ett visst datum: {start, slut} eller null
+  const ö = övertid(tj, d); if(ö !== undefined) return ö;
+  const dn = DAGAR[d.getDay()];
+  if(tj === "frukost") return frukost && frukost.tid && (frukost.dagar || VECKODAGAR).includes(dn) ? frukost.tid : null;
+  if(tj === "brunch") return brunch && brunch.tid && (brunch.dagar || []).includes(dn) ? brunch.tid : null;
+  return lunchDagar().includes(dn) ? lunchTid() : null;
+}
 // Nästa dag med öppet och när det öppnar
 function öppnarIgen(d){
   for(let i = 1; i <= 21; i++){
     const x = plusDagar(d, i), dn = DAGAR[x.getDay()];
     if(stängtInfo(x)) continue;
-    const tider = [];
-    if(frukost && frukost.tid && (frukost.dagar || VECKODAGAR).includes(dn)) tider.push(frukost.tid.start);
-    if(brunch && brunch.tid && (brunch.dagar || []).includes(dn)) tider.push(brunch.tid.start);
-    if(lunchDagar().includes(dn)) tider.push(lunchTid().start);
+    const tider = ["frukost", "brunch", "lunch"].map(t => tjTid(t, x)).filter(Boolean).map(t => t.start);
     if(tider.length) return {datum: x, tid: tider.sort()[0]};
   }
   return null;
@@ -1167,10 +1179,15 @@ function bestämLäge(n, lunchStart, lunchEnd){
   const min = n.getHours()*60 + n.getMinutes(), dag = n.getDay();
   if(stängtInfo(n)) return "stängt";
   if(hockey && hockey.tid && hockeyAktiv(n, min)) return "hockey";
-  const ft = frukost && frukost.tid ? kassaTid(frukost, frukost.tid) : null, bt = brunch && brunch.tid ? kassaTid(brunch, brunch.tid) : null;
-  if(ft && (frukost.dagar || VECKODAGAR).includes(DAGAR[dag]) && min >= minuter(ft.start) && min < minuter(ft.slut)) return "frukost";
-  if(bt && (brunch.dagar || []).includes(DAGAR[dag]) && min >= minuter(bt.start) && min < minuter(bt.slut)) return "brunch";
-  if(lunchDagar().includes(DAGAR[dag]) && min >= minuter(lunchStart) && min < minuter(lunchEnd)) return "dag";
+  const iT = t => t && min >= minuter(t.start) && min < minuter(t.slut);
+  const ö = tj => övertid(tj, n);                                    // ändrad tid för just idag går före de vanliga tiderna (och före egna kassatider)
+  let f = ö("frukost"), br = ö("brunch"), l = ö("lunch");
+  if(f === undefined) f = frukost && frukost.tid && (frukost.dagar || VECKODAGAR).includes(DAGAR[dag]) ? kassaTid(frukost, frukost.tid) : null;
+  if(br === undefined) br = brunch && brunch.tid && (brunch.dagar || []).includes(DAGAR[dag]) ? kassaTid(brunch, brunch.tid) : null;
+  if(l === undefined) l = lunchDagar().includes(DAGAR[dag]) ? {start: lunchStart, slut: lunchEnd} : null;
+  if(iT(f)) return "frukost";
+  if(iT(br)) return "brunch";
+  if(iT(l)) return "dag";
   return "vecka";
 }
 
@@ -1198,16 +1215,17 @@ function rita(){
   // Rubrik, pris och fotrad
   const pm = ((meny && meny.priser) || []).map(p => /^(.*?)\s+(\d+\s*:-)/.exec(p)).filter(Boolean);
   const pris = namn => { const m = pm.find(x => x[1].toLowerCase().startsWith(namn)); return m ? m[2].replace(/\s+/g, "") : null; };
-  const frTid = fr ? `${fr.tid.start}–${fr.tid.slut}` : "", frDagar = fr ? dagLista(fr.dagar || VECKODAGAR) : "";
-  const blTid = bl ? `${bl.tid.start}–${bl.tid.slut}` : "", blDagar = bl ? dagLista(bl.dagar || []) : "";
+  const öF = övertid("frukost", n), öB = övertid("brunch", n), öL = övertid("lunch", n);      // ändrade tider för idag (undefined = vanliga)
+  const frTid = öF ? `${öF.start}–${öF.slut}` : fr ? `${fr.tid.start}–${fr.tid.slut}` : "", frDagar = öF ? "idag" : fr ? dagLista(fr.dagar || VECKODAGAR) : "";
+  const blTid = öB ? `${öB.start}–${öB.slut}` : bl ? `${bl.tid.start}–${bl.tid.slut}` : "", blDagar = öB ? "idag" : bl ? dagLista(bl.dagar || []) : "";
   const stängt = läge === "stängt" ? (stängtInfo(n) || {orsak: ""}) : null;
   document.getElementById("rubrik").textContent = läge === "hockey" ? ((hockey && hockey.rubrik) || "Hockeykvällar") : läge === "stängt" ? "Stängt idag" : läge === "brunch" ? ((bl && bl.rubrik) || "Brunch") : läge === "frukost" ? ((fr && fr.rubrik) || "Frukost") : läge === "vecka" ? "Veckans lunch" : "Dagens lunch";
   document.getElementById("under").textContent = läge === "hockey" ? ((hockey && hockey.underrubrik) || "") : läge === "stängt" ? (stängt.orsak || "") : läge === "brunch" ? (bl ? (bl.underrubrik || `Brunch serveras ${blDagar} ${blTid}`) : "") : läge === "frukost" ? (fr ? (fr.underrubrik || `Frukostbuffé serveras ${frDagar} ${frTid}`) : "") : (läge === "vecka" && meny && meny.vecka ? `Vecka ${meny.vecka} · ${veckoSpann(n)}  ·  ` : "") + CONFIG.underrubrik;
   document.getElementById("pris").textContent = läge === "frukost" || läge === "brunch" || läge === "hockey" || läge === "stängt" ? "" : (CONFIG.pris || pris("dagens lunch") || "");
   const sallad = pris("salladsbaren");
   document.getElementById("fot").innerHTML =
-    (läge !== "frukost" && läge !== "brunch" && (fr || bl) ? `<div>${[fr ? `Frukostbuffé ${frDagar} ${frTid}` : "", bl ? `Brunch ${blDagar} ${blTid}` : ""].filter(Boolean).map(esc).join("  ·  ")}</div>` : "") +
-    `<div><span class="nb">Lunch serveras ${esc(lunchStart)}–${esc(lunchEnd)}</span>` + (sallad && läge !== "frukost" ? `  ·  <span class="nb">Salladsbaren ${esc(sallad)}</span>` : "") + `</div>` +
+    (läge !== "frukost" && läge !== "brunch" && ((fr && öF !== null) || (bl && öB !== null)) ? `<div>${[fr && öF !== null ? `Frukostbuffé ${frDagar} ${frTid}` : "", bl && öB !== null ? `Brunch ${blDagar} ${blTid}` : ""].filter(Boolean).map(esc).join("  ·  ")}</div>` : "") +
+    `<div><span class="nb">${öL === null ? "Ingen lunch idag" : `Lunch serveras ${esc(öL ? öL.start : lunchStart)}–${esc(öL ? öL.slut : lunchEnd)}`}</span>` + (sallad && läge !== "frukost" ? `  ·  <span class="nb">Salladsbaren ${esc(sallad)}</span>` : "") + `</div>` +
     (läge !== "stängt" && stängtInfo(plusDagar(n, 1)) ? `<div class="imorgon">Stängt imorgon${stängtInfo(plusDagar(n, 1)).orsak ? ": " + esc(stängtInfo(plusDagar(n, 1)).orsak) : ""}</div>` : "");
   document.getElementById("notis").textContent = CONFIG.notis || "";
   const bn = document.getElementById("banner");
@@ -1291,7 +1309,7 @@ function rita(){
   }
 
   /* ----- Dagens lunch ----- */
-  if(dagNamn === "lördag" || dagNamn === "söndag") return msg("Ingen lunch i helgen", "Vi ses på måndag!");
+  if((dagNamn === "lördag" || dagNamn === "söndag") && !öL) return msg("Ingen lunch i helgen", "Vi ses på måndag!");
   if(nuMin >= slut) return msg("Lunchen är avslutad för idag", "Välkommen tillbaka imorgon!");
   if(nuMin < start) return msg(`Lunchen serveras från ${lk.start}`);
 
