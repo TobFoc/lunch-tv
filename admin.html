@@ -291,7 +291,7 @@ async function läs(){
     if(k === "utseende") D[k] = D[k] && D[k].tema ? D[k] : {tema: "klassisk"};
     if(k === "lunch") D[k] = D[k] || {tid: null, dagar: [...DAGAR]};
     if(k === "lunch"){ D[k].priser = D[k].priser || {}; D[k].taPriser = D[k].taPriser || {}; D[k].visning = D[k].visning || {}; D[k].ingenTa = D[k].ingenTa || {}; D[k].extra = (D[k].extra || []).filter(x => x.alltid === true || x.datum >= iso(new Date())); }
-    if(k === "oppett"){ D[k] = D[k] || {rodaDagarStangt: true, undantag: []}; D[k].undantag = (D[k].undantag || []).filter(e => (e.till || e.datum) >= iso(new Date())); }
+    if(k === "oppett"){ D[k] = D[k] || {rodaDagarStangt: true, undantag: []}; D[k].undantag = (D[k].undantag || []).filter(e => (e.till || e.datum) >= iso(new Date())); if(Array.isArray(D[k].tider)) D[k].tider = D[k].tider.filter(e => (e.till || e.datum) >= iso(new Date())); }
     if(k === "hockey") D[k] = D[k] || {rubrik: "Hockeykvällar i Focus Restaurang", underrubrik: "", banner: "Hockeykväll i restaurangen!", tid: {start: "16:30"}, matchstart: "19:00", datum: [], rader: [], paket: {namn: "Paketpris mat + dryck", pris: ""}};
     BAS[k] = k === "allergener" ? ser(D[k]) : ser(D[k]);
   }
@@ -1048,10 +1048,49 @@ function installHockey(){
       h("div", {}, h("label", {class: "f"}, "Matchstart"), h("input", {type: "time", value: k.matchstart || "", oninput: e => { k.matchstart = e.target.value; uppdStatus(); }}))),
     kassaTidFält(k, () => ({start: (k.tid || {}).start || "16:30", slut: k.matchstart || "19:00"})));
 }
+/* ---------- Ändrade tider för enskilda dagar (frukost, brunch, lunch) ---------- */
+function vyTidsändringar(){
+  const o = D.oppett; o.tider = Array.isArray(o.tider) ? o.tider : [];
+  const NAMN = {frukost: "Frukost", brunch: "Brunch", lunch: "Lunch"};
+  const dagnamn = s => ["söndag","måndag","tisdag","onsdag","torsdag","fredag","lördag"][new Date(s + "T12:00:00").getDay()];
+  const box = h("div");
+  const nyDatum = h("input", {type: "date"}), nyTill = h("input", {type: "date"}),
+    nyTj = h("select", {}, ...Object.keys(NAMN).map(k => h("option", {value: k}, NAMN[k]))),
+    nyStatus = h("select", {}, h("option", {value: "öppet"}, "Serveras (med dessa tider)"), h("option", {value: "stängt"}, "Serveras inte")),
+    nyStart = h("input", {type: "time", value: "12:00"}), nySlut = h("input", {type: "time", value: "14:30"});
+  const rita = () => {
+    o.tider.sort((x, y) => x.datum < y.datum ? -1 : x.datum > y.datum ? 1 : 0);
+    box.replaceChildren(...(o.tider.length ? o.tider.map(e => h("div", {class: "rad", style: "align-items:center;padding:8px 10px;margin:6px 0;border:1px solid #ccc;border-radius:8px;background:#fff"},
+      h("div", {}, h("b", {}, dagnamn(e.datum) + " " + e.datum + (e.till && e.till !== e.datum ? " till " + e.till : ""))),
+      h("div", {}, h("b", {}, NAMN[e.tjanst]), e.status === "stängt" ? " serveras inte" : " serveras " + e.start + "–" + e.slut),
+      h("div", {}, h("button", {class: "liten fara", onclick: () => { o.tider = o.tider.filter(x => x !== e); rita(); uppdStatus(); }}, "Ta bort")))) : [h("p", {class: "dim"}, "Inga ändrade dagar inlagda. De vanliga tiderna och dagarna ovan gäller.")]));
+  };
+  rita();
+  const visaTid = () => { tidRad.style.display = nyStatus.value === "öppet" ? "" : "none"; };
+  const tidRad = h("div", {class: "rad"}, h("div", {}, h("label", {class: "f"}, "Från"), nyStart), h("div", {}, h("label", {class: "f"}, "Till"), nySlut));
+  nyStatus.onchange = visaTid;
+  return h("div", {class: "kort"}, h("h3", {}, "Ändrade tider för enskilda dagar"),
+    h("p", {class: "dim"}, "Gäller bara de datum ni väljer och går före de vanliga tiderna och dagarna ovan. Exempel: brunchen på en lördag slutar 12:00 och lunch serveras 12:00–14:30 (lägg in två rader). Eller servera lunch eller frukost en söndag. Lunch en helgdag behöver en rätt med det datumet under Lunch → Egna rätter. Gamla datum rensas bort automatiskt."),
+    box,
+    h("h3", {style: "margin-top:14px"}, "Lägg till ändring"),
+    h("div", {class: "rad"}, h("div", {}, h("label", {class: "f"}, "Datum"), nyDatum), h("div", {}, h("label", {class: "f"}, "Till och med (valfritt)"), nyTill), h("div", {}, h("label", {class: "f"}, "Vad"), nyTj)),
+    h("label", {class: "f"}, "Då"), nyStatus, tidRad,
+    h("p", {}, h("button", {class: "prim", onclick: () => {
+      if(!nyDatum.value) return toast("Välj ett datum.", true);
+      if(nyTill.value && nyTill.value < nyDatum.value) return toast("'Till och med' måste vara samma dag eller senare.", true);
+      const e = {datum: nyDatum.value, tjanst: nyTj.value, status: nyStatus.value};
+      if(nyTill.value && nyTill.value !== nyDatum.value) e.till = nyTill.value;
+      if(e.status === "öppet"){
+        if(!nyStart.value || !nySlut.value || nySlut.value <= nyStart.value) return toast("Fyll i tider där slut är efter start.", true);
+        e.start = nyStart.value; e.slut = nySlut.value;
+      }
+      o.tider = o.tider.filter(x => !(x.tjanst === e.tjanst && x.datum === e.datum));      // en ändring per tjänst och dag
+      o.tider.push(e); nyDatum.value = nyTill.value = ""; rita(); uppdStatus(); }}, "+ Lägg till")));
+}
 function vyInstallningar(){
   return h("div", {},
     h("div", {class: "info"}, "Här ställer ni in ", h("b", {}, "när varje vy visas på skylten"), ", ", h("b", {}, "när streckkoderna kan användas i kassan"), " (egna kassatider), när restaurangen är ", h("b", {}, "stängd"), " och vilket ", h("b", {}, "utseende"), " skärmarna ska ha."),
-    h("h2", {}, "Tider och dagar"), installLunch(), installBuffe("frukost"), installBuffe("brunch"), installHockey(),
+    h("h2", {}, "Tider och dagar"), installLunch(), installBuffe("frukost"), installBuffe("brunch"), installHockey(), vyTidsändringar(),
     h("h2", {}, "Stängt"), vyStangt(),
     h("h2", {}, "Egna allergener"), vyEgna(),
     h("h2", {}, "Utseende"), vyUtseende(),
