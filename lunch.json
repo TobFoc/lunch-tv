@@ -81,5 +81,15 @@
     "Vin": true,
     "Öl, 50 cl Mariestad": true,
     "Thailändsk kycklinggryta": true
-  }
+  },
+  "dolda": [
+    {
+      "namn": "Texas black bean chili",
+      "datum": "2026-11-28"
+    },
+    {
+      "namn": "Köttbullar",
+      "datum": "2026-11-28"
+    }
+  ]
 }
