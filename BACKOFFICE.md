@@ -162,3 +162,11 @@ Under **Inställningar → Tider och dagar** finns **Ändrade tider för enskild
 - **Serveras inte:** välj "Serveras inte".
 
 Skylten och kassan byter vy efter de ändrade tiderna, och fotraden visar dagens tider. Kräver att worker.js är uppdaterad i Cloudflare.
+
+## Utskrift följer veckans standard
+
+Utskriften av lunchmenyn visar veckans rätter per veckodag. Rätter med eget datum (t.ex. Koizen en fredag) står bara under den dagen, och rätter med datum utanför veckan skrivs inte ut. Rätter som är avstängda ett visst datum utelämnas den dagen. "Alltid på Focus" visar bara de rätter som alltid serveras.
+
+## Stäng av rätter vissa datum
+
+Under **Lunch → Stäng av rätter vissa datum** väljer ni en rätt (ICA-rätt, veckans vegetariska eller en egen rätt), ett datum och eventuellt "till och med". Rätten visas då inte på skylten, i kassan eller på utskriften de dagarna, och kommer tillbaka efteråt. Gamla avstängningar rensas automatiskt. Sparas i lunch.json (dolda). Kräver att worker.js är uppdaterad i Cloudflare.
