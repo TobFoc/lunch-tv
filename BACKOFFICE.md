@@ -151,3 +151,14 @@ Under **Datumstyrda teman** trycker ni **+ Lägg till period**, väljer tema, st
 ## Många rätter en dag
 
 När en dag har upp mot 10 rätter delas listan automatiskt i två kolumner på TV:n, och i kassan läggs rätterna med gemensam streckkod i två kolumner. Blir det ändå för trångt döljs raderna "Allergener: fråga personalen" och en gemensam notis visas längst ner. Rätter med angivna allergener visar dem som vanligt.
+
+
+## Ändra tider för en enskild dag
+
+Under **Inställningar → Tider och dagar** finns **Ändrade tider för enskilda dagar**. Där väljer ni datum (och eventuellt "till och med"), vad det gäller (Frukost, Brunch eller Lunch) och om det serveras med andra tider eller inte alls. Ändringen går före de vanliga tiderna och dagarna och gäller bara de datum ni valt. Gamla ändringar rensas bort automatiskt.
+
+- **Brunchen slutar 12:00 en lördag, lunch från 12:00:** lägg in Brunch 07:00–12:00 och Lunch 12:00–14:30 för det datumet. Lägg en rätt med samma datum under Lunch → Egna rätter så att lunchen har något att visa.
+- **Frukost eller lunch en söndag:** lägg in tjänsten med tider för det datumet.
+- **Serveras inte:** välj "Serveras inte".
+
+Skylten och kassan byter vy efter de ändrade tiderna, och fotraden visar dagens tider. Kräver att worker.js är uppdaterad i Cloudflare.
