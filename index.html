@@ -1264,13 +1264,15 @@ function rita(){
   }
 
   // Extra rätter som personalen lagt till i backoffice (gäller ett visst datum, utöver ICA:s meny)
-  const extraDag = ik => ((lunch && lunch.extra) || []).filter(e => e && e.namn && (e.alltid === true || e.datum === ik));
+  // Rätter som personalen stängt av vissa datum (lunch.json → dolda: [{namn, datum, till?}])
+  const dold = (namn, ik) => ((lunch && lunch.dolda) || []).some(x => x && x.datum <= ik && ik <= (x.till || x.datum) && nz(x.namn || "") === nz(namn));
+  const extraDag = ik => ((lunch && lunch.extra) || []).filter(e => e && e.namn && (e.alltid === true || e.datum === ik) && !dold(e.namn, ik));
   const extraIdag = extraDag(iso(n));
   const gammal = !meny || (meny.vecka && meny.vecka !== isoVecka(n));      // saknad eller gammal ICA-meny: visa bara extra rätter
   if(gammal && !extraIdag.length) return msg(!meny ? "Menyn är inte tillgänglig just nu" : "Veckans meny är inte publicerad ännu");
 
   const dagar = gammal ? {} : (meny.dagar || meny.days || {});
-  const veg = !gammal && meny.vegetariskt ? dela(meny.vegetariskt) : null;
+  const veg = !gammal && meny.vegetariskt && !dold(dela(meny.vegetariskt).namn, iso(n)) ? dela(meny.vegetariskt) : null;
   const SYN = CONFIG.visaAllergener;
 
   /* ----- Hela veckans lunchmeny ----- */
@@ -1283,7 +1285,7 @@ function rita(){
     const datum = i => new Date(mån.getFullYear(), mån.getMonth(), mån.getDate() + i).toLocaleDateString("sv-SE", {day: "numeric", month: "short"});
     let html = VECKODAGAR.map((d, i) => {
       RD = d;
-      const rader = (dagar[d] || []).map(r => dela(r).namn).concat(extraDag(iso(new Date(mån.getFullYear(), mån.getMonth(), mån.getDate() + i))).filter(e => e.alltid !== true).map(e => e.namn));
+      const rader = (dagar[d] || []).map(r => dela(r).namn).filter(nm => !dold(nm, iso(new Date(mån.getFullYear(), mån.getMonth(), mån.getDate() + i)))).concat(extraDag(iso(new Date(mån.getFullYear(), mån.getMonth(), mån.getDate() + i))).filter(e => e.alltid !== true).map(e => e.namn));
       return `<div class="rad${d === idag ? " idag" : ""}">
         <div class="dagnamn"><span class="dag fit" data-max="28">${d}</span><span class="dagdatum">${datum(i)}</span></div>
         <div class="rl">${rader.map(nm => { const sl = d === idag && ärSlut(nm, n); return `<div class="${sl ? "slut" : ""}">${ikonFör(nm)}<span class="nm">${esc(visa(nm))}</span>${lunchPris(nm) ? `<span class="rpris">${esc(lunchPris(nm))}</span>` : ""}${taHtml(lunchTaPris(nm))}${sl ? slutMärke() : ""}</div>`; }).join("") || "<div>Ingen meny registrerad</div>"}</div>
@@ -1295,7 +1297,7 @@ function rita(){
         <div class="rl"><div class="${ärSlut(veg.namn, n) ? "slut" : ""}">${ikonFör(veg.namn)}<span class="nm">${esc(visa(veg.namn))}</span>${lunchPris(veg.namn) ? `<span class="rpris">${esc(lunchPris(veg.namn))}</span>` : ""}${taHtml(lunchTaPris(veg.namn))}${ärSlut(veg.namn, n) ? slutMärke() : ""}<span class="hv">Mån–fre</span></div>${veg.besk ? `<div class="vbesk">${esc(veg.besk)}</div>` : ""}</div>
       </div>`;
     // Rätter som alltid serveras (alltid på) får en egen ruta längst ned till höger (tom yta i den gröna raden), så att dagarnas rader behåller sin textstorlek
-    const alltid = extraDag("").filter(e => e.alltid === true);
+    const alltid = extraDag(iso(n)).filter(e => e.alltid === true);
     if(alltid.length){
       const nA = alltid.length, kl = nA <= 2 ? "a1" : nA <= 4 ? "a2" : "a3";
       const sida = alltid.map(e => { const sl = ärSlut(e.namn, n); return `<div class="ar${sl ? " slut" : ""}">${e.etikett ? `<div class="ae">${esc(e.etikett)}</div>` : ""}<div class="an">${ikonFör(e.namn)}<span class="nm">${esc(e.namn)}</span>${e.pris ? `<span class="ap">${esc(e.pris)}</span>` : ""}${taHtml(taV(e.namn, e.takeawayPris))}${sl ? slutMärke() : ""}</div>${KASSA && /kaffe/i.test(e.namn) ? kodPar(e.namn, n, "lunch", taV(e.namn, e.takeawayPris)) : ""}</div>`; }).join("");
@@ -1313,7 +1315,7 @@ function rita(){
   if(nuMin >= slut) return msg("Lunchen är avslutad för idag", "Välkommen tillbaka imorgon!");
   if(nuMin < start) return msg(`Lunchen serveras från ${lk.start}`);
 
-  const rätter = [...(dagar[dagNamn] || []), ...extraIdag.filter(e => KASSA || e.alltid !== true).map(e => ({namn: e.namn, beskrivning: e.beskrivning || "", allergener: e.allergener, etikett: e.etikett || "", pris: e.pris || "", tapris: taV(e.namn, e.takeawayPris) || ""}))];
+  const rätter = [...(dagar[dagNamn] || []).filter(r => !dold(dela(r).namn, iso(n))), ...extraIdag.filter(e => KASSA || e.alltid !== true).map(e => ({namn: e.namn, beskrivning: e.beskrivning || "", allergener: e.allergener, etikett: e.etikett || "", pris: e.pris || "", tapris: taV(e.namn, e.takeawayPris) || ""}))];
   if(!rätter || !rätter.length) return msg("Ingen meny registrerad för idag");
 
   const textHtml = (o, ids, etikett, sl) =>
