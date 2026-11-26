@@ -290,6 +290,7 @@ async function läs(){
     if(k === "egna") D[k] = D[k] && Array.isArray(D[k].lista) ? D[k] : {lista: []};
     if(k === "utseende") D[k] = D[k] && D[k].tema ? D[k] : {tema: "klassisk"};
     if(k === "lunch") D[k] = D[k] || {tid: null, dagar: [...DAGAR]};
+    if(k === "lunch" && Array.isArray(D[k].dolda)) D[k].dolda = D[k].dolda.filter(e => (e.till || e.datum) >= iso(new Date()));
     if(k === "lunch"){ D[k].priser = D[k].priser || {}; D[k].taPriser = D[k].taPriser || {}; D[k].visning = D[k].visning || {}; D[k].ingenTa = D[k].ingenTa || {}; D[k].extra = (D[k].extra || []).filter(x => x.alltid === true || x.datum >= iso(new Date())); }
     if(k === "oppett"){ D[k] = D[k] || {rodaDagarStangt: true, undantag: []}; D[k].undantag = (D[k].undantag || []).filter(e => (e.till || e.datum) >= iso(new Date())); if(Array.isArray(D[k].tider)) D[k].tider = D[k].tider.filter(e => (e.till || e.datum) >= iso(new Date())); }
     if(k === "hockey") D[k] = D[k] || {rubrik: "Hockeykvällar i Focus Restaurang", underrubrik: "", banner: "Hockeykväll i restaurangen!", tid: {start: "16:30"}, matchstart: "19:00", datum: [], rader: [], paket: {namn: "Paketpris mat + dryck", pris: ""}};
@@ -908,6 +909,31 @@ function kodDelar(V, synliga){
 }
 
 /* ---------- Lunch ---------- */
+/* ---------- Stäng av rätter vissa datum ---------- */
+function vyDolda(namnLista){
+  const l = D.lunch; l.dolda = Array.isArray(l.dolda) ? l.dolda : [];
+  const dagnamn = s => ["söndag","måndag","tisdag","onsdag","torsdag","fredag","lördag"][new Date(s + "T12:00:00").getDay()];
+  const box = h("div"), val = h("select"), nyD = h("input", {type: "date"}), nyT = h("input", {type: "date"});
+  const rita = () => {
+    l.dolda.sort((x, y) => x.datum < y.datum ? -1 : x.datum > y.datum ? 1 : 0);
+    box.replaceChildren(...(l.dolda.length ? l.dolda.map(e => h("div", {class: "rad", style: "align-items:center;padding:8px 10px;margin:6px 0;border:1px solid #ccc;border-radius:8px;background:#fff"},
+      h("div", {}, h("b", {}, e.namn)), h("div", {}, "serveras inte " + dagnamn(e.datum) + " " + e.datum + (e.till && e.till !== e.datum ? " till " + e.till : "")),
+      h("div", {}, h("button", {class: "liten fara", onclick: () => { l.dolda = l.dolda.filter(x => x !== e); rita(); uppdStatus(); }}, "Ta bort")))) : [h("p", {class: "dim"}, "Inga avstängda rätter. Alla rätter visas som vanligt.")]));
+    val.replaceChildren(...namnLista().map(n => h("option", {value: n}, n)));
+  };
+  rita();
+  return h("div", {class: "kort"},
+    h("p", {class: "dim"}, "Välj en rätt och ett datum då den inte ska visas på skylten, i kassan eller på utskriften. Gäller bara de datumen, rätten kommer tillbaka efteråt. Gamla datum rensas bort automatiskt."),
+    box, h("h3", {style: "margin-top:14px"}, "Lägg till"),
+    h("label", {class: "f"}, "Rätt"), val,
+    h("div", {class: "rad"}, h("div", {}, h("label", {class: "f"}, "Datum"), nyD), h("div", {}, h("label", {class: "f"}, "Till och med (valfritt)"), nyT)),
+    h("p", {}, h("button", {class: "prim", onclick: () => {
+      if(!val.value) return toast("Välj en rätt.", true);
+      if(!nyD.value) return toast("Välj ett datum.", true);
+      if(nyT.value && nyT.value < nyD.value) return toast("'Till och med' måste vara samma dag eller senare.", true);
+      const e = {namn: val.value, datum: nyD.value}; if(nyT.value && nyT.value !== nyD.value) e.till = nyT.value;
+      l.dolda.push(e); nyD.value = nyT.value = ""; rita(); uppdStatus(); }}, "+ Stäng av rätten")));
+}
 function vyLunchRatter(){
   const V = rattVerktyg(), l = D.lunch, a = D.allergener, iD = iso(new Date());
   l.priser = l.priser || {}; l.taPriser = l.taPriser || {}; l.visning = l.visning || {}; l.ingenTa = l.ingenTa || {};
@@ -942,6 +968,8 @@ function vyLunchRatter(){
     delar.push(V.kort({namn: veg, standardKod: true, visning: prisFält(l.visning, veg), pris: prisFält(l.priser, veg), taPris: prisFält(l.taPriser, veg), allerg: {get: () => a.vegetariskt, set: v => a.vegetariskt = v}}));
   }
   const vd = s => ["söndag","måndag","tisdag","onsdag","torsdag","fredag","lördag"][new Date(s + "T12:00:00").getDay()] + " " + s;
+  delar.push(h("h2", {}, "Stäng av rätter vissa datum"));
+  delar.push(vyDolda(() => { const n = [...namn]; if(veg) n.push(veg); (l.extra || []).forEach(x => { if(x.namn && !n.some(y => nz(y) === nz(x.namn))) n.push(x.namn); }); return n; }));
   delar.push(h("h2", {}, "Extra rätter och drycker"));
   delar.push(h("p", {class: "dim", style: "margin:0"}, "Rätter som inte finns på hemsidan, t.ex. kaffe. De gäller ett visst datum och försvinner dagen efter, eller visas varje lunchdag om Alltid på är ikryssat."));
   const sorterade = [...l.extra].sort((x, y) => (x.alltid ? "" : x.datum) < (y.alltid ? "" : y.datum) ? -1 : 1);
@@ -1296,10 +1324,23 @@ function skrivUt(kat){
     under = "Vecka " + ((menu && menu.vecka) || "") + " · Bröd, salladsbuffé & kaffe ingår";
     const delaB = r => { if(r && typeof r === "object") return {n: r.namn || "", b: r.beskrivning || ""}; const t = String(r).trim(), n = dela(t); return {n, b: stor(t.slice(n.length).trim().replace(/^[–-]\s+/, ""))}; };
     const allergFör = (d, n) => { const o = (a && a.dagar && a.dagar[d]) || {}, k = Object.keys(o).find(x => nz(x) === nz(n)); return k === undefined ? null : o[k]; };
-    if(menu && menu.dagar) DAGAR.forEach(d => { const rs = menu.dagar[d] || []; if(!rs.length) return;
-      kod.push(h("h2", {}, stor(d))); rs.forEach(r => { const o = delaB(r); kod.push(rad(vis(o.n), lPris(o.n), lTa(o.n), o.b, allergFör(d, o.n))); }); });
+    // Utskriften följer veckans standard: ICA:s rätter per veckodag. Rätter med eget datum står bara under sin dag, och rätter som är avstängda ett datum utelämnas den dagen
+    const dolda = (n, ik) => (l.dolda || []).some(x => x.datum <= ik && ik <= (x.till || x.datum) && nz(x.namn) === nz(n));
+    const vk = menu && menu.vecka, idagD = new Date();
+    const vkMån = (() => { const mån0 = new Date(idagD.getFullYear(), idagD.getMonth(), idagD.getDate() - ((idagD.getDay() + 6) % 7)); if(!vk) return mån0;
+      let bäst = mån0, bd = 1e18; [idagD.getFullYear() - 1, idagD.getFullYear(), idagD.getFullYear() + 1].forEach(y => { const j4 = new Date(y, 0, 4), m1 = new Date(y, 0, 4 - ((j4.getDay() + 6) % 7)), m = new Date(m1.getFullYear(), m1.getMonth(), m1.getDate() + (Number(vk) - 1) * 7); const dd = Math.abs(m - mån0); if(dd < bd){ bd = dd; bäst = m; } }); return bäst; })();
+    const datumFör = i => iso(new Date(vkMån.getFullYear(), vkMån.getMonth(), vkMån.getDate() + i));
+    const DAGNAMN7 = [...DAGAR, "lördag", "söndag"];
+    DAGNAMN7.forEach((d, i) => {
+      const ik = datumFör(i), rs = ((menu && menu.dagar && menu.dagar[d]) || []).map(delaB).filter(o => !dolda(o.n, ik)),
+        eg = (l.extra || []).filter(x => x.alltid !== true && x.datum === ik && !dolda(x.namn, ik));
+      if(!rs.length && !eg.length) return;
+      kod.push(h("h2", {}, stor(d) + (eg.length && !rs.length ? " " + ik.slice(5) : "")));
+      rs.forEach(o => kod.push(rad(vis(o.n), lPris(o.n), lTa(o.n), o.b, allergFör(d, o.n))));
+      eg.forEach(x => kod.push(rad(x.namn, x.pris || "", x.takeawayPris || "", x.beskrivning || "", x.allergener)));
+    });
     if(menu && menu.vegetariskt){ const o = delaB(menu.vegetariskt); kod.push(h("h2", {class: "veg"}, "Veckans vegetariska · gäller hela veckan")); kod.push(rad(vis(o.n), lPris(o.n), lTa(o.n), o.b, a ? a.vegetariskt : null)); }
-    const ex = (l.extra || []).filter(x => x.alltid === true || x.datum >= iso(new Date()));
+    const ex = (l.extra || []).filter(x => x.alltid === true);
     if(ex.length){ kod.push(h("h2", {}, "Alltid på Focus")); ex.forEach(x => kod.push(rad(x.namn, x.pris || "", x.takeawayPris || "", x.beskrivning || "", x.allergener))); }
     fot.push("Lunch serveras " + (lt ? tid(lt) : "") + (dagTxt(l.dagar) ? " " + dagTxt(l.dagar) : ""));
     const sb = hitta("salladsbaren"); if(sb) fot.push("Salladsbaren " + sb);
